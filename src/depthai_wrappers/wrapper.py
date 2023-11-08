@@ -4,6 +4,7 @@ import os
 import cv2
 import depthai as dai
 import numpy as np
+
 from depthai_wrappers.cam_config import CamConfig
 from depthai_wrappers.utils import get_inv_R_T, get_socket_from_name
 
