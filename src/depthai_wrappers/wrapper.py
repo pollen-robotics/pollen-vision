@@ -10,12 +10,14 @@ from depthai_wrappers.utils import get_inv_R_T, get_socket_from_name
 
 
 class Wrapper:
-    def __init__(self, cam_config_json, fps, force_usb2):
-        self.cam_config = CamConfig(cam_config_json, fps)
+    def __init__(self, cam_config_json, fps, force_usb2, resize, rectify):
+        self.cam_config = CamConfig(cam_config_json, fps, resize)
         self.force_usb2 = force_usb2
-        self.init()
+        self.rectify = rectify
 
-    def init(self):
+        self.prepare()
+
+    def prepare(self):
         connected_cameras_features = dai.Device().getConnectedCameraFeatures()
 
         # Assuming both cameras are the same
@@ -23,8 +25,18 @@ class Wrapper:
         height = connected_cameras_features[0].height
 
         self.cam_config.set_sensor_resolution((width, height))
-
         self.compute_undistort_maps()
+
+        self.pipeline = self.create_pipeline()
+
+        self.device = dai.Device(
+            self.pipeline,
+            maxUsbSpeed=(
+                dai.UsbSpeed.HIGH if self.force_usb2 else dai.UsbSpeed.SUPER_PLUS
+            ),
+        )
+        self.queues = self.create_queues()
+
         self.print_info()
 
     def print_info(self):
@@ -33,32 +45,39 @@ class Wrapper:
         print("Force USB2: {}".format(self.force_usb2))
         print("==================")
 
+    def get_data(self):
+        print("Abstract class Wrapper does not implement get_data()")
+
     def create_pipeline(self):
-        pass
+        print("Abstract class Wrapper does not implement create_pipeline()")
 
-    def create_manipRectify(self, pipeline, cam_name, resolution):
+    def create_queues(self):
+        print("Abstract class Wrapper does not implement create_queues()")
+
+    def create_manipRectify(self, pipeline, cam_name, resolution, rectify=True):
         manipRectify = pipeline.createImageManip()
+        
+        if rectify:
+            try:
+                mesh, meshWidth, meshHeight = self.get_mesh(cam_name)
+            except Exception as e:
+                print(e)
+                exit()
 
-        try:
-            mesh, meshWidth, meshHeight = self.get_mesh(cam_name)
-        except Exception as e:
-            print(e)
-            exit()
-
-        manipRectify.setWarpMesh(mesh, meshWidth, meshHeight)
+            manipRectify.setWarpMesh(mesh, meshWidth, meshHeight)
 
         manipRectify.setMaxOutputFrameSize(resolution[0] * resolution[1] * 3)
         return manipRectify
 
-    def create_manipRescale(self, pipeline, resolution):
-        manipRescale = pipeline.createImageManip()
-        manipRescale.initialConfig.setResizeThumbnail(resolution[0], resolution[1])
-        manipRescale.setMaxOutputFrameSize(resolution[0] * resolution[1] * 3)
+    def create_manipResize(self, pipeline, resolution):
+        manipResize = pipeline.createImageManip()
+        manipResize.initialConfig.setResizeThumbnail(resolution[0], resolution[1])
+        manipResize.setMaxOutputFrameSize(resolution[0] * resolution[1] * 3)
 
         # TODO add this in child method for teleop
-        # manipRescale.initialConfig.setFrameType(dai.ImgFrame.Type.NV12)
+        # manipResize.initialConfig.setFrameType(dai.ImgFrame.Type.NV12)
 
-        return manipRescale
+        return manipResize
 
     def compute_undistort_maps(self):
         left_socket = get_socket_from_name("left", self.cam_config.name_to_socket)

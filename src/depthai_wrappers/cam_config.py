@@ -2,7 +2,7 @@ import json
 
 
 class CamConfig:
-    def __init__(self, cam_config_json, fps):
+    def __init__(self, cam_config_json, fps, resize):
         self.cam_config_json = cam_config_json
         self.fps = fps
 
@@ -10,9 +10,10 @@ class CamConfig:
         self.socket_to_name = config["socket_to_name"]
         self.inverted = config["inverted"]
         self.fisheye = config["fisheye"]
+        self.mono = config["mono"]
         self.name_to_socket = {v: k for k, v in self.socket_to_name.items()}
         self.sensor_resolution = None
-        self.resize_resolution = None
+        self.resize_resolution = resize
         self.undstort_maps = {"left": None, "right": None}
 
     def set_sensor_resolution(self, resolution):
@@ -36,6 +37,7 @@ class CamConfig:
         ret_string += "Resize resolution: {}\n".format(self.resize_resolution)
         ret_string += "Inverted: {}\n".format(self.inverted)
         ret_string += "Fisheye: {}\n".format(self.fisheye)
+        ret_string += "Mono: {}\n".format(self.mono)
         ret_string += (
             "Undistort maps are: " + "set"
             if self.undstort_maps["left"] is not None
