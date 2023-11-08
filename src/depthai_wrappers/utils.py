@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import depthai as dai
 import numpy as np
 
@@ -9,11 +11,13 @@ socket_stringToCam = {
 }
 
 
-def get_socket_from_name(name, name_to_socket):
+def get_socket_from_name(
+    name: str, name_to_socket: dict[str, str]
+) -> dai.CameraBoardSocket:
     return socket_stringToCam[name_to_socket[name]]
 
 
-def get_inv_R_T(R, T):
+def get_inv_R_T(R: np.ndarray, T: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     tmp = np.eye(4)
     tmp[:3, :3] = R
     tmp[:3, 3] = T

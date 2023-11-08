@@ -1,5 +1,6 @@
 import json
 import os
+from typing import Tuple
 
 import cv2
 import depthai as dai
@@ -10,14 +11,21 @@ from depthai_wrappers.utils import get_inv_R_T, get_socket_from_name
 
 
 class Wrapper:
-    def __init__(self, cam_config_json, fps, force_usb2, resize, rectify):
+    def __init__(
+        self,
+        cam_config_json: str,
+        fps: int,
+        force_usb2: bool,
+        resize: Tuple[int, int],
+        rectify: bool,
+    ) -> None:
         self.cam_config = CamConfig(cam_config_json, fps, resize)
         self.force_usb2 = force_usb2
         self.rectify = rectify
 
         self.prepare()
 
-    def prepare(self):
+    def prepare(self) -> None:
         connected_cameras_features = dai.Device().getConnectedCameraFeatures()
 
         # Assuming both cameras are the same
@@ -39,37 +47,102 @@ class Wrapper:
 
         self.print_info()
 
-    def print_info(self):
+    def print_info(self) -> None:
         print("==================")
         print(self.cam_config.to_string())
         print("Force USB2: {}".format(self.force_usb2))
+        print("Rectify: {}".format(self.rectify))
         print("==================")
 
-    def get_data(self):
+    def get_data(self) -> dict[str, np.ndarray]:
         print("Abstract class Wrapper does not implement get_data()")
+        exit()
 
-    def create_pipeline(self):
+    def create_pipeline(self) -> dai.Pipeline:
         print("Abstract class Wrapper does not implement create_pipeline()")
+        exit()
 
-    def create_queues(self):
-        print("Abstract class Wrapper does not implement create_queues()")
+    def pipeline_basis(self) -> dai.Pipeline:
+        pipeline = dai.Pipeline()
 
-    def create_manipRectify(self, pipeline, cam_name, resolution, rectify=True):
+        left_socket = get_socket_from_name("left", self.cam_config.name_to_socket)
+        right_socket = get_socket_from_name("right", self.cam_config.name_to_socket)
+
+        self.left = pipeline.createColorCamera()
+        self.left.setFps(self.cam_config.fps)
+        self.left.setBoardSocket(left_socket)
+        self.left.setResolution(
+            dai.ColorCameraProperties.SensorResolution.THE_1440X1080
+        )
+
+        self.right = pipeline.createColorCamera()
+        self.right.setFps(self.cam_config.fps)
+        self.right.setBoardSocket(right_socket)
+        self.right.setResolution(
+            dai.ColorCameraProperties.SensorResolution.THE_1440X1080
+        )
+
+        if self.cam_config.inverted:
+            self.left.setImageOrientation(dai.CameraImageOrientation.ROTATE_180_DEG)
+            self.right.setImageOrientation(dai.CameraImageOrientation.ROTATE_180_DEG)
+
+        self.left_manipRectify = self.create_manipRectify(
+            pipeline, "left", self.cam_config.sensor_resolution, self.rectify
+        )
+        self.right_manipRectify = self.create_manipRectify(
+            pipeline, "right", self.cam_config.sensor_resolution, self.rectify
+        )
+
+        self.left_manipRescale = self.create_manipResize(
+            pipeline, self.cam_config.resize_resolution
+        )
+        self.right_manipRescale = self.create_manipResize(
+            pipeline, self.cam_config.resize_resolution
+        )
+        return pipeline
+
+    def link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
+        print("Abstract class Wrapper does not implement link_pipeline()")
+        exit()
+
+    def create_output_streams(self, pipeline: dai.Pipeline) -> dai.Pipeline:
+        self.xout_left = pipeline.createXLinkOut()
+        self.xout_left.setStreamName("left")
+
+        self.xout_right = pipeline.createXLinkOut()
+        self.xout_right.setStreamName("right")
+
+        return pipeline
+
+    def create_queues(self) -> dict[str, dai.DataOutputQueue]:
+        queues = {}
+        for name in ["left", "right"]:
+            queues[name] = self.device.getOutputQueue(name, maxSize=1, blocking=False)
+        return queues
+
+    def create_manipRectify(
+        self,
+        pipeline: dai.Pipeline,
+        cam_name: str,
+        resolution: Tuple[int, int],
+        rectify: bool = True,
+    ) -> dai.node.ImageManip:
         manipRectify = pipeline.createImageManip()
-        
+
         if rectify:
             try:
                 mesh, meshWidth, meshHeight = self.get_mesh(cam_name)
+                manipRectify.setWarpMesh(mesh, meshWidth, meshHeight)
             except Exception as e:
                 print(e)
                 exit()
 
-            manipRectify.setWarpMesh(mesh, meshWidth, meshHeight)
-
         manipRectify.setMaxOutputFrameSize(resolution[0] * resolution[1] * 3)
         return manipRectify
 
-    def create_manipResize(self, pipeline, resolution):
+    def create_manipResize(
+        self, pipeline: dai.Pipeline, resolution: Tuple[int, int]
+    ) -> dai.node.ImageManip:
         manipResize = pipeline.createImageManip()
         manipResize.initialConfig.setResizeThumbnail(resolution[0], resolution[1])
         manipResize.setMaxOutputFrameSize(resolution[0] * resolution[1] * 3)
@@ -79,7 +152,7 @@ class Wrapper:
 
         return manipResize
 
-    def compute_undistort_maps(self):
+    def compute_undistort_maps(self) -> None:
         left_socket = get_socket_from_name("left", self.cam_config.name_to_socket)
         right_socket = get_socket_from_name("right", self.cam_config.name_to_socket)
 
@@ -134,7 +207,7 @@ class Wrapper:
 
         self.cam_config.set_undistort_maps(mapXL, mapYL, mapXR, mapYR)
 
-    def get_mesh(self, cam_name):
+    def get_mesh(self, cam_name: str) -> Tuple[np.ndarray, int, int]:
         mapX, mapY = self.cam_config.undstort_maps[cam_name]
         if mapX is None or mapY is None:
             raise Exception(
@@ -176,7 +249,7 @@ class Wrapper:
         return mesh, meshWidth, meshHeight
 
     # Takes in the output of multical calibration
-    def flash(self, calib_json_file):
+    def flash(self, calib_json_file: str) -> None:
         os.environ["DEPTHAI_ALLOW_FACTORY_FLASHING"] = "235539980"
 
         ch = dai.CalibrationHandler()
