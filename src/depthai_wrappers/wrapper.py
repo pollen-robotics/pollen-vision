@@ -1,10 +1,11 @@
-from depthai_wrappers.cam_config import CamConfig
-from depthai_wrappers.utils import get_socket_from_name, get_inv_R_T
-import os
-import numpy as np
-import depthai as dai
 import json
+import os
+
 import cv2
+import depthai as dai
+import numpy as np
+from depthai_wrappers.cam_config import CamConfig
+from depthai_wrappers.utils import get_inv_R_T, get_socket_from_name
 
 
 class Wrapper:
