@@ -54,9 +54,18 @@ class Wrapper:
         print("Rectify: {}".format(self.rectify))
         print("==================")
 
-    def get_data(self) -> dict[str, np.ndarray]:
-        print("Abstract class Wrapper does not implement get_data()")
-        exit()
+    def get_data(self) -> tuple:
+        data: dict = {}
+        latency: dict = {}
+        ts: dict = {}
+
+        for name, queue in self.queues.items():
+            pkt = queue.get()
+            data[name] = pkt
+            latency[name] = dai.Clock.now() - pkt.getTimestamp()
+            ts[name] = pkt.getTimestamp()
+
+        return data, latency, ts
 
     def create_pipeline(self) -> dai.Pipeline:
         print("Abstract class Wrapper does not implement create_pipeline()")

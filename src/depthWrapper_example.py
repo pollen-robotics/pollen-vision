@@ -5,11 +5,11 @@ from depthai_wrappers.depth_wrapper import DepthWrapper
 
 w = DepthWrapper(
     "/home/antoine/Pollen/pollen-vision/config_files/CONFIG_CUSTOM_SR.json",
-    60,
+    50,
 )
 
 while True:
-    data = w.get_data()
+    data, _, _ = w.get_data()
     cv2.imshow("left", data["left"])
     cv2.imshow("right", data["right"])
     cv2.imshow("depth", data["depth"])

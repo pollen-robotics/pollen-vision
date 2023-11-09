@@ -4,7 +4,7 @@ from depthai_wrappers.teleop_wrapper import TeleopWrapper
 
 w = TeleopWrapper(
     "/home/antoine/Pollen/pollen-vision/config_files/CONFIG_IMX296.json",
-    60,
+    50,
     rectify=True,
 )
 
@@ -43,6 +43,6 @@ def spawn_procs(names: list[str]) -> dict:
 procs = spawn_procs(["left", "right"])
 
 while True:
-    data = w.get_data()
+    data, _, _ = w.get_data()
     for name, packets in data.items():
         procs[name].stdin.write(packets)
