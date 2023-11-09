@@ -1,7 +1,6 @@
-from typing import Dict, Tuple
+from typing import Tuple
 
 import depthai as dai
-import numpy as np
 
 from depthai_wrappers.wrapper import Wrapper
 
@@ -22,11 +21,13 @@ class TeleopWrapper(Wrapper):
             rectify=rectify,
         )
 
-    def get_data(self) -> Dict[str, np.ndarray]:
-        data: Dict[str, np.ndarray] = {}
-        for name, queue in self.queues.items():
-            data[name] = queue.get().getData()
-        return data
+    def get_data(self) -> tuple:
+        data, latency, ts = super().get_data()
+
+        for name, pkt in data.items():
+            data[name] = pkt.getData()
+
+        return data, latency, ts
 
     def link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
         self.left.isp.link(self.left_manipRectify.inputImage)

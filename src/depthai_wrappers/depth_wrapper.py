@@ -1,7 +1,4 @@
-from typing import Dict
-
 import depthai as dai
-import numpy as np
 
 from depthai_wrappers.utils import get_socket_from_name
 from depthai_wrappers.wrapper import Wrapper
@@ -19,11 +16,12 @@ class DepthWrapper(Wrapper):
             rectify=False,
         )
 
-    def get_data(self) -> Dict[str, np.ndarray]:
-        data = {}
-        for name, queue in self.queues.items():
-            data[name] = queue.get().getCvFrame()
-        return data
+    def get_data(self) -> tuple:
+        data, latency, ts = super().get_data()
+        for name, pkt in data.items():
+            data[name] = pkt.getCvFrame()
+
+        return data, latency, ts
 
     def create_queues(self) -> dict[str, dai.DataOutputQueue]:
         queues = super().create_queues()

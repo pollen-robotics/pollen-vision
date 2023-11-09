@@ -1,7 +1,6 @@
-from typing import Dict, Optional, Tuple
+from typing import Optional, Tuple
 
 import depthai as dai
-import numpy as np
 
 from depthai_wrappers.wrapper import Wrapper
 
@@ -19,11 +18,13 @@ class CvWrapper(Wrapper):
             cam_config_json, fps, force_usb2=force_usb2, resize=resize, rectify=rectify
         )
 
-    def get_data(self) -> Dict[str, np.ndarray]:
-        data: Dict[str, np.ndarray] = {}
-        for name, queue in self.queues.items():
-            data[name] = queue.get().getCvFrame()
-        return data
+    def get_data(self) -> tuple:
+        pkts, latency, ts = super().get_data()
+        data: dict = {}
+        for name, pkt in pkts.items():
+            data[name] = pkt.getCvFrame()
+
+        return data, latency, ts
 
     def link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
         # Linking left
