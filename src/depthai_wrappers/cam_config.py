@@ -5,9 +5,23 @@ import numpy as np
 
 
 class CamConfig:
-    def __init__(self, cam_config_json: str, fps: int, resize: Tuple[int, int]) -> None:
+    def __init__(
+        self,
+        cam_config_json: str,
+        fps: int,
+        resize: Tuple[int, int],
+        exposure_params: Tuple[int, int],
+    ) -> None:
         self.cam_config_json = cam_config_json
         self.fps = fps
+        self.exposure_params = exposure_params
+        if self.exposure_params is not None:
+            assert (
+                self.exposure_params[0] is not None
+                and self.exposure_params[1] is not None
+            )
+            iso = self.exposure_params[1]
+            assert 100 <= iso <= 1600
 
         config = json.load(open(self.cam_config_json, "rb"))
         self.socket_to_name = config["socket_to_name"]
@@ -43,6 +57,8 @@ class CamConfig:
         ret_string += "Inverted: {}\n".format(self.inverted)
         ret_string += "Fisheye: {}\n".format(self.fisheye)
         ret_string += "Mono: {}\n".format(self.mono)
+        exp = "auto" if self.exposure_params is None else str(self.exposure_params)
+        ret_string += "Exposure params: {}\n".format(exp)
         ret_string += (
             "Undistort maps are: " + "set"
             if self.undstort_maps["left"] is not None

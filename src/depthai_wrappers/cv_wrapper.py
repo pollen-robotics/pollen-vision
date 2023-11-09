@@ -13,9 +13,15 @@ class CvWrapper(Wrapper):
         force_usb2: bool = False,
         resize: Optional[Tuple[int, int]] = None,
         rectify: bool = False,
+        exposure_params: Tuple[int, int] = None,
     ) -> None:
         super().__init__(
-            cam_config_json, fps, force_usb2=force_usb2, resize=resize, rectify=rectify
+            cam_config_json,
+            fps,
+            force_usb2=force_usb2,
+            resize=resize,
+            rectify=rectify,
+            exposure_params=exposure_params,
         )
 
     def get_data(self) -> tuple:
