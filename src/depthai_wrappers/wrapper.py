@@ -18,8 +18,9 @@ class Wrapper:
         force_usb2: bool,
         resize: Tuple[int, int],
         rectify: bool,
+        exposure_params: Tuple[int, int],
     ) -> None:
-        self.cam_config = CamConfig(cam_config_json, fps, resize)
+        self.cam_config = CamConfig(cam_config_json, fps, resize, exposure_params)
         self.force_usb2 = force_usb2
         self.rectify = rectify
 
@@ -91,6 +92,11 @@ class Wrapper:
             dai.ColorCameraProperties.SensorResolution.THE_1440X1080
         )
 
+        if self.cam_config.exposure_params is not None:
+            self.left.initialControl.setManualExposure(*self.cam_config.exposure_params)
+            self.right.initialControl.setManualExposure(
+                *self.cam_config.exposure_params
+            )
         if self.cam_config.inverted:
             self.left.setImageOrientation(dai.CameraImageOrientation.ROTATE_180_DEG)
             self.right.setImageOrientation(dai.CameraImageOrientation.ROTATE_180_DEG)

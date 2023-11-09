@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import depthai as dai
 
 from depthai_wrappers.utils import get_socket_from_name
@@ -6,7 +8,11 @@ from depthai_wrappers.wrapper import Wrapper
 
 class DepthWrapper(Wrapper):
     def __init__(
-        self, cam_config_json: str, fps: int, force_usb2: bool = False
+        self,
+        cam_config_json: str,
+        fps: int,
+        force_usb2: bool = False,
+        exposure_params: Tuple[int, int] = None,
     ) -> None:
         super().__init__(
             cam_config_json,
@@ -14,6 +20,7 @@ class DepthWrapper(Wrapper):
             force_usb2=force_usb2,
             resize=(1280, 800),
             rectify=False,
+            exposure_params=exposure_params,
         )
 
     def get_data(self) -> tuple:

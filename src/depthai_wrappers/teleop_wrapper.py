@@ -12,6 +12,7 @@ class TeleopWrapper(Wrapper):
         fps: int,
         force_usb2: bool = False,
         rectify: bool = False,
+        exposure_params: Tuple[int, int] = None,
     ) -> None:
         super().__init__(
             cam_config_json,
@@ -19,6 +20,7 @@ class TeleopWrapper(Wrapper):
             force_usb2=force_usb2,
             resize=(1280, 720),
             rectify=rectify,
+            exposure_params=exposure_params,
         )
 
     def get_data(self) -> tuple:
