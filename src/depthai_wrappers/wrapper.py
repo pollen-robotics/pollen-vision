@@ -1,5 +1,7 @@
 import json
 import os
+from datetime import datetime
+from pathlib import Path
 from typing import Tuple
 
 import cv2
@@ -265,6 +267,13 @@ class Wrapper:
 
     # Takes in the output of multical calibration
     def flash(self, calib_json_file: str) -> None:
+        now = str(datetime.now()).replace(" ", "_").split(".")[0]
+
+        device_calibration_backup_file = Path("./CALIBRATION_BACKUP_" + now + ".json")
+        deviceCalib = self.device.readCalibration()
+        deviceCalib.eepromToJsonFile(device_calibration_backup_file)
+        print("Backup of device calibration saved to", device_calibration_backup_file)
+
         os.environ["DEPTHAI_ALLOW_FACTORY_FLASHING"] = "235539980"
 
         ch = dai.CalibrationHandler()
