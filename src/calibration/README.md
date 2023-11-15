@@ -1,7 +1,24 @@
 # Calibration procedure
 
-## First, get some images.
+## Dependencies
 
+You will need to install Pollen's multical fork. Follow instructions here https://github.com/pollen-robotics/multical
+
+## First, build yourself a charuco calibration board
+
+Generate a charuco board with the following command:
+
+```console
+$ python3 generate_board.py
+```
+
+Print it on a A4 paper and place it on a flat surface (we use a wooden board)
+
+Mesure as accurately as possible the size of the squares and the size of the markers and edit the `example_boards/pollen_charuco.yaml` file in the previously cloned `multical` repo to report the values you measured (must be in meters).
+
+## Then, get some images.
+
+Run: 
 ```console
 $ python3 acquire.py --config ../config/<CONFIG_??.json>
 ```
@@ -12,16 +29,13 @@ Try to cover a maximum of the field of view, with the board in a variety of orie
 Also, make sure that most of the board is visible by all the cameras for all the saved images pairs.
 
 ## Then, run multical 
-Install pollen's multical fork https://github.com/pollen-robotics/multical
-
-Then
 
 ```console
 $ cd <...>/multical
 $ multical calibrate --image_path <path_to_calib_images_dir> --boards example_boards/pollen_charuco.yaml --isFisheye <True/False>
 ```
 
-/!\ Don't forget to set `--isFisheye` to `True` if you are using a fisheye camera /!\
+/!\ Don't forget to set `--isFisheye` to `True` if you are using fisheye lenses /!\
 
 It will write a `calibration.json` file in `<path_to_calib_images_dir>`.
 

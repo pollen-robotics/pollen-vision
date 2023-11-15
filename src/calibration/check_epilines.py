@@ -19,13 +19,6 @@ args = argParser.parse_args()
 
 ARUCO_DICT = aruco.getPredefinedDictionary(aruco.DICT_4X4_1000)
 
-CHARUCO_BOARD = aruco.CharucoBoard(
-    (11, 8),
-    squareLength=0.022,
-    markerLength=0.0167,
-    dictionary=ARUCO_DICT,
-)
-CHARUCO_BOARD.setLegacyPattern(True)
 w = CvWrapper(args.config, rectify=True)
 
 while True:
