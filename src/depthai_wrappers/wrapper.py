@@ -315,11 +315,9 @@ class Wrapper:
         ch.setStereoLeft(left_socket, np.eye(3))
         ch.setStereoRight(right_socket, R_right_to_left)
 
-        print("Opening device ...")
-        device = dai.Device()
         print("Flashing ...")
         try:
-            device.flashCalibration2(ch)
+            self.device.flashCalibration2(ch)
             print("Calibration flashed successfully")
         except Exception as e:
             print("Flashing failed")

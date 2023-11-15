@@ -9,7 +9,7 @@ class CvWrapper(Wrapper):
     def __init__(
         self,
         cam_config_json: str,
-        fps: int,
+        fps: int = 50,
         force_usb2: bool = False,
         resize: Optional[Tuple[int, int]] = None,
         rectify: bool = False,
