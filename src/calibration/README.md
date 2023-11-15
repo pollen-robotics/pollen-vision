@@ -32,6 +32,13 @@ Run:
 $ python3 flash.py --config ../config/<CONFIG_??.json> --calib_json_file <path to calibration.json>
 ```
 
+A backup file with the current calibration settings stored on the device will be produced in case you need to revert back. 
+
+If needed, run:
+```console
+$ python3 restore_calibration_backup.py --calib_file CALIBRATION_BACKUP_<...>.json  
+```
+
 ## Finally, check the calibration
 
 Run:
