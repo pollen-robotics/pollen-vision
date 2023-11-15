@@ -84,6 +84,9 @@ class Wrapper:
         self.left.setResolution(
             dai.ColorCameraProperties.SensorResolution.THE_1440X1080
         )
+        self.left.initialControl.setSharpness(0)  # range: 0..4, default: 1
+        self.left.initialControl.setLumaDenoise(0)  # range: 0..4, default: 1
+        self.left.initialControl.setChromaDenoise(4)  # range: 0..4, default: 1
 
         self.right = pipeline.createColorCamera()
         self.right.setFps(self.cam_config.fps)
@@ -91,6 +94,9 @@ class Wrapper:
         self.right.setResolution(
             dai.ColorCameraProperties.SensorResolution.THE_1440X1080
         )
+        self.right.initialControl.setSharpness(0)  # range: 0..4, default: 1
+        self.right.initialControl.setLumaDenoise(0)  # range: 0..4, default: 1
+        self.right.initialControl.setChromaDenoise(4)  # range: 0..4, default: 1
 
         if self.cam_config.exposure_params is not None:
             self.left.initialControl.setManualExposure(*self.cam_config.exposure_params)
