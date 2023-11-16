@@ -30,6 +30,7 @@ class CamConfig:
         self.mono = config["mono"]
         self.name_to_socket = {v: k for k, v in self.socket_to_name.items()}
         self.sensor_resolution = (0, 0)
+        self.undistort_resolution = (0, 0)
         self.resize_resolution = resize
         self.undstort_maps = {"left": None, "right": None}
 
@@ -39,6 +40,9 @@ class CamConfig:
         # Assuming that the resize resolution is the same as the sensor resolution until set otherwise
         if self.resize_resolution is None:
             self.resize_resolution = resolution
+
+    def set_undistort_resolution(self, resolution: Tuple[int, int]) -> None:
+        self.undistort_resolution = resolution
 
     def set_resize_resolution(self, resolution: Tuple[int, int]) -> None:
         self.resize_resolution = resolution
