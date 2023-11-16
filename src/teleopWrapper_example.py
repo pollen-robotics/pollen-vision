@@ -43,6 +43,7 @@ def spawn_procs(names: list[str]) -> dict:
 procs = spawn_procs(["left", "right"])
 
 while True:
-    data, _, _ = w.get_data()
+    data, lat, _ = w.get_data()
+    print(lat)
     for name, packets in data.items():
         procs[name].stdin.write(packets)
