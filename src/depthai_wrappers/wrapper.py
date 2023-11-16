@@ -36,6 +36,9 @@ class Wrapper:
         height = connected_cameras_features[0].height
 
         self.cam_config.set_sensor_resolution((width, height))
+        self.cam_config.set_undistort_resolution(
+            (960, 720)
+        )  # TODO find a way to get this from cam.ispsize()
         self.compute_undistort_maps()
 
         self.pipeline = self.create_pipeline()
@@ -86,6 +89,7 @@ class Wrapper:
         self.left.setResolution(
             dai.ColorCameraProperties.SensorResolution.THE_1440X1080
         )
+        self.left.setIspScale(2, 3)  # -> 960, 720
 
         self.right = pipeline.createColorCamera()
         self.right.setFps(self.cam_config.fps)
@@ -93,6 +97,9 @@ class Wrapper:
         self.right.setResolution(
             dai.ColorCameraProperties.SensorResolution.THE_1440X1080
         )
+        self.right.setIspScale(2, 3)  # -> 960, 720
+
+        # self.cam_config.set_undistort_resolution(self.left.getIspSize())
 
         if self.cam_config.exposure_params is not None:
             self.left.initialControl.setManualExposure(*self.cam_config.exposure_params)
@@ -104,10 +111,10 @@ class Wrapper:
             self.right.setImageOrientation(dai.CameraImageOrientation.ROTATE_180_DEG)
 
         self.left_manipRectify = self.create_manipRectify(
-            pipeline, "left", self.cam_config.sensor_resolution, self.rectify
+            pipeline, "left", self.cam_config.undistort_resolution, self.rectify
         )
         self.right_manipRectify = self.create_manipRectify(
-            pipeline, "right", self.cam_config.sensor_resolution, self.rectify
+            pipeline, "right", self.cam_config.undistort_resolution, self.rectify
         )
 
         self.left_manipRescale = self.create_manipResize(
@@ -173,7 +180,7 @@ class Wrapper:
         left_socket = get_socket_from_name("left", self.cam_config.name_to_socket)
         right_socket = get_socket_from_name("right", self.cam_config.name_to_socket)
 
-        resolution = self.cam_config.sensor_resolution
+        resolution = self.cam_config.undistort_resolution
 
         calib = dai.Device().readCalibration()
         left_K = np.array(
