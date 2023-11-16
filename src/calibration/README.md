@@ -28,6 +28,10 @@ Press `return` to save a pair of images in `./calib_images/` (by default, use `-
 Try to cover a maximum of the field of view, with the board in a variety of orientations. If the coverage is good, about 30 images is sufficient.
 Also, make sure that most of the board is visible by all the cameras for all the saved images pairs.
 
+Below is an example of good coverage:
+![mosaic](assets/mosaic.png)
+
+
 ## Then, run multical 
 
 ```console
