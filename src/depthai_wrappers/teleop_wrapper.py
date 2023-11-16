@@ -23,7 +23,7 @@ class TeleopWrapper(Wrapper):
             exposure_params=exposure_params,
         )
 
-    def get_data(self) -> tuple:
+    def get_data(self) -> Tuple:
         data, latency, ts = super().get_data()
 
         for name, pkt in data.items():
@@ -49,9 +49,15 @@ class TeleopWrapper(Wrapper):
         profile = dai.VideoEncoderProperties.Profile.H264_MAIN
         self.left_encoder = pipeline.create(dai.node.VideoEncoder)
         self.left_encoder.setDefaultProfilePreset(self.cam_config.fps, profile)
+        self.left_encoder.setKeyframeFrequency(self.cam_config.fps)  # every 1s
+        self.left_encoder.setNumBFrames(0)  # gstreamer recommends 0 B frames
+        self.left_encoder.setBitrateKbps(4000)
 
         self.right_encoder = pipeline.create(dai.node.VideoEncoder)
         self.right_encoder.setDefaultProfilePreset(self.cam_config.fps, profile)
+        self.right_encoder.setKeyframeFrequency(self.cam_config.fps)  # every 1s
+        self.right_encoder.setNumBFrames(0)  # gstreamer recommends 0 B frames
+        self.right_encoder.setBitrateKbps(4000)
 
         return pipeline
 
