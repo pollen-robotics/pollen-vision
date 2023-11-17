@@ -166,3 +166,9 @@ cython_debug/
 
 src/calibration/calib_images/*
 src/calibration/*.json
+src/calibration/auto_calib/calib_images/left/*.png
+src/calibration/auto_calib/calib_images/right/*.png
+src/calibration/auto_calib/calib_images/*.json
+src/calibration/auto_calib/calib_images/*.pkl
+src/calibration/auto_calib/calib_images/*.txt
+src/calibration/auto_calib/*.json

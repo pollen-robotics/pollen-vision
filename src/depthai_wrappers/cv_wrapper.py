@@ -33,15 +33,25 @@ class CvWrapper(Wrapper):
         return data, latency, ts
 
     def link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
-        # Linking left
-        self.left.isp.link(self.left_manipRectify.inputImage)
-        self.left_manipRectify.out.link(self.left_manipRescale.inputImage)
-        self.left_manipRescale.out.link(self.xout_left.input)
+        if self.rectify:
+            # Linking left
+            self.left.isp.link(self.left_manipRectify.inputImage)
+            self.left_manipRectify.out.link(self.left_manipRescale.inputImage)
+            self.left_manipRescale.out.link(self.xout_left.input)
 
-        # Linking right
-        self.right.isp.link(self.right_manipRectify.inputImage)
-        self.right_manipRectify.out.link(self.right_manipRescale.inputImage)
-        self.right_manipRescale.out.link(self.xout_right.input)
+            # Linking right
+            self.right.isp.link(self.right_manipRectify.inputImage)
+            self.right_manipRectify.out.link(self.right_manipRescale.inputImage)
+            self.right_manipRescale.out.link(self.xout_right.input)
+
+        else:
+            # Linking left
+            self.left.isp.link(self.left_manipRescale.inputImage)
+            self.left_manipRescale.out.link(self.xout_left.input)
+
+            # Linking right
+            self.right.isp.link(self.right_manipRescale.inputImage)
+            self.right_manipRescale.out.link(self.xout_right.input)
 
         return pipeline
 

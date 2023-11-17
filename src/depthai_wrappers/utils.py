@@ -39,7 +39,7 @@ def drawEpiLines(
     rcorners, rids, _ = aruco.detectMarkers(image=right, dictionary=aruco_dict)
 
     if len(lcorners) == 0 or len(rcorners) == 0:
-        return concatIm
+        return concatIm, 1000
 
     lids = lids.reshape(-1)
     rids = rids.reshape(-1)
@@ -85,4 +85,4 @@ def drawEpiLines(
         round(abs(avg_slope_percent), 2),
         "%)",
     )
-    return concatIm
+    return concatIm, avg_slope_percent

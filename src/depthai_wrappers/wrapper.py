@@ -273,7 +273,7 @@ class Wrapper:
         return mesh, meshWidth, meshHeight
 
     # Takes in the output of multical calibration
-    def flash(self, calib_json_file: str) -> None:
+    def flash(self, calib_json_file: str) -> bool:
         now = str(datetime.now()).replace(" ", "_").split(".")[0]
 
         device_calibration_backup_file = Path("./CALIBRATION_BACKUP_" + now + ".json")
@@ -335,7 +335,11 @@ class Wrapper:
         try:
             self.device.flashCalibration2(ch)
             print("Calibration flashed successfully")
+            return True
         except Exception as e:
             print("Flashing failed")
             print(e)
-            exit()
+            return False
+
+    def close(self) -> None:
+        self.device.close()
