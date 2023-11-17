@@ -33,12 +33,12 @@ class TeleopWrapper(Wrapper):
 
     def link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
         self.left.isp.link(self.left_manipRectify.inputImage)
-        self.left_manipRectify.out.link(self.left_manipRescale.inputImage)
+        # self.left_manipRectify.out.link(self.left_manipRescale.inputImage)
         self.right.isp.link(self.right_manipRectify.inputImage)
-        self.right_manipRectify.out.link(self.right_manipRescale.inputImage)
+        # self.right_manipRectify.out.link(self.right_manipRescale.inputImage)
 
-        self.left_manipRescale.out.link(self.left_encoder.input)
-        self.right_manipRescale.out.link(self.right_encoder.input)
+        self.left_manipRectify.out.link(self.left_encoder.input)
+        self.right_manipRectify.out.link(self.right_encoder.input)
 
         self.left_encoder.bitstream.link(self.xout_left.input)
         self.right_encoder.bitstream.link(self.xout_right.input)
@@ -70,6 +70,20 @@ class TeleopWrapper(Wrapper):
         manipResize.initialConfig.setFrameType(dai.ImgFrame.Type.NV12)
 
         return manipResize
+
+    def create_manipRectify(
+        self,
+        pipeline: dai.Pipeline,
+        cam_name: str,
+        resolution: Tuple[int, int],
+        rectify: bool = True,
+    ) -> dai.node.ImageManip:
+        manipRectify: dai.node.ImageManip = super().create_manipRectify(
+            pipeline, cam_name, resolution, rectify
+        )
+
+        manipRectify.initialConfig.setFrameType(dai.ImgFrame.Type.NV12)
+        return manipRectify
 
     def create_pipeline(self) -> dai.Pipeline:
         pipeline = self.pipeline_basis()

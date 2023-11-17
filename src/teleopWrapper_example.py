@@ -10,7 +10,7 @@ w = TeleopWrapper(
 
 
 def spawn_procs(names: list[str]) -> dict:
-    width, height = 1280, 720
+    width, height = 960, 720
     command = [
         "ffplay",
         "-i",
