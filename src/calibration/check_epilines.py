@@ -21,6 +21,7 @@ ARUCO_DICT = aruco.getPredefinedDictionary(aruco.DICT_4X4_1000)
 
 w = CvWrapper(args.config, rectify=True, resize=(1280, 720), fps=50)
 
+
 while True:
     data, lat, _ = w.get_data()
     print(lat)
