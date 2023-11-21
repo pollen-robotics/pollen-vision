@@ -39,7 +39,8 @@ class Wrapper:
         self.cam_config.set_undistort_resolution(
             (960, 720)
         )  # TODO find a way to get this from cam.ispsize()
-        self.compute_undistort_maps()
+        if self.rectify:
+            self.compute_undistort_maps()
 
         self.pipeline = self.create_pipeline()
 
