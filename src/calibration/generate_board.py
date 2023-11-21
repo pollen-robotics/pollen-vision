@@ -8,7 +8,7 @@ CHARUCO_BOARD = aruco.CharucoBoard(
     markerLength=0.0167,  # These values don't matter at this point
     dictionary=ARUCO_DICT,
 )
-
+CHARUCO_BOARD.setLegacyPattern(True)
 resolution_factor = 3
 
 # To be printed on a A4 sheet (297mm x 210mm)
