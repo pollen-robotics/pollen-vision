@@ -23,12 +23,15 @@ w = CvWrapper(args.config, rectify=True, resize=(1280, 720), fps=50)
 
 
 while True:
-    data, lat, _ = w.get_data()
-    print(lat)
+    data, _, _ = w.get_data()
+
     _data = {}
     for name in data.keys():
         _data[name] = data[name]
     epi = drawEpiLines(_data["left"], _data["right"], ARUCO_DICT)
     epi = cv2.resize(epi, (0, 0), fx=0.9, fy=0.9)
     cv2.imshow("epi", epi)
-    cv2.waitKey(1)
+    key = cv2.waitKey(1)
+
+    if key == 27 or key == ord("q"):
+        break

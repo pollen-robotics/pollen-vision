@@ -1,9 +1,19 @@
+import argparse
 import subprocess as sp
 
 from depthai_wrappers.teleop_wrapper import TeleopWrapper
 
+argParser = argparse.ArgumentParser(description="teleop wrapper example")
+argParser.add_argument(
+    "--config",
+    type=str,
+    required=True,
+    help="Path to the configuration file.",
+)
+args = argParser.parse_args()
+
 w = TeleopWrapper(
-    "/home/antoine/Pollen/pollen-vision/config_files/CONFIG_IMX296.json",
+    args.config,
     50,
     rectify=True,
 )

@@ -36,8 +36,10 @@ Below is an example of good coverage:
 
 ```console
 $ cd <...>/multical
-$ multical calibrate --image_path <path_to_calib_images_dir> --boards example_boards/pollen_charuco.yaml --isFisheye <True/False>
+$ multical calibrate --image_path <absolute_path_to_calib_images_dir> --boards example_boards/pollen_charuco.yaml --isFisheye <True/False>
 ```
+
+(For some reason, --image_path must be an absolute path, relative paths don't work)
 
 /!\ Don't forget to set `--isFisheye` to `True` if you are using fisheye lenses /!\
 

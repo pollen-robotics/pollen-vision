@@ -1,10 +1,21 @@
+import argparse
+
 import cv2
 import numpy as np
 
 from depthai_wrappers.depth_wrapper import DepthWrapper
 
+argParser = argparse.ArgumentParser(description="depth wrapper example")
+argParser.add_argument(
+    "--config",
+    type=str,
+    required=True,
+    help="Path to the configuration file.",
+)
+args = argParser.parse_args()
+
 w = DepthWrapper(
-    "/home/antoine/Pollen/pollen-vision/config_files/CONFIG_CUSTOM_SR.json",
+    args.config,
     50,
 )
 
