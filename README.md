@@ -10,6 +10,12 @@ Install in "dev" mode:
 pip install -e .[dev]
 ```
 
+If this is the first time you use luxonis stuff on this computer, you need to setup the udev rules:
+```
+echo 'SUBSYSTEM=="usb", ATTRS{idVendor}=="03e7", MODE="0666"' | sudo tee /etc/udev/rules.d/80-movidius.rules
+sudo udevadm control --reload-rules && sudo udevadm trigger
+```
+
 # Run examples
 
 There are three example scripts in `src/depthai_wrappers/`:
