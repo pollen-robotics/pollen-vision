@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -26,6 +27,7 @@ class Wrapper:
         self.cam_config = CamConfig(cam_config_json, fps, resize, exposure_params)
         self.force_usb2 = force_usb2
         self.rectify = rectify
+        self._logger = logging.getLogger(__name__)
 
         self.prepare()
 
@@ -52,11 +54,9 @@ class Wrapper:
         self.print_info()
 
     def print_info(self) -> None:
-        print("==================")
-        print(self.cam_config.to_string())
-        print("Force USB2: {}".format(self.force_usb2))
-        print("Rectify: {}".format(self.rectify))
-        print("==================")
+        self._logger.info(self.cam_config.to_string())
+        self._logger.info(f"Force USB2: {self.force_usb2}")
+        self._logger.info(f"Rectify: {self.rectify}")
 
     def get_data(
         self,
@@ -74,7 +74,7 @@ class Wrapper:
         return data, latency, ts
 
     def create_pipeline(self) -> dai.Pipeline:
-        print("Abstract class Wrapper does not implement create_pipeline()")
+        self._logger.error("Abstract class Wrapper does not implement create_pipeline()")
         exit()
 
     def pipeline_basis(self) -> dai.Pipeline:
@@ -114,14 +114,14 @@ class Wrapper:
         return pipeline
 
     def link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
-        print("Abstract class Wrapper does not implement link_pipeline()")
+        self._logger.error("Abstract class Wrapper does not implement link_pipeline()")
         exit()
 
     def create_output_streams(self, pipeline: dai.Pipeline) -> dai.Pipeline:
-        self.xout_left: dai.node.XLinkOut = pipeline.createXLinkOut()
+        self.xout_left = pipeline.createXLinkOut()
         self.xout_left.setStreamName("left")
 
-        self.xout_right: dai.node.XLinkOut = pipeline.createXLinkOut()
+        self.xout_right = pipeline.createXLinkOut()
         self.xout_right.setStreamName("right")
 
         return pipeline
@@ -146,7 +146,7 @@ class Wrapper:
                 mesh, meshWidth, meshHeight = self.get_mesh(cam_name)
                 manipRectify.setWarpMesh(mesh, meshWidth, meshHeight)
             except Exception as e:
-                print(e)
+                self._logger.error(e)
                 exit()
 
         manipRectify.setMaxOutputFrameSize(resolution[0] * resolution[1] * 3)
@@ -263,7 +263,7 @@ class Wrapper:
         device_calibration_backup_file = Path("./CALIBRATION_BACKUP_" + now + ".json")
         deviceCalib = self.device.readCalibration()
         deviceCalib.eepromToJsonFile(device_calibration_backup_file)
-        print("Backup of device calibration saved to", device_calibration_backup_file)
+        self._logger.info("Backup of device calibration saved to", device_calibration_backup_file)
 
         os.environ["DEPTHAI_ALLOW_FACTORY_FLASHING"] = "235539980"
 
@@ -273,7 +273,7 @@ class Wrapper:
         cameras = calibration_data["cameras"]
         camera_poses = calibration_data["camera_poses"]
 
-        print("Setting intrinsics ...")
+        self._logger.info("Setting intrinsics ...")
         for cam_name, params in cameras.items():
             K = np.array(params["K"])
             D = np.array(params["dist"]).reshape((-1))
@@ -283,10 +283,10 @@ class Wrapper:
             ch.setCameraIntrinsics(cam_socket, K.tolist(), im_size)
             ch.setDistortionCoefficients(cam_socket, D.tolist())
             if self.cam_config.fisheye:
-                print("Setting camera type to fisheye ...")
+                self._logger.info("Setting camera type to fisheye ...")
                 ch.setCameraType(cam_socket, dai.CameraModel.Fisheye)
 
-        print("Setting extrinsics ...")
+        self._logger.info("Setting extrinsics ...")
         left_socket = get_socket_from_name("left", self.cam_config.name_to_socket)
         right_socket = get_socket_from_name("right", self.cam_config.name_to_socket)
 
@@ -315,11 +315,11 @@ class Wrapper:
         ch.setStereoLeft(left_socket, np.eye(3).tolist())
         ch.setStereoRight(right_socket, R_right_to_left.tolist())
 
-        print("Flashing ...")
+        self._logger.info("Flashing ...")
         try:
             self.device.flashCalibration2(ch)
-            print("Calibration flashed successfully")
+            self._logger.info("Calibration flashed successfully")
         except Exception as e:
-            print("Flashing failed")
-            print(e)
+            self._logger.error("Flashing failed")
+            self._logger.error(e)
             exit()
