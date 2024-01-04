@@ -4,18 +4,22 @@ import cv2
 import numpy as np
 
 from depthai_wrappers.depth_wrapper import DepthWrapper
+from depthai_wrappers.utils import get_config_file_path, get_config_files_names
+
+valid_configs = get_config_files_names()
 
 argParser = argparse.ArgumentParser(description="depth wrapper example")
 argParser.add_argument(
     "--config",
     type=str,
     required=True,
-    help="Path to the configuration file.",
+    choices=valid_configs,
+    help=f"Configutation file name : {valid_configs}",
 )
 args = argParser.parse_args()
 
 w = DepthWrapper(
-    args.config,
+    get_config_file_path(args.config),
     50,
 )
 
