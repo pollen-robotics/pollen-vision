@@ -1,4 +1,5 @@
-from typing import Any, Dict, Tuple
+from importlib.resources import files
+from typing import Any, Dict, List, Tuple
 
 import cv2
 import depthai as dai
@@ -83,3 +84,16 @@ def drawEpiLines(left: npt.NDArray[Any], right: npt.NDArray[Any], aruco_dict: ar
         "%)",
     )
     return concatIm
+
+
+def get_config_files_names() -> List[str]:
+    path = files("config_files")
+    return [file.stem for file in path.glob("**/*.json")]  # type: ignore[attr-defined]
+
+
+def get_config_file_path(name: str) -> Any:
+    path = files("config_files")
+    for file in path.glob("**/*"):  # type: ignore[attr-defined]
+        if file.stem == name:
+            return file.resolve()
+    return None
