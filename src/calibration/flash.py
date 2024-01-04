@@ -2,9 +2,7 @@ import argparse
 
 from depthai_wrappers.cv_wrapper import CvWrapper
 
-argParser = argparse.ArgumentParser(
-    description="Flash calibration parameters found by multical to the EEPROM of the device."
-)
+argParser = argparse.ArgumentParser(description="Flash calibration parameters found by multical to the EEPROM of the device.")
 argParser.add_argument(
     "--config",
     type=str,

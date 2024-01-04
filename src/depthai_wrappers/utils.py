@@ -1,8 +1,9 @@
-from typing import Tuple
+from typing import Any, Dict, Tuple
 
 import cv2
 import depthai as dai
 import numpy as np
+import numpy.typing as npt
 from cv2 import aruco
 
 socket_stringToCam = {
@@ -13,13 +14,11 @@ socket_stringToCam = {
 }
 
 
-def get_socket_from_name(
-    name: str, name_to_socket: dict[str, str]
-) -> dai.CameraBoardSocket:
+def get_socket_from_name(name: str, name_to_socket: Dict[str, str]) -> dai.CameraBoardSocket:
     return socket_stringToCam[name_to_socket[name]]
 
 
-def get_inv_R_T(R: np.ndarray, T: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+def get_inv_R_T(R: npt.NDArray[Any], T: npt.NDArray[Any]) -> Tuple[npt.NDArray[Any], npt.NDArray[Any]]:
     tmp = np.eye(4)
     tmp[:3, :3] = R
     tmp[:3, 3] = T
@@ -30,9 +29,7 @@ def get_inv_R_T(R: np.ndarray, T: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     return inv_R, inv_T
 
 
-def drawEpiLines(
-    left: np.ndarray, right: np.ndarray, aruco_dict: aruco.Dictionary
-) -> np.ndarray:
+def drawEpiLines(left: npt.NDArray[Any], right: npt.NDArray[Any], aruco_dict: aruco.Dictionary) -> npt.NDArray[Any]:
     concatIm = np.hstack((left, right))
 
     lcorners, lids, _ = aruco.detectMarkers(image=left, dictionary=aruco_dict)
@@ -76,8 +73,8 @@ def drawEpiLines(
                 1,
             )
 
-    avg_slope = np.mean(avg_slope)
-    avg_slope_percent = avg_slope / left.shape[0] * 100
+    avg_slope_mean = np.mean(avg_slope)
+    avg_slope_percent = avg_slope_mean / left.shape[0] * 100
     print(
         "AVG SLOPE :",
         np.round(avg_slope, 2),

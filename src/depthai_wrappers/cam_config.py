@@ -1,7 +1,8 @@
 import json
-from typing import Tuple
+from typing import Dict, Optional, Tuple
 
 import numpy as np
+import numpy.typing as npt
 
 
 class CamConfig:
@@ -16,10 +17,7 @@ class CamConfig:
         self.fps = fps
         self.exposure_params = exposure_params
         if self.exposure_params is not None:
-            assert (
-                self.exposure_params[0] is not None
-                and self.exposure_params[1] is not None
-            )
+            assert self.exposure_params[0] is not None and self.exposure_params[1] is not None
             iso = self.exposure_params[1]
             assert 100 <= iso <= 1600
 
@@ -32,7 +30,10 @@ class CamConfig:
         self.sensor_resolution = (0, 0)
         self.undistort_resolution = (0, 0)
         self.resize_resolution = resize
-        self.undstort_maps = {"left": None, "right": None}
+        self.undstort_maps: Dict[str, Optional[Tuple[npt.NDArray[np.float32], npt.NDArray[np.float32]]]] = {
+            "left": None,
+            "right": None,
+        }
 
     def set_sensor_resolution(self, resolution: Tuple[int, int]) -> None:
         self.sensor_resolution = resolution
@@ -48,7 +49,11 @@ class CamConfig:
         self.resize_resolution = resolution
 
     def set_undistort_maps(
-        self, mapXL: np.ndarray, mapYL: np.ndarray, mapXR: np.ndarray, mapYR: np.ndarray
+        self,
+        mapXL: npt.NDArray[np.float32],
+        mapYL: npt.NDArray[np.float32],
+        mapXR: npt.NDArray[np.float32],
+        mapYR: npt.NDArray[np.float32],
     ) -> None:
         self.undstort_maps["left"] = (mapXL, mapYL)
         self.undstort_maps["right"] = (mapXR, mapYR)
@@ -63,10 +68,6 @@ class CamConfig:
         ret_string += "Mono: {}\n".format(self.mono)
         exp = "auto" if self.exposure_params is None else str(self.exposure_params)
         ret_string += "Exposure params: {}\n".format(exp)
-        ret_string += (
-            "Undistort maps are: " + "set"
-            if self.undstort_maps["left"] is not None
-            else "not set"
-        )
+        ret_string += "Undistort maps are: " + "set" if self.undstort_maps["left"] is not None else "not set"
 
         return ret_string

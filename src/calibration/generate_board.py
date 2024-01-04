@@ -12,8 +12,6 @@ CHARUCO_BOARD.setLegacyPattern(True)
 resolution_factor = 3
 
 # To be printed on a A4 sheet (297mm x 210mm)
-img = aruco.Board.generateImage(
-    CHARUCO_BOARD, (297 * resolution_factor, 210 * resolution_factor), marginSize=40
-)
+img = aruco.Board.generateImage(CHARUCO_BOARD, (297 * resolution_factor, 210 * resolution_factor), marginSize=40)
 cv2.imwrite("charuco.png", img)
 print("Saved charuco.png")

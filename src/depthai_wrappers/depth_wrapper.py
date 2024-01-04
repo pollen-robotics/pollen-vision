@@ -1,18 +1,21 @@
-from typing import Tuple
+from datetime import timedelta
+from typing import Dict, Optional, Tuple
 
 import depthai as dai
+import numpy as np
+import numpy.typing as npt
 
 from depthai_wrappers.utils import get_socket_from_name
 from depthai_wrappers.wrapper import Wrapper
 
 
-class DepthWrapper(Wrapper):
+class DepthWrapper(Wrapper):  # type: ignore[misc]
     def __init__(
         self,
         cam_config_json: str,
         fps: int,
         force_usb2: bool = False,
-        exposure_params: Tuple[int, int] = None,
+        exposure_params: Optional[Tuple[int, int]] = None,
     ) -> None:
         super().__init__(
             cam_config_json,
@@ -23,19 +26,19 @@ class DepthWrapper(Wrapper):
             exposure_params=exposure_params,
         )
 
-    def get_data(self) -> tuple:
+    def get_data(
+        self,
+    ) -> Tuple[Dict[str, npt.NDArray[np.uint8]], Dict[str, float], Dict[str, timedelta],]:
         data, latency, ts = super().get_data()
         for name, pkt in data.items():
             data[name] = pkt.getCvFrame()
 
         return data, latency, ts
 
-    def create_queues(self) -> dict[str, dai.DataOutputQueue]:
-        queues = super().create_queues()
+    def create_queues(self) -> Dict[str, dai.DataOutputQueue]:
+        queues: Dict[str, dai.DataOutputQueue] = super().create_queues()
         queues["depth"] = self.device.getOutputQueue("depth", maxSize=1, blocking=False)
-        queues["disparity"] = self.device.getOutputQueue(
-            "disparity", maxSize=1, blocking=False
-        )
+        queues["disparity"] = self.device.getOutputQueue("disparity", maxSize=1, blocking=False)
         return queues
 
     def create_output_streams(self, pipeline: dai.Pipeline) -> dai.Pipeline:
