@@ -32,6 +32,7 @@ class Wrapper:
         self.prepare()
 
     def prepare(self) -> None:
+        self._logger.debug("Connecting to camera")
         connected_cameras_features = dai.Device().getConnectedCameraFeatures()
 
         # Assuming both cameras are the same
@@ -78,6 +79,7 @@ class Wrapper:
         exit()
 
     def pipeline_basis(self) -> dai.Pipeline:
+        self._logger.debug("Configuring depthai pipeline")
         pipeline = dai.Pipeline()
 
         left_socket = get_socket_from_name("left", self.cam_config.name_to_socket)
