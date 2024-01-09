@@ -1,11 +1,14 @@
-from typing import Optional, Tuple
+from datetime import timedelta
+from typing import Dict, Optional, Tuple
 
 import depthai as dai
+import numpy as np
+import numpy.typing as npt
 
 from depthai_wrappers.wrapper import Wrapper
 
 
-class CvWrapper(Wrapper):
+class CvWrapper(Wrapper):  # type: ignore[misc]
     def __init__(
         self,
         cam_config_json: str,
@@ -13,7 +16,7 @@ class CvWrapper(Wrapper):
         force_usb2: bool = False,
         resize: Optional[Tuple[int, int]] = None,
         rectify: bool = False,
-        exposure_params: Tuple[int, int] = None,
+        exposure_params: Optional[Tuple[int, int]] = None,
     ) -> None:
         super().__init__(
             cam_config_json,
@@ -24,9 +27,11 @@ class CvWrapper(Wrapper):
             exposure_params=exposure_params,
         )
 
-    def get_data(self) -> tuple:
+    def get_data(
+        self,
+    ) -> Tuple[Dict[str, npt.NDArray[np.uint8]], Dict[str, float], Dict[str, timedelta],]:
         pkts, latency, ts = super().get_data()
-        data: dict = {}
+        data: Dict[str, npt.NDArray[np.uint8]] = {}
         for name, pkt in pkts.items():
             data[name] = pkt.getCvFrame()
 

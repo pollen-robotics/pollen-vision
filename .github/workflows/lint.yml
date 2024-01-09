@@ -11,7 +11,7 @@ jobs:
       - uses: psf/black@stable
         with:
           options: "--check --verbose"
-          version: "23.3.0"
+          version: "23.10.0"
 
   isort:
     runs-on: ubuntu-22.04

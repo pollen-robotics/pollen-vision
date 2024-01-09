@@ -1,12 +1,13 @@
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Tuple
+from typing import Dict, List, Tuple
 
 import cv2
 import depthai as dai
 import numpy as np
+import numpy.typing as npt
 
 from depthai_wrappers.cam_config import CamConfig
 from depthai_wrappers.utils import get_inv_R_T, get_socket_from_name
@@ -36,9 +37,7 @@ class Wrapper:
         height = connected_cameras_features[0].height
 
         self.cam_config.set_sensor_resolution((width, height))
-        self.cam_config.set_undistort_resolution(
-            (960, 720)
-        )  # TODO find a way to get this from cam.ispsize()
+        self.cam_config.set_undistort_resolution((960, 720))  # TODO find a way to get this from cam.ispsize()
         if self.rectify:
             self.compute_undistort_maps()
 
@@ -46,9 +45,7 @@ class Wrapper:
 
         self.device = dai.Device(
             self.pipeline,
-            maxUsbSpeed=(
-                dai.UsbSpeed.HIGH if self.force_usb2 else dai.UsbSpeed.SUPER_PLUS
-            ),
+            maxUsbSpeed=(dai.UsbSpeed.HIGH if self.force_usb2 else dai.UsbSpeed.SUPER_PLUS),
         )
         self.queues = self.create_queues()
 
@@ -61,16 +58,18 @@ class Wrapper:
         print("Rectify: {}".format(self.rectify))
         print("==================")
 
-    def get_data(self) -> tuple:
-        data: dict = {}
-        latency: dict = {}
-        ts: dict = {}
+    def get_data(
+        self,
+    ) -> Tuple[Dict[str, npt.NDArray[np.uint8]], Dict[str, float], Dict[str, timedelta],]:
+        data: Dict[str, npt.NDArray[np.uint8]] = {}
+        latency: Dict[str, float] = {}
+        ts: Dict[str, timedelta] = {}
 
         for name, queue in self.queues.items():
             pkt = queue.get()
-            data[name] = pkt
-            latency[name] = dai.Clock.now() - pkt.getTimestamp()
-            ts[name] = pkt.getTimestamp()
+            data[name] = pkt  # type: ignore[assignment]
+            latency[name] = dai.Clock.now() - pkt.getTimestamp()  # type: ignore[attr-defined, call-arg]
+            ts[name] = pkt.getTimestamp()  # type: ignore[attr-defined]
 
         return data, latency, ts
 
@@ -87,43 +86,31 @@ class Wrapper:
         self.left = pipeline.createColorCamera()
         self.left.setFps(self.cam_config.fps)
         self.left.setBoardSocket(left_socket)
-        self.left.setResolution(
-            dai.ColorCameraProperties.SensorResolution.THE_1440X1080
-        )
+        self.left.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1440X1080)
         self.left.setIspScale(2, 3)  # -> 960, 720
 
         self.right = pipeline.createColorCamera()
         self.right.setFps(self.cam_config.fps)
         self.right.setBoardSocket(right_socket)
-        self.right.setResolution(
-            dai.ColorCameraProperties.SensorResolution.THE_1440X1080
-        )
+        self.right.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1440X1080)
         self.right.setIspScale(2, 3)  # -> 960, 720
 
         # self.cam_config.set_undistort_resolution(self.left.getIspSize())
 
         if self.cam_config.exposure_params is not None:
             self.left.initialControl.setManualExposure(*self.cam_config.exposure_params)
-            self.right.initialControl.setManualExposure(
-                *self.cam_config.exposure_params
-            )
+            self.right.initialControl.setManualExposure(*self.cam_config.exposure_params)
         if self.cam_config.inverted:
             self.left.setImageOrientation(dai.CameraImageOrientation.ROTATE_180_DEG)
             self.right.setImageOrientation(dai.CameraImageOrientation.ROTATE_180_DEG)
 
-        self.left_manipRectify = self.create_manipRectify(
-            pipeline, "left", self.cam_config.undistort_resolution, self.rectify
-        )
+        self.left_manipRectify = self.create_manipRectify(pipeline, "left", self.cam_config.undistort_resolution, self.rectify)
         self.right_manipRectify = self.create_manipRectify(
             pipeline, "right", self.cam_config.undistort_resolution, self.rectify
         )
 
-        self.left_manipRescale = self.create_manipResize(
-            pipeline, self.cam_config.resize_resolution
-        )
-        self.right_manipRescale = self.create_manipResize(
-            pipeline, self.cam_config.resize_resolution
-        )
+        self.left_manipRescale = self.create_manipResize(pipeline, self.cam_config.resize_resolution)
+        self.right_manipRescale = self.create_manipResize(pipeline, self.cam_config.resize_resolution)
         return pipeline
 
     def link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
@@ -131,16 +118,16 @@ class Wrapper:
         exit()
 
     def create_output_streams(self, pipeline: dai.Pipeline) -> dai.Pipeline:
-        self.xout_left = pipeline.createXLinkOut()
+        self.xout_left: dai.node.XLinkOut = pipeline.createXLinkOut()
         self.xout_left.setStreamName("left")
 
-        self.xout_right = pipeline.createXLinkOut()
+        self.xout_right: dai.node.XLinkOut = pipeline.createXLinkOut()
         self.xout_right.setStreamName("right")
 
         return pipeline
 
-    def create_queues(self) -> dict[str, dai.DataOutputQueue]:
-        queues = {}
+    def create_queues(self) -> Dict[str, dai.DataOutputQueue]:
+        queues: Dict[str, dai.DataOutputQueue] = {}
         for name in ["left", "right"]:
             queues[name] = self.device.getOutputQueue(name, maxSize=1, blocking=False)
         return queues
@@ -165,9 +152,7 @@ class Wrapper:
         manipRectify.setMaxOutputFrameSize(resolution[0] * resolution[1] * 3)
         return manipRectify
 
-    def create_manipResize(
-        self, pipeline: dai.Pipeline, resolution: Tuple[int, int]
-    ) -> dai.node.ImageManip:
+    def create_manipResize(self, pipeline: dai.Pipeline, resolution: Tuple[int, int]) -> dai.node.ImageManip:
         manipResize = pipeline.createImageManip()
         manipResize.initialConfig.setResizeThumbnail(resolution[0], resolution[1])
         manipResize.setMaxOutputFrameSize(resolution[0] * resolution[1] * 3)
@@ -217,27 +202,25 @@ class Wrapper:
 
         if self.cam_config.fisheye:
             mapXL, mapYL = cv2.fisheye.initUndistortRectifyMap(
-                left_K, left_D, R1, P1, resolution, cv2.CV_32FC1
+                left_K, left_D, R1, P1, resolution, cv2.CV_32FC1  # type: ignore[attr-defined]
             )
             mapXR, mapYR = cv2.fisheye.initUndistortRectifyMap(
-                right_K, right_D, R2, P2, resolution, cv2.CV_32FC1
+                right_K, right_D, R2, P2, resolution, cv2.CV_32FC1  # type: ignore[attr-defined]
             )
         else:
             mapXL, mapYL = cv2.initUndistortRectifyMap(
-                left_K, left_D, R1, P1, resolution, cv2.CV_32FC1
+                left_K, left_D, R1, P1, resolution, cv2.CV_32FC1  # type: ignore[attr-defined]
             )
             mapXR, mapYR = cv2.initUndistortRectifyMap(
-                right_K, right_D, R2, P2, resolution, cv2.CV_32FC1
+                right_K, right_D, R2, P2, resolution, cv2.CV_32FC1  # type: ignore[attr-defined]
             )
 
         self.cam_config.set_undistort_maps(mapXL, mapYL, mapXR, mapYR)
 
-    def get_mesh(self, cam_name: str) -> Tuple[np.ndarray, int, int]:
+    def get_mesh(self, cam_name: str) -> Tuple[List[dai.Point2f], int, int]:
         mapX, mapY = self.cam_config.undstort_maps[cam_name]
         if mapX is None or mapY is None:
-            raise Exception(
-                "Undistort maps have not been computed. Call compute_undistort_maps() first."
-            )
+            raise Exception("Undistort maps have not been computed. Call compute_undistort_maps() first.")
 
         meshCellSize = 16
         mesh0 = []
@@ -264,14 +247,14 @@ class Wrapper:
 
                 mesh0.append(rowLeft)
 
-        mesh0 = np.array(mesh0)
-        meshWidth = mesh0.shape[1] // 2
-        meshHeight = mesh0.shape[0]
-        mesh0.resize(meshWidth * meshHeight, 2)
+        mesh0_tmp = np.array(mesh0)
+        meshWidth = mesh0_tmp.shape[1] // 2
+        meshHeight = mesh0_tmp.shape[0]
+        mesh0_tmp.resize(meshWidth * meshHeight, 2)
 
-        mesh = list(map(tuple, mesh0))
+        mesh = list(map(tuple, mesh0_tmp))
 
-        return mesh, meshWidth, meshHeight
+        return mesh, meshWidth, meshHeight  # type: ignore [return-value]
 
     # Takes in the output of multical calibration
     def flash(self, calib_json_file: str) -> None:
@@ -297,8 +280,8 @@ class Wrapper:
             im_size = params["image_size"]
             cam_socket = get_socket_from_name(cam_name, self.cam_config.name_to_socket)
 
-            ch.setCameraIntrinsics(cam_socket, K, im_size)
-            ch.setDistortionCoefficients(cam_socket, D)
+            ch.setCameraIntrinsics(cam_socket, K.tolist(), im_size)
+            ch.setDistortionCoefficients(cam_socket, D.tolist())
             if self.cam_config.fisheye:
                 print("Setting camera type to fisheye ...")
                 ch.setCameraType(cam_socket, dai.CameraModel.Fisheye)
@@ -317,9 +300,9 @@ class Wrapper:
         ch.setCameraExtrinsics(
             left_socket,
             right_socket,
-            R_right_to_left,
-            T_right_to_left,
-            specTranslation=T_right_to_left,
+            R_right_to_left.tolist(),
+            T_right_to_left.tolist(),
+            specTranslation=T_right_to_left.tolist(),
         )
         ch.setCameraExtrinsics(
             right_socket,
@@ -329,8 +312,8 @@ class Wrapper:
             specTranslation=T_left_to_right,
         )
 
-        ch.setStereoLeft(left_socket, np.eye(3))
-        ch.setStereoRight(right_socket, R_right_to_left)
+        ch.setStereoLeft(left_socket, np.eye(3).tolist())
+        ch.setStereoRight(right_socket, R_right_to_left.tolist())
 
         print("Flashing ...")
         try:

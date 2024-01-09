@@ -1,5 +1,6 @@
 import argparse
 import subprocess as sp
+from typing import Dict, List
 
 from depthai_wrappers.teleop_wrapper import TeleopWrapper
 
@@ -19,7 +20,7 @@ w = TeleopWrapper(
 )
 
 
-def spawn_procs(names: list[str]) -> dict:
+def spawn_procs(names: List[str]) -> Dict[str, sp.Popen]:  # type: ignore [type-arg]
     width, height = 1280, 720
     command = [
         "ffplay",
@@ -56,4 +57,8 @@ while True:
     data, lat, _ = w.get_data()
     print(lat)
     for name, packets in data.items():
-        procs[name].stdin.write(packets)
+        io = procs[name].stdin
+        if io is not None:
+            io.write(packets)
+        else:
+            print(f"io error with {procs[name]}")

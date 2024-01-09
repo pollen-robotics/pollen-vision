@@ -6,9 +6,7 @@ from cv2 import aruco
 from depthai_wrappers.cv_wrapper import CvWrapper
 from depthai_wrappers.utils import drawEpiLines
 
-argParser = argparse.ArgumentParser(
-    description="Check that the stereo calibration is correct."
-)
+argParser = argparse.ArgumentParser(description="Check that the stereo calibration is correct.")
 argParser.add_argument(
     "--config",
     type=str,

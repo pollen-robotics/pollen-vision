@@ -1,18 +1,21 @@
-from typing import Tuple
+from datetime import timedelta
+from typing import Dict, Optional, Tuple
 
 import depthai as dai
+import numpy as np
+import numpy.typing as npt
 
 from depthai_wrappers.wrapper import Wrapper
 
 
-class TeleopWrapper(Wrapper):
+class TeleopWrapper(Wrapper):  # type: ignore[misc]
     def __init__(
         self,
         cam_config_json: str,
         fps: int,
         force_usb2: bool = False,
         rectify: bool = False,
-        exposure_params: Tuple[int, int] = None,
+        exposure_params: Optional[Tuple[int, int]] = None,
     ) -> None:
         super().__init__(
             cam_config_json,
@@ -23,7 +26,9 @@ class TeleopWrapper(Wrapper):
             exposure_params=exposure_params,
         )
 
-    def get_data(self) -> Tuple:
+    def get_data(
+        self,
+    ) -> Tuple[Dict[str, npt.NDArray[np.uint8]], Dict[str, float], Dict[str, timedelta],]:
         data, latency, ts = super().get_data()
 
         for name, pkt in data.items():
@@ -61,12 +66,8 @@ class TeleopWrapper(Wrapper):
 
         return pipeline
 
-    def create_manipResize(
-        self, pipeline: dai.Pipeline, resolution: Tuple[int, int]
-    ) -> dai.node.ImageManip:
-        manipResize: dai.node.ImageManip = super().create_manipResize(
-            pipeline, resolution
-        )
+    def create_manipResize(self, pipeline: dai.Pipeline, resolution: Tuple[int, int]) -> dai.node.ImageManip:
+        manipResize: dai.node.ImageManip = super().create_manipResize(pipeline, resolution)
         manipResize.initialConfig.setFrameType(dai.ImgFrame.Type.NV12)
 
         return manipResize

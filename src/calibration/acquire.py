@@ -6,9 +6,7 @@ import numpy as np
 
 from depthai_wrappers.cv_wrapper import CvWrapper
 
-argParser = argparse.ArgumentParser(
-    description="Acquire images from a luxonis camera and save them to disk."
-)
+argParser = argparse.ArgumentParser(description="Acquire images from a luxonis camera and save them to disk.")
 argParser.add_argument(
     "--config",
     type=str,
