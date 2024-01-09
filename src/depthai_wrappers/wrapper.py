@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Tuple
@@ -14,7 +15,7 @@ from depthai_wrappers.cam_config import CamConfig
 from depthai_wrappers.utils import get_inv_R_T, get_socket_from_name
 
 
-class Wrapper:
+class Wrapper(ABC):
     def __init__(
         self,
         cam_config_json: str,
@@ -74,6 +75,7 @@ class Wrapper:
 
         return data, latency, ts
 
+    @abstractmethod
     def create_pipeline(self) -> dai.Pipeline:
         self._logger.error("Abstract class Wrapper does not implement create_pipeline()")
         exit()
@@ -115,6 +117,7 @@ class Wrapper:
         self.right_manipRescale = self.create_manipResize(pipeline, self.cam_config.resize_resolution)
         return pipeline
 
+    @abstractmethod
     def link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
         self._logger.error("Abstract class Wrapper does not implement link_pipeline()")
         exit()

@@ -22,7 +22,7 @@ jobs:
         run: |
           coverage run -m pytest
           coverage xml -i
-          coverage json -i 
+          coverage json -i
           coverage html -i
       - name: Archive code coverage html report
         uses: actions/upload-artifact@v3
