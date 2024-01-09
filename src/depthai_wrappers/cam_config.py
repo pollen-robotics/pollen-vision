@@ -59,7 +59,7 @@ class CamConfig:
         self.undstort_maps["right"] = (mapXR, mapYR)
 
     def to_string(self) -> str:
-        ret_string = ""
+        ret_string = "Camera Config: \n"
         ret_string += "FPS: {}\n".format(self.fps)
         ret_string += "Sensor resolution: {}\n".format(self.sensor_resolution)
         ret_string += "Resize resolution: {}\n".format(self.resize_resolution)

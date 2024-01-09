@@ -76,13 +76,7 @@ def drawEpiLines(left: npt.NDArray[Any], right: npt.NDArray[Any], aruco_dict: ar
 
     avg_slope_mean = np.mean(avg_slope)
     avg_slope_percent = avg_slope_mean / left.shape[0] * 100
-    print(
-        "AVG SLOPE :",
-        np.round(avg_slope, 2),
-        "px (",
-        round(abs(avg_slope_percent), 2),
-        "%)",
-    )
+    logging.info(f"AVG SLOPE : {np.round(avg_slope, 2)} px ({round(abs(avg_slope_percent), 2)} %)")
     return concatIm
 
 
