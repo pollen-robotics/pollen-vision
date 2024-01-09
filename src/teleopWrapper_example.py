@@ -1,20 +1,27 @@
 import argparse
+import logging
 import subprocess as sp
 from typing import Dict, List
 
 from depthai_wrappers.teleop_wrapper import TeleopWrapper
+from depthai_wrappers.utils import get_config_file_path, get_config_files_names
+
+valid_configs = get_config_files_names()
 
 argParser = argparse.ArgumentParser(description="teleop wrapper example")
 argParser.add_argument(
     "--config",
     type=str,
     required=True,
-    help="Path to the configuration file.",
+    choices=valid_configs,
+    help=f"Configutation file name : {valid_configs}",
 )
 args = argParser.parse_args()
 
+logging.basicConfig(level=logging.DEBUG)
+
 w = TeleopWrapper(
-    args.config,
+    get_config_file_path(args.config),
     50,
     rectify=True,
 )
@@ -55,10 +62,10 @@ procs = spawn_procs(["left", "right"])
 
 while True:
     data, lat, _ = w.get_data()
-    print(lat)
+    logging.info(lat)
     for name, packets in data.items():
         io = procs[name].stdin
         if io is not None:
             io.write(packets)
         else:
-            print(f"io error with {procs[name]}")
+            logging.error(f"io error with {procs[name]}")

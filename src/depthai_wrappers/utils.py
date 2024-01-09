@@ -1,4 +1,6 @@
-from typing import Any, Dict, Tuple
+import logging
+from importlib.resources import files
+from typing import Any, Dict, List, Tuple
 
 import cv2
 import depthai as dai
@@ -75,11 +77,18 @@ def drawEpiLines(left: npt.NDArray[Any], right: npt.NDArray[Any], aruco_dict: ar
 
     avg_slope_mean = np.mean(avg_slope)
     avg_slope_percent = avg_slope_mean / left.shape[0] * 100
-    print(
-        "AVG SLOPE :",
-        np.round(avg_slope, 2),
-        "px (",
-        round(abs(avg_slope_percent), 2),
-        "%)",
-    )
+    logging.info(f"AVG SLOPE : {np.round(avg_slope, 2)} px ({round(abs(avg_slope_percent), 2)} %)")
     return concatIm
+
+
+def get_config_files_names() -> List[str]:
+    path = files("config_files")
+    return [file.stem for file in path.glob("**/*.json")]  # type: ignore[attr-defined]
+
+
+def get_config_file_path(name: str) -> Any:
+    path = files("config_files")
+    for file in path.glob("**/*"):  # type: ignore[attr-defined]
+        if file.stem == name:
+            return file.resolve()
+    return None
