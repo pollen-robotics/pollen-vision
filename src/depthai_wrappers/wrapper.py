@@ -41,7 +41,14 @@ class Wrapper(ABC):
         height = connected_cameras_features[0].height
 
         self.cam_config.set_sensor_resolution((width, height))
-        self.cam_config.set_undistort_resolution((960, 720))  # TODO find a way to get this from cam.ispsize()
+
+        # TODO find a way to get this from cam.ispsize().
+        # Right now, any other device than the teleoperation head will get badly rectified images because of that
+        # This is tricky because undistort_resolution needs to be set to compute the undistort maps, but to get value
+        # dynamically, we need to have already created a colorCamera, which is done in pipeline_basis(),
+        # and it is even trickier now that setIspScale() is done in teleop_wrapper() rather than in wrapper()
+        self.cam_config.set_undistort_resolution((960, 720))
+
         if self.rectify:
             self.compute_undistort_maps()
 
@@ -161,9 +168,6 @@ class Wrapper(ABC):
         manipResize = pipeline.createImageManip()
         manipResize.initialConfig.setResizeThumbnail(resolution[0], resolution[1])
         manipResize.setMaxOutputFrameSize(resolution[0] * resolution[1] * 3)
-
-        # TODO add this in child method for teleop
-        # manipResize.initialConfig.setFrameType(dai.ImgFrame.Type.NV12)
 
         return manipResize
 
