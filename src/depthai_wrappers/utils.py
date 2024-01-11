@@ -16,6 +16,22 @@ socket_stringToCam = {
 }
 
 
+def get_connected_devices() -> Dict[str, str]:
+    devices: Dict[str, str] = {}
+
+    for deviceInfo in dai.Device.getAllAvailableDevices():
+        device = dai.Device(deviceInfo)
+        is_teleop_head = False
+        for cam in device.getConnectedCameraFeatures():
+            if cam.sensorName == "IMX296":
+                is_teleop_head = True
+
+        type = "teleop_head" if is_teleop_head else "other"
+        devices[deviceInfo.getMxId()] = type
+
+    return devices
+
+
 def get_socket_from_name(name: str, name_to_socket: Dict[str, str]) -> dai.CameraBoardSocket:
     return socket_stringToCam[name_to_socket[name]]
 
