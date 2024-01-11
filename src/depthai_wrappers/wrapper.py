@@ -24,8 +24,9 @@ class Wrapper(ABC):
         resize: Tuple[int, int],
         rectify: bool,
         exposure_params: Tuple[int, int],
+        mx_id: str,
     ) -> None:
-        self.cam_config = CamConfig(cam_config_json, fps, resize, exposure_params)
+        self.cam_config = CamConfig(cam_config_json, fps, resize, exposure_params, mx_id)
         self.force_usb2 = force_usb2
         self.rectify = rectify
         self._logger = logging.getLogger(__name__)
@@ -55,9 +56,10 @@ class Wrapper(ABC):
         self.pipeline = self.create_pipeline()
 
         self.device = dai.Device(
-            self.pipeline,
+            self.cam_config.get_device_info(),
             maxUsbSpeed=(dai.UsbSpeed.HIGH if self.force_usb2 else dai.UsbSpeed.SUPER_PLUS),
         )
+        self.device.startPipeline(self.pipeline)
         self.queues = self.create_queues()
 
         self.print_info()
@@ -177,7 +179,7 @@ class Wrapper(ABC):
 
         resolution = self.cam_config.undistort_resolution
 
-        calib = dai.Device().readCalibration()
+        calib = dai.Device(self.cam_config.get_device_info()).readCalibration()
         left_K = np.array(
             calib.getCameraIntrinsics(
                 left_socket,

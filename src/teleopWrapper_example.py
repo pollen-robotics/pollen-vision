@@ -20,11 +20,7 @@ args = argParser.parse_args()
 
 logging.basicConfig(level=logging.DEBUG)
 
-w = TeleopWrapper(
-    get_config_file_path(args.config),
-    50,
-    rectify=True,
-)
+w = TeleopWrapper(get_config_file_path(args.config), 50, rectify=True)
 
 
 def spawn_procs(names: List[str]) -> Dict[str, sp.Popen]:  # type: ignore [type-arg]
