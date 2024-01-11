@@ -1,6 +1,7 @@
 import json
 from typing import Dict, Optional, Tuple
 
+import depthai as dai
 import numpy as np
 import numpy.typing as npt
 
@@ -12,6 +13,7 @@ class CamConfig:
         fps: int,
         resize: Tuple[int, int],
         exposure_params: Tuple[int, int],
+        mx_id: str = "",
     ) -> None:
         self.cam_config_json = cam_config_json
         self.fps = fps
@@ -20,6 +22,8 @@ class CamConfig:
             assert self.exposure_params[0] is not None and self.exposure_params[1] is not None
             iso = self.exposure_params[1]
             assert 100 <= iso <= 1600
+
+        self.mx_id = mx_id
 
         config = json.load(open(self.cam_config_json, "rb"))
         self.socket_to_name = config["socket_to_name"]
@@ -34,6 +38,9 @@ class CamConfig:
             "left": None,
             "right": None,
         }
+
+    def get_device_info(self) -> dai.DeviceInfo:
+        return dai.DeviceInfo(self.mx_id)
 
     def set_sensor_resolution(self, resolution: Tuple[int, int]) -> None:
         self.sensor_resolution = resolution

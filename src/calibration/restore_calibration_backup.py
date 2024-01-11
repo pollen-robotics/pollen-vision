@@ -3,6 +3,8 @@ import os
 
 import depthai as dai
 
+from depthai_wrappers.utils import get_connected_devices
+
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "-c",
@@ -12,6 +14,12 @@ parser.add_argument(
     help="calibration backup file",
 )
 args = parser.parse_args()
+
+# Checking that only one device is connected
+devices = get_connected_devices()
+if len(devices.keys()) > 1:
+    print("ERROR: Be sure to only have one device connected to the host !")
+    exit()
 
 ret = input("This will erase currently flashed calibration. Continue ?(y/n)")
 while ret not in ["y", "n"]:
