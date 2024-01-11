@@ -25,8 +25,9 @@ class Wrapper(ABC):
         rectify: bool,
         exposure_params: Tuple[int, int],
         mx_id: str,
+        isp_scale: Tuple[int, int] = (1, 1),
     ) -> None:
-        self.cam_config = CamConfig(cam_config_json, fps, resize, exposure_params, mx_id)
+        self.cam_config = CamConfig(cam_config_json, fps, resize, exposure_params, mx_id, isp_scale)
         self.force_usb2 = force_usb2
         self.rectify = rectify
         self._logger = logging.getLogger(__name__)
@@ -43,12 +44,12 @@ class Wrapper(ABC):
 
         self.cam_config.set_sensor_resolution((width, height))
 
-        # TODO find a way to get this from cam.ispsize().
-        # Right now, any other device than the teleoperation head will get badly rectified images because of that
-        # This is tricky because undistort_resolution needs to be set to compute the undistort maps, but to get value
-        # dynamically, we need to have already created a colorCamera, which is done in pipeline_basis(),
-        # and it is even trickier now that setIspScale() is done in teleop_wrapper() rather than in wrapper()
-        self.cam_config.set_undistort_resolution((960, 720))
+        # Note: doing this makes the teleopWrapper not work with cams other than the teleoperation head.
+        # This comes from the (2, 3) ispscale factor that is not appropriate for 1280x800 resolution.
+        # Not really a big deal
+        width_undistort_resolution = int(width * (self.cam_config.isp_scale[0] / self.cam_config.isp_scale[1]))
+        height_unistort_resolution = int(height * (self.cam_config.isp_scale[0] / self.cam_config.isp_scale[1]))
+        self.cam_config.set_undistort_resolution((width_undistort_resolution, height_unistort_resolution))
 
         if self.rectify:
             self.compute_undistort_maps()
@@ -100,13 +101,13 @@ class Wrapper(ABC):
         self.left.setFps(self.cam_config.fps)
         self.left.setBoardSocket(left_socket)
         self.left.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1440X1080)
-        # self.left.setIspScale(2, 3)  # -> 960, 720
+        self.left.setIspScale(*self.cam_config.isp_scale)
 
         self.right = pipeline.createColorCamera()
         self.right.setFps(self.cam_config.fps)
         self.right.setBoardSocket(right_socket)
         self.right.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1440X1080)
-        # self.right.setIspScale(2, 3)  # -> 960, 720
+        self.right.setIspScale(*self.cam_config.isp_scale)
 
         # self.cam_config.set_undistort_resolution(self.left.getIspSize())
 

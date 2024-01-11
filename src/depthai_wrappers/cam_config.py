@@ -14,6 +14,7 @@ class CamConfig:
         resize: Tuple[int, int],
         exposure_params: Tuple[int, int],
         mx_id: str = "",
+        isp_scale: Tuple[int, int] = (1, 1),
     ) -> None:
         self.cam_config_json = cam_config_json
         self.fps = fps
@@ -24,6 +25,7 @@ class CamConfig:
             assert 100 <= iso <= 1600
 
         self.mx_id = mx_id
+        self.isp_scale = isp_scale
 
         config = json.load(open(self.cam_config_json, "rb"))
         self.socket_to_name = config["socket_to_name"]
