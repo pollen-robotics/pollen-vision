@@ -74,6 +74,8 @@ class TeleopWrapper(Wrapper):  # type: ignore[misc]
 
     def create_pipeline(self) -> dai.Pipeline:
         pipeline = self.pipeline_basis()
+        # self.left.setIspScale(2, 3)  # -> 960, 720
+        # self.right.setIspScale(2, 3)  # -> 960, 720
 
         pipeline = self.create_encoders(pipeline)
 

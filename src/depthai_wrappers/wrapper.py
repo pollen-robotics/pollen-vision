@@ -91,13 +91,13 @@ class Wrapper(ABC):
         self.left.setFps(self.cam_config.fps)
         self.left.setBoardSocket(left_socket)
         self.left.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1440X1080)
-        self.left.setIspScale(2, 3)  # -> 960, 720
+        # self.left.setIspScale(2, 3)  # -> 960, 720
 
         self.right = pipeline.createColorCamera()
         self.right.setFps(self.cam_config.fps)
         self.right.setBoardSocket(right_socket)
         self.right.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1440X1080)
-        self.right.setIspScale(2, 3)  # -> 960, 720
+        # self.right.setIspScale(2, 3)  # -> 960, 720
 
         # self.cam_config.set_undistort_resolution(self.left.getIspSize())
 
@@ -153,8 +153,8 @@ class Wrapper(ABC):
             except Exception as e:
                 self._logger.error(e)
                 exit()
-
         manipRectify.setMaxOutputFrameSize(resolution[0] * resolution[1] * 3)
+
         return manipRectify
 
     def create_manipResize(self, pipeline: dai.Pipeline, resolution: Tuple[int, int]) -> dai.node.ImageManip:
