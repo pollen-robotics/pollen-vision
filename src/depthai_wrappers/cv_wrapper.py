@@ -17,6 +17,7 @@ class CvWrapper(Wrapper):  # type: ignore[misc]
         resize: Optional[Tuple[int, int]] = None,
         rectify: bool = False,
         exposure_params: Optional[Tuple[int, int]] = None,
+        mx_id: str = "",
     ) -> None:
         super().__init__(
             cam_config_json,
@@ -25,6 +26,7 @@ class CvWrapper(Wrapper):  # type: ignore[misc]
             resize=resize,
             rectify=rectify,
             exposure_params=exposure_params,
+            mx_id=mx_id,
         )
 
     def get_data(
