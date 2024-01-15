@@ -25,8 +25,9 @@ class Wrapper(ABC):
         rectify: bool,
         exposure_params: Tuple[int, int],
         mx_id: str,
+        isp_scale: Tuple[int, int] = (1, 1),
     ) -> None:
-        self.cam_config = CamConfig(cam_config_json, fps, resize, exposure_params, mx_id)
+        self.cam_config = CamConfig(cam_config_json, fps, resize, exposure_params, mx_id, isp_scale)
         self.force_usb2 = force_usb2
         self.rectify = rectify
         self._logger = logging.getLogger(__name__)
@@ -35,23 +36,35 @@ class Wrapper(ABC):
 
     def prepare(self) -> None:
         self._logger.debug("Connecting to camera")
-        connected_cameras_features = dai.Device().getConnectedCameraFeatures()
+
+        self.device = dai.Device(
+            self.cam_config.get_device_info(),
+            maxUsbSpeed=(dai.UsbSpeed.HIGH if self.force_usb2 else dai.UsbSpeed.SUPER_PLUS),
+        )
+        connected_cameras_features = self.device.getConnectedCameraFeatures()
 
         # Assuming both cameras are the same
         width = connected_cameras_features[0].width
         height = connected_cameras_features[0].height
 
         self.cam_config.set_sensor_resolution((width, height))
-        self.cam_config.set_undistort_resolution((960, 720))  # TODO find a way to get this from cam.ispsize()
+
+        # Note: doing this makes the teleopWrapper not work with cams other than the teleoperation head.
+        # This comes from the (2, 3) ispscale factor that is not appropriate for 1280x800 resolution.
+        # Not really a big deal
+        width_undistort_resolution = int(width * (self.cam_config.isp_scale[0] / self.cam_config.isp_scale[1]))
+        height_unistort_resolution = int(height * (self.cam_config.isp_scale[0] / self.cam_config.isp_scale[1]))
+        self.cam_config.set_undistort_resolution((width_undistort_resolution, height_unistort_resolution))
+
         if self.rectify:
             self.compute_undistort_maps()
 
         self.pipeline = self.create_pipeline()
 
-        self.device = dai.Device(
-            self.cam_config.get_device_info(),
-            maxUsbSpeed=(dai.UsbSpeed.HIGH if self.force_usb2 else dai.UsbSpeed.SUPER_PLUS),
-        )
+        # self.device = dai.Device(
+        #     self.cam_config.get_device_info(),
+        #     maxUsbSpeed=(dai.UsbSpeed.HIGH if self.force_usb2 else dai.UsbSpeed.SUPER_PLUS),
+        # )
         self.device.startPipeline(self.pipeline)
         self.queues = self.create_queues()
 
@@ -93,13 +106,13 @@ class Wrapper(ABC):
         self.left.setFps(self.cam_config.fps)
         self.left.setBoardSocket(left_socket)
         self.left.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1440X1080)
-        self.left.setIspScale(2, 3)  # -> 960, 720
+        self.left.setIspScale(*self.cam_config.isp_scale)
 
         self.right = pipeline.createColorCamera()
         self.right.setFps(self.cam_config.fps)
         self.right.setBoardSocket(right_socket)
         self.right.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1440X1080)
-        self.right.setIspScale(2, 3)  # -> 960, 720
+        self.right.setIspScale(*self.cam_config.isp_scale)
 
         # self.cam_config.set_undistort_resolution(self.left.getIspSize())
 
@@ -155,17 +168,14 @@ class Wrapper(ABC):
             except Exception as e:
                 self._logger.error(e)
                 exit()
-
         manipRectify.setMaxOutputFrameSize(resolution[0] * resolution[1] * 3)
+
         return manipRectify
 
     def create_manipResize(self, pipeline: dai.Pipeline, resolution: Tuple[int, int]) -> dai.node.ImageManip:
         manipResize = pipeline.createImageManip()
         manipResize.initialConfig.setResizeThumbnail(resolution[0], resolution[1])
         manipResize.setMaxOutputFrameSize(resolution[0] * resolution[1] * 3)
-
-        # TODO add this in child method for teleop
-        # manipResize.initialConfig.setFrameType(dai.ImgFrame.Type.NV12)
 
         return manipResize
 
@@ -175,7 +185,7 @@ class Wrapper(ABC):
 
         resolution = self.cam_config.undistort_resolution
 
-        calib = dai.Device(self.cam_config.get_device_info()).readCalibration()
+        calib = self.device.readCalibration()
         left_K = np.array(
             calib.getCameraIntrinsics(
                 left_socket,

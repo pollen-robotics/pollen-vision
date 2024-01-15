@@ -26,6 +26,7 @@ class TeleopWrapper(Wrapper):  # type: ignore[misc]
             rectify=rectify,
             exposure_params=exposure_params,
             mx_id=mx_id,
+            isp_scale=(2, 3),
         )
 
     def get_data(
