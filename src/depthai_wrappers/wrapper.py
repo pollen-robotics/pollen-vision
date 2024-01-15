@@ -36,7 +36,12 @@ class Wrapper(ABC):
 
     def prepare(self) -> None:
         self._logger.debug("Connecting to camera")
-        connected_cameras_features = dai.Device().getConnectedCameraFeatures()
+
+        self.device = dai.Device(
+            self.cam_config.get_device_info(),
+            maxUsbSpeed=(dai.UsbSpeed.HIGH if self.force_usb2 else dai.UsbSpeed.SUPER_PLUS),
+        )
+        connected_cameras_features = self.device.getConnectedCameraFeatures()
 
         # Assuming both cameras are the same
         width = connected_cameras_features[0].width
@@ -56,10 +61,10 @@ class Wrapper(ABC):
 
         self.pipeline = self.create_pipeline()
 
-        self.device = dai.Device(
-            self.cam_config.get_device_info(),
-            maxUsbSpeed=(dai.UsbSpeed.HIGH if self.force_usb2 else dai.UsbSpeed.SUPER_PLUS),
-        )
+        # self.device = dai.Device(
+        #     self.cam_config.get_device_info(),
+        #     maxUsbSpeed=(dai.UsbSpeed.HIGH if self.force_usb2 else dai.UsbSpeed.SUPER_PLUS),
+        # )
         self.device.startPipeline(self.pipeline)
         self.queues = self.create_queues()
 
@@ -180,7 +185,7 @@ class Wrapper(ABC):
 
         resolution = self.cam_config.undistort_resolution
 
-        calib = dai.Device(self.cam_config.get_device_info()).readCalibration()
+        calib = self.device.readCalibration()
         left_K = np.array(
             calib.getCameraIntrinsics(
                 left_socket,
