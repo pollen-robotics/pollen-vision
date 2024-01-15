@@ -4,14 +4,17 @@ import os
 import cv2
 import numpy as np
 
-from depthai_wrappers.cv_wrapper import CvWrapper
+from depthai_wrappers.sdk_wrapper import SDKWrapper
+from depthai_wrappers.utils import get_config_file_path, get_config_files_names
 
+valid_configs = get_config_files_names()
 argParser = argparse.ArgumentParser(description="Acquire images from a luxonis camera and save them to disk.")
 argParser.add_argument(
     "--config",
     type=str,
     required=True,
-    help="Path to the configuration file.",
+    choices=valid_configs,
+    help=f"Configutation file name : {valid_configs}",
 )
 argParser.add_argument(
     "--imagesPath",
@@ -21,7 +24,7 @@ argParser.add_argument(
 )
 args = argParser.parse_args()
 
-w = CvWrapper(args.config, rectify=False)
+w = SDKWrapper(get_config_file_path(args.config), compute_depth=False, rectify=False)
 
 left_path = os.path.join(args.imagesPath, "left")
 right_path = os.path.join(args.imagesPath, "right")
