@@ -2,10 +2,20 @@ import cv2
 import numpy as np
 
 from depthai_wrappers.sdk_wrapper import SDKWrapper
-from depthai_wrappers.utils import get_config_file_path
+from depthai_wrappers.utils import get_config_file_path, get_connected_devices
 
-sr = SDKWrapper(get_config_file_path("CONFIG_SR"), compute_depth=True, rectify=False, mx_id="18443010B1FC5D1200")
-head = SDKWrapper(get_config_file_path("CONFIG_IMX296"), compute_depth=False, rectify=True, mx_id="194430108167641300")
+devices = get_connected_devices()
+if len(devices.keys()) != 2:
+    exit("You need to connect exactly two devices to run this example")
+
+for k, v in devices.items():
+    if v == "other":
+        sr_mx_id = k
+    else:
+        head_mx_id = k
+
+sr = SDKWrapper(get_config_file_path("CONFIG_SR"), compute_depth=True, rectify=False, mx_id=sr_mx_id)
+head = SDKWrapper(get_config_file_path("CONFIG_IMX296"), compute_depth=False, rectify=True, mx_id=head_mx_id)
 
 
 while True:
