@@ -122,6 +122,18 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
             self.depth.initialConfig.setMedianFilter(dai.MedianFilter.KERNEL_7x7)
             self.depth_max_disparity = self.depth.getMaxDisparity()
 
+            config = self.depth.initialConfig.get()
+            config.postProcessing.speckleFilter.enable = False
+            config.postProcessing.speckleFilter.speckleRange = 50
+            config.postProcessing.temporalFilter.enable = False
+            config.postProcessing.spatialFilter.enable = False
+            config.postProcessing.spatialFilter.holeFillingRadius = 2
+            config.postProcessing.spatialFilter.numIterations = 1
+            # config.postProcessing.thresholdFilter.minRange = 400
+            # config.postProcessing.thresholdFilter.maxRange = 15000
+            # config.postProcessing.decimationFilter.decimationFactor = 1
+            self.depth.initialConfig.set(config)
+
         pipeline = self.create_output_streams(pipeline)
 
         return self.link_pipeline(pipeline)

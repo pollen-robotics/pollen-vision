@@ -15,6 +15,13 @@ socket_stringToCam = {
     "CAM_D": dai.CameraBoardSocket.CAM_D,
 }
 
+socket_camToString = {
+    dai.CameraBoardSocket.CAM_A: "CAM_A",
+    dai.CameraBoardSocket.CAM_B: "CAM_B",
+    dai.CameraBoardSocket.CAM_C: "CAM_C",
+    dai.CameraBoardSocket.CAM_D: "CAM_D",
+}
+
 
 def get_connected_devices() -> Dict[str, str]:
     devices: Dict[str, str] = {}

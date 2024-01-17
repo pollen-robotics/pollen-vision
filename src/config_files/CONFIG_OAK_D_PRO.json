@@ -1,7 +1,7 @@
 {
     "socket_to_name": {
-        "CAM_B": "right",
-        "CAM_C": "left"
+        "CAM_B": "left",
+        "CAM_C": "right"
     },
     "inverted": false,
     "fisheye": false,
