@@ -5,6 +5,8 @@ import depthai as dai
 import numpy as np
 import numpy.typing as npt
 
+from depthai_wrappers.utils import get_socket_from_name
+
 
 class CamConfig:
     def __init__(
@@ -40,6 +42,7 @@ class CamConfig:
             "left": None,
             "right": None,
         }
+        self.calib: dai.CalibrationHandler = dai.CalibrationHandler()
 
     def get_device_info(self) -> dai.DeviceInfo:
         return dai.DeviceInfo(self.mx_id)
@@ -66,6 +69,24 @@ class CamConfig:
     ) -> None:
         self.undstort_maps["left"] = (mapXL, mapYL)
         self.undstort_maps["right"] = (mapXR, mapYR)
+
+    def set_calib(self, calib: dai.CalibrationHandler) -> None:
+        self.calib = calib
+
+    def get_calib(self) -> dai.CalibrationHandler:
+        return self.calib
+
+    def get_K_left(self) -> npt.NDArray[np.float32]:
+        left_socket = get_socket_from_name("left", self.name_to_socket)
+        left_K = np.array(
+            self.calib.getCameraIntrinsics(
+                left_socket,
+                self.undistort_resolution[0],
+                self.undistort_resolution[1],
+            )
+        )
+
+        return left_K
 
     def to_string(self) -> str:
         ret_string = "Camera Config: \n"

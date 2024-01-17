@@ -31,7 +31,7 @@ class TeleopWrapper(Wrapper):  # type: ignore[misc]
 
     def get_data(
         self,
-    ) -> Tuple[Dict[str, npt.NDArray[np.uint8]], Dict[str, float], Dict[str, timedelta],]:
+    ) -> Tuple[Dict[str, npt.NDArray[np.uint8]], Dict[str, float], Dict[str, timedelta]]:
         data, latency, ts = super().get_data()
 
         for name, pkt in data.items():

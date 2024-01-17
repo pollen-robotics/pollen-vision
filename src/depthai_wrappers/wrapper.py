@@ -12,7 +12,7 @@ import numpy as np
 import numpy.typing as npt
 
 from depthai_wrappers.cam_config import CamConfig
-from depthai_wrappers.utils import get_inv_R_T, get_socket_from_name
+from depthai_wrappers.utils import get_inv_R_T, get_socket_from_name, socket_camToString
 
 
 class Wrapper(ABC):
@@ -41,7 +41,11 @@ class Wrapper(ABC):
             self.cam_config.get_device_info(),
             maxUsbSpeed=(dai.UsbSpeed.HIGH if self.force_usb2 else dai.UsbSpeed.SUPER_PLUS),
         )
-        connected_cameras_features = self.device.getConnectedCameraFeatures()
+
+        connected_cameras_features = []
+        for cam in self.device.getConnectedCameraFeatures():
+            if socket_camToString[cam.socket] in self.cam_config.socket_to_name.keys():
+                connected_cameras_features.append(cam)
 
         # Assuming both cameras are the same
         width = connected_cameras_features[0].width
@@ -55,6 +59,7 @@ class Wrapper(ABC):
         width_undistort_resolution = int(width * (self.cam_config.isp_scale[0] / self.cam_config.isp_scale[1]))
         height_unistort_resolution = int(height * (self.cam_config.isp_scale[0] / self.cam_config.isp_scale[1]))
         self.cam_config.set_undistort_resolution((width_undistort_resolution, height_unistort_resolution))
+        self.cam_config.set_calib(self.device.readCalibration())
 
         if self.rectify:
             self.compute_undistort_maps()
@@ -77,7 +82,7 @@ class Wrapper(ABC):
 
     def get_data(
         self,
-    ) -> Tuple[Dict[str, npt.NDArray[np.uint8]], Dict[str, float], Dict[str, timedelta],]:
+    ) -> Tuple[Dict[str, npt.NDArray[np.uint8]], Dict[str, float], Dict[str, timedelta]]:
         data: Dict[str, npt.NDArray[np.uint8]] = {}
         latency: Dict[str, float] = {}
         ts: Dict[str, timedelta] = {}
@@ -185,7 +190,7 @@ class Wrapper(ABC):
 
         resolution = self.cam_config.undistort_resolution
 
-        calib = self.device.readCalibration()
+        calib = self.cam_config.get_calib()
         left_K = np.array(
             calib.getCameraIntrinsics(
                 left_socket,

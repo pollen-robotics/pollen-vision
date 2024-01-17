@@ -15,6 +15,13 @@ socket_stringToCam = {
     "CAM_D": dai.CameraBoardSocket.CAM_D,
 }
 
+socket_camToString = {
+    dai.CameraBoardSocket.CAM_A: "CAM_A",
+    dai.CameraBoardSocket.CAM_B: "CAM_B",
+    dai.CameraBoardSocket.CAM_C: "CAM_C",
+    dai.CameraBoardSocket.CAM_D: "CAM_D",
+}
+
 
 def get_connected_devices() -> Dict[str, str]:
     devices: Dict[str, str] = {}
@@ -93,7 +100,7 @@ def drawEpiLines(left: npt.NDArray[Any], right: npt.NDArray[Any], aruco_dict: ar
 
     avg_slope_mean = np.mean(avg_slope)
     avg_slope_percent = avg_slope_mean / left.shape[0] * 100
-    logging.info(f"AVG SLOPE : {np.round(avg_slope, 2)} px ({round(abs(avg_slope_percent), 2)} %)")
+    logging.info(f"AVG SLOPE : {np.round(avg_slope_mean, 2)} px ({round(abs(avg_slope_percent), 2)} %)")
     return concatIm
 
 
