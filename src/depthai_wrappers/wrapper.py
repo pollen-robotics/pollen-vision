@@ -82,7 +82,7 @@ class Wrapper(ABC):
 
     def get_data(
         self,
-    ) -> Tuple[Dict[str, npt.NDArray[np.uint8]], Dict[str, float], Dict[str, timedelta],]:
+    ) -> Tuple[Dict[str, npt.NDArray[np.uint8]], Dict[str, float], Dict[str, timedelta]]:
         data: Dict[str, npt.NDArray[np.uint8]] = {}
         latency: Dict[str, float] = {}
         ts: Dict[str, timedelta] = {}

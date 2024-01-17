@@ -1,8 +1,8 @@
 import argparse
-import time
 
 import cv2
 import numpy as np
+import numpy.typing as npt
 import open3d as o3d
 
 from depthai_wrappers.sdk_wrapper import SDKWrapper
@@ -24,7 +24,9 @@ argParser.add_argument(
 args = argParser.parse_args()
 
 
-def create_point_cloud_from_rgbd(rgb_image: np.ndarray, depth_image: np.ndarray, K: np.ndarray) -> o3d.geometry.PointCloud:
+def create_point_cloud_from_rgbd(
+    rgb_image: npt.NDArray[np.uint8], depth_image: npt.NDArray[np.uint8], K: npt.NDArray[np.float32]
+) -> o3d.geometry.PointCloud:
     rgbd_image = o3d.geometry.RGBDImage.create_from_color_and_depth(
         o3d.geometry.Image(rgb_image),
         o3d.geometry.Image(depth_image),
