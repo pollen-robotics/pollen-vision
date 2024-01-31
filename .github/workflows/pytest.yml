@@ -21,9 +21,9 @@ jobs:
       - name: Unit tests
         run: |
           coverage run -m pytest
-          coverage xml
-          coverage json
-          coverage html
+          coverage xml -i
+          coverage json -i
+          coverage html -i
       - name: Archive code coverage html report
         uses: actions/upload-artifact@v3
         with:
@@ -44,7 +44,7 @@ jobs:
         with:
           # GIST_TOKEN is a GitHub personal access token with scope "gist".
           auth: ${{ secrets.GIST_TOKEN }}
-          gistID: 58642e8fe4589e710e26627e39ff92d7   # replace with your real Gist id.
+          gistID: 66b1a7d58e9f53700846655150331024   # replace with your real Gist id.
           filename: covbadge.json
           label: Coverage
           message: ${{ env.total }}%

@@ -1,15 +1,20 @@
 import argparse
+import logging
 
-from depthai_wrappers.cv_wrapper import CvWrapper
+from depthai_wrappers.sdk_wrapper import SDKWrapper
+from depthai_wrappers.utils import get_config_file_path, get_config_files_names
 
-argParser = argparse.ArgumentParser(
-    description="Flash calibration parameters found by multical to the EEPROM of the device."
-)
+logging.basicConfig(level=logging.DEBUG)
+
+valid_configs = get_config_files_names()
+
+argParser = argparse.ArgumentParser(description="Flash calibration parameters found by multical to the EEPROM of the device.")
 argParser.add_argument(
     "--config",
     type=str,
     required=True,
-    help="Path to the configuration file.",
+    choices=valid_configs,
+    help=f"Configutation file name : {valid_configs}",
 )
 argParser.add_argument(
     "--calib_json_file",
@@ -17,5 +22,6 @@ argParser.add_argument(
     help="Path to the calibration json file",
 )
 args = argParser.parse_args()
-w = CvWrapper(args.config)
+
+w = SDKWrapper(get_config_file_path(args.config))
 w.flash(args.calib_json_file)

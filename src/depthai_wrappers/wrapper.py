@@ -1,18 +1,21 @@
 import json
+import logging
 import os
-from datetime import datetime
+from abc import ABC, abstractmethod
+from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Tuple
+from typing import Dict, List, Tuple
 
 import cv2
 import depthai as dai
 import numpy as np
+import numpy.typing as npt
 
 from depthai_wrappers.cam_config import CamConfig
-from depthai_wrappers.utils import get_inv_R_T, get_socket_from_name
+from depthai_wrappers.utils import get_inv_R_T, get_socket_from_name, socket_camToString
 
 
-class Wrapper:
+class Wrapper(ABC):
     def __init__(
         self,
         cam_config_json: str,
@@ -21,64 +24,84 @@ class Wrapper:
         resize: Tuple[int, int],
         rectify: bool,
         exposure_params: Tuple[int, int],
+        mx_id: str,
+        isp_scale: Tuple[int, int] = (1, 1),
     ) -> None:
-        self.cam_config = CamConfig(cam_config_json, fps, resize, exposure_params)
+        self.cam_config = CamConfig(cam_config_json, fps, resize, exposure_params, mx_id, isp_scale)
         self.force_usb2 = force_usb2
         self.rectify = rectify
+        self._logger = logging.getLogger(__name__)
 
         self.prepare()
 
     def prepare(self) -> None:
-        connected_cameras_features = dai.Device().getConnectedCameraFeatures()
+        self._logger.debug("Connecting to camera")
+
+        self.device = dai.Device(
+            self.cam_config.get_device_info(),
+            maxUsbSpeed=(dai.UsbSpeed.HIGH if self.force_usb2 else dai.UsbSpeed.SUPER_PLUS),
+        )
+
+        connected_cameras_features = []
+        for cam in self.device.getConnectedCameraFeatures():
+            if socket_camToString[cam.socket] in self.cam_config.socket_to_name.keys():
+                connected_cameras_features.append(cam)
 
         # Assuming both cameras are the same
         width = connected_cameras_features[0].width
         height = connected_cameras_features[0].height
 
         self.cam_config.set_sensor_resolution((width, height))
-        self.cam_config.set_undistort_resolution(
-            (960, 720)
-        )  # TODO find a way to get this from cam.ispsize()
+
+        # Note: doing this makes the teleopWrapper not work with cams other than the teleoperation head.
+        # This comes from the (2, 3) ispscale factor that is not appropriate for 1280x800 resolution.
+        # Not really a big deal
+        width_undistort_resolution = int(width * (self.cam_config.isp_scale[0] / self.cam_config.isp_scale[1]))
+        height_unistort_resolution = int(height * (self.cam_config.isp_scale[0] / self.cam_config.isp_scale[1]))
+        self.cam_config.set_undistort_resolution((width_undistort_resolution, height_unistort_resolution))
+        self.cam_config.set_calib(self.device.readCalibration())
+
         if self.rectify:
             self.compute_undistort_maps()
 
         self.pipeline = self.create_pipeline()
 
-        self.device = dai.Device(
-            self.pipeline,
-            maxUsbSpeed=(
-                dai.UsbSpeed.HIGH if self.force_usb2 else dai.UsbSpeed.SUPER_PLUS
-            ),
-        )
+        # self.device = dai.Device(
+        #     self.cam_config.get_device_info(),
+        #     maxUsbSpeed=(dai.UsbSpeed.HIGH if self.force_usb2 else dai.UsbSpeed.SUPER_PLUS),
+        # )
+        self.device.startPipeline(self.pipeline)
         self.queues = self.create_queues()
 
         self.print_info()
 
     def print_info(self) -> None:
-        print("==================")
-        print(self.cam_config.to_string())
-        print("Force USB2: {}".format(self.force_usb2))
-        print("Rectify: {}".format(self.rectify))
-        print("==================")
+        self._logger.info(self.cam_config.to_string())
+        self._logger.info(f"Force USB2: {self.force_usb2}")
+        self._logger.info(f"Rectify: {self.rectify}")
 
-    def get_data(self) -> tuple:
-        data: dict = {}
-        latency: dict = {}
-        ts: dict = {}
+    def get_data(
+        self,
+    ) -> Tuple[Dict[str, npt.NDArray[np.uint8]], Dict[str, float], Dict[str, timedelta]]:
+        data: Dict[str, npt.NDArray[np.uint8]] = {}
+        latency: Dict[str, float] = {}
+        ts: Dict[str, timedelta] = {}
 
         for name, queue in self.queues.items():
             pkt = queue.get()
-            data[name] = pkt
-            latency[name] = dai.Clock.now() - pkt.getTimestamp()
-            ts[name] = pkt.getTimestamp()
+            data[name] = pkt  # type: ignore[assignment]
+            latency[name] = dai.Clock.now() - pkt.getTimestamp()  # type: ignore[attr-defined, call-arg]
+            ts[name] = pkt.getTimestamp()  # type: ignore[attr-defined]
 
         return data, latency, ts
 
+    @abstractmethod
     def create_pipeline(self) -> dai.Pipeline:
-        print("Abstract class Wrapper does not implement create_pipeline()")
+        self._logger.error("Abstract class Wrapper does not implement create_pipeline()")
         exit()
 
     def pipeline_basis(self) -> dai.Pipeline:
+        self._logger.debug("Configuring depthai pipeline")
         pipeline = dai.Pipeline()
 
         left_socket = get_socket_from_name("left", self.cam_config.name_to_socket)
@@ -87,47 +110,36 @@ class Wrapper:
         self.left = pipeline.createColorCamera()
         self.left.setFps(self.cam_config.fps)
         self.left.setBoardSocket(left_socket)
-        self.left.setResolution(
-            dai.ColorCameraProperties.SensorResolution.THE_1440X1080
-        )
-        self.left.setIspScale(2, 3)  # -> 960, 720
+        self.left.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1440X1080)
+        self.left.setIspScale(*self.cam_config.isp_scale)
 
         self.right = pipeline.createColorCamera()
         self.right.setFps(self.cam_config.fps)
         self.right.setBoardSocket(right_socket)
-        self.right.setResolution(
-            dai.ColorCameraProperties.SensorResolution.THE_1440X1080
-        )
-        self.right.setIspScale(2, 3)  # -> 960, 720
+        self.right.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1440X1080)
+        self.right.setIspScale(*self.cam_config.isp_scale)
 
         # self.cam_config.set_undistort_resolution(self.left.getIspSize())
 
         if self.cam_config.exposure_params is not None:
             self.left.initialControl.setManualExposure(*self.cam_config.exposure_params)
-            self.right.initialControl.setManualExposure(
-                *self.cam_config.exposure_params
-            )
+            self.right.initialControl.setManualExposure(*self.cam_config.exposure_params)
         if self.cam_config.inverted:
             self.left.setImageOrientation(dai.CameraImageOrientation.ROTATE_180_DEG)
             self.right.setImageOrientation(dai.CameraImageOrientation.ROTATE_180_DEG)
 
-        self.left_manipRectify = self.create_manipRectify(
-            pipeline, "left", self.cam_config.undistort_resolution, self.rectify
-        )
+        self.left_manipRectify = self.create_manipRectify(pipeline, "left", self.cam_config.undistort_resolution, self.rectify)
         self.right_manipRectify = self.create_manipRectify(
             pipeline, "right", self.cam_config.undistort_resolution, self.rectify
         )
 
-        self.left_manipRescale = self.create_manipResize(
-            pipeline, self.cam_config.resize_resolution
-        )
-        self.right_manipRescale = self.create_manipResize(
-            pipeline, self.cam_config.resize_resolution
-        )
+        self.left_manipRescale = self.create_manipResize(pipeline, self.cam_config.resize_resolution)
+        self.right_manipRescale = self.create_manipResize(pipeline, self.cam_config.resize_resolution)
         return pipeline
 
+    @abstractmethod
     def link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
-        print("Abstract class Wrapper does not implement link_pipeline()")
+        self._logger.error("Abstract class Wrapper does not implement link_pipeline()")
         exit()
 
     def create_output_streams(self, pipeline: dai.Pipeline) -> dai.Pipeline:
@@ -139,8 +151,8 @@ class Wrapper:
 
         return pipeline
 
-    def create_queues(self) -> dict[str, dai.DataOutputQueue]:
-        queues = {}
+    def create_queues(self) -> Dict[str, dai.DataOutputQueue]:
+        queues: Dict[str, dai.DataOutputQueue] = {}
         for name in ["left", "right"]:
             queues[name] = self.device.getOutputQueue(name, maxSize=1, blocking=False)
         return queues
@@ -159,21 +171,16 @@ class Wrapper:
                 mesh, meshWidth, meshHeight = self.get_mesh(cam_name)
                 manipRectify.setWarpMesh(mesh, meshWidth, meshHeight)
             except Exception as e:
-                print(e)
+                self._logger.error(e)
                 exit()
-
         manipRectify.setMaxOutputFrameSize(resolution[0] * resolution[1] * 3)
+
         return manipRectify
 
-    def create_manipResize(
-        self, pipeline: dai.Pipeline, resolution: Tuple[int, int]
-    ) -> dai.node.ImageManip:
+    def create_manipResize(self, pipeline: dai.Pipeline, resolution: Tuple[int, int]) -> dai.node.ImageManip:
         manipResize = pipeline.createImageManip()
         manipResize.initialConfig.setResizeThumbnail(resolution[0], resolution[1])
         manipResize.setMaxOutputFrameSize(resolution[0] * resolution[1] * 3)
-
-        # TODO add this in child method for teleop
-        # manipResize.initialConfig.setFrameType(dai.ImgFrame.Type.NV12)
 
         return manipResize
 
@@ -183,7 +190,7 @@ class Wrapper:
 
         resolution = self.cam_config.undistort_resolution
 
-        calib = dai.Device().readCalibration()
+        calib = self.cam_config.get_calib()
         left_K = np.array(
             calib.getCameraIntrinsics(
                 left_socket,
@@ -217,27 +224,25 @@ class Wrapper:
 
         if self.cam_config.fisheye:
             mapXL, mapYL = cv2.fisheye.initUndistortRectifyMap(
-                left_K, left_D, R1, P1, resolution, cv2.CV_32FC1
+                left_K, left_D, R1, P1, resolution, cv2.CV_32FC1  # type: ignore[attr-defined]
             )
             mapXR, mapYR = cv2.fisheye.initUndistortRectifyMap(
-                right_K, right_D, R2, P2, resolution, cv2.CV_32FC1
+                right_K, right_D, R2, P2, resolution, cv2.CV_32FC1  # type: ignore[attr-defined]
             )
         else:
             mapXL, mapYL = cv2.initUndistortRectifyMap(
-                left_K, left_D, R1, P1, resolution, cv2.CV_32FC1
+                left_K, left_D, R1, P1, resolution, cv2.CV_32FC1  # type: ignore[attr-defined]
             )
             mapXR, mapYR = cv2.initUndistortRectifyMap(
-                right_K, right_D, R2, P2, resolution, cv2.CV_32FC1
+                right_K, right_D, R2, P2, resolution, cv2.CV_32FC1  # type: ignore[attr-defined]
             )
 
         self.cam_config.set_undistort_maps(mapXL, mapYL, mapXR, mapYR)
 
-    def get_mesh(self, cam_name: str) -> Tuple[np.ndarray, int, int]:
+    def get_mesh(self, cam_name: str) -> Tuple[List[dai.Point2f], int, int]:
         mapX, mapY = self.cam_config.undstort_maps[cam_name]
         if mapX is None or mapY is None:
-            raise Exception(
-                "Undistort maps have not been computed. Call compute_undistort_maps() first."
-            )
+            raise Exception("Undistort maps have not been computed. Call compute_undistort_maps() first.")
 
         meshCellSize = 16
         mesh0 = []
@@ -264,14 +269,14 @@ class Wrapper:
 
                 mesh0.append(rowLeft)
 
-        mesh0 = np.array(mesh0)
-        meshWidth = mesh0.shape[1] // 2
-        meshHeight = mesh0.shape[0]
-        mesh0.resize(meshWidth * meshHeight, 2)
+        mesh0_tmp = np.array(mesh0)
+        meshWidth = mesh0_tmp.shape[1] // 2
+        meshHeight = mesh0_tmp.shape[0]
+        mesh0_tmp.resize(meshWidth * meshHeight, 2)
 
-        mesh = list(map(tuple, mesh0))
+        mesh = list(map(tuple, mesh0_tmp))
 
-        return mesh, meshWidth, meshHeight
+        return mesh, meshWidth, meshHeight  # type: ignore [return-value]
 
     # Takes in the output of multical calibration
     def flash(self, calib_json_file: str) -> None:
@@ -280,7 +285,7 @@ class Wrapper:
         device_calibration_backup_file = Path("./CALIBRATION_BACKUP_" + now + ".json")
         deviceCalib = self.device.readCalibration()
         deviceCalib.eepromToJsonFile(device_calibration_backup_file)
-        print("Backup of device calibration saved to", device_calibration_backup_file)
+        self._logger.info("Backup of device calibration saved to", device_calibration_backup_file)
 
         os.environ["DEPTHAI_ALLOW_FACTORY_FLASHING"] = "235539980"
 
@@ -290,20 +295,20 @@ class Wrapper:
         cameras = calibration_data["cameras"]
         camera_poses = calibration_data["camera_poses"]
 
-        print("Setting intrinsics ...")
+        self._logger.info("Setting intrinsics ...")
         for cam_name, params in cameras.items():
             K = np.array(params["K"])
             D = np.array(params["dist"]).reshape((-1))
             im_size = params["image_size"]
             cam_socket = get_socket_from_name(cam_name, self.cam_config.name_to_socket)
 
-            ch.setCameraIntrinsics(cam_socket, K, im_size)
-            ch.setDistortionCoefficients(cam_socket, D)
+            ch.setCameraIntrinsics(cam_socket, K.tolist(), im_size)
+            ch.setDistortionCoefficients(cam_socket, D.tolist())
             if self.cam_config.fisheye:
-                print("Setting camera type to fisheye ...")
+                self._logger.info("Setting camera type to fisheye ...")
                 ch.setCameraType(cam_socket, dai.CameraModel.Fisheye)
 
-        print("Setting extrinsics ...")
+        self._logger.info("Setting extrinsics ...")
         left_socket = get_socket_from_name("left", self.cam_config.name_to_socket)
         right_socket = get_socket_from_name("right", self.cam_config.name_to_socket)
 
@@ -317,9 +322,9 @@ class Wrapper:
         ch.setCameraExtrinsics(
             left_socket,
             right_socket,
-            R_right_to_left,
-            T_right_to_left,
-            specTranslation=T_right_to_left,
+            R_right_to_left.tolist(),
+            T_right_to_left.tolist(),
+            specTranslation=T_right_to_left.tolist(),
         )
         ch.setCameraExtrinsics(
             right_socket,
@@ -329,14 +334,14 @@ class Wrapper:
             specTranslation=T_left_to_right,
         )
 
-        ch.setStereoLeft(left_socket, np.eye(3))
-        ch.setStereoRight(right_socket, R_right_to_left)
+        ch.setStereoLeft(left_socket, np.eye(3).tolist())
+        ch.setStereoRight(right_socket, R_right_to_left.tolist())
 
-        print("Flashing ...")
+        self._logger.info("Flashing ...")
         try:
             self.device.flashCalibration2(ch)
-            print("Calibration flashed successfully")
+            self._logger.info("Calibration flashed successfully")
         except Exception as e:
-            print("Flashing failed")
-            print(e)
+            self._logger.error("Flashing failed")
+            self._logger.error(e)
             exit()

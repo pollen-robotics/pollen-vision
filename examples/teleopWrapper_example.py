@@ -1,25 +1,29 @@
 import argparse
+import logging
 import subprocess as sp
+from typing import Dict, List
 
 from depthai_wrappers.teleop_wrapper import TeleopWrapper
+from depthai_wrappers.utils import get_config_file_path, get_config_files_names
+
+valid_configs = get_config_files_names()
 
 argParser = argparse.ArgumentParser(description="teleop wrapper example")
 argParser.add_argument(
     "--config",
     type=str,
     required=True,
-    help="Path to the configuration file.",
+    choices=valid_configs,
+    help=f"Configutation file name : {valid_configs}",
 )
 args = argParser.parse_args()
 
-w = TeleopWrapper(
-    args.config,
-    50,
-    rectify=True,
-)
+logging.basicConfig(level=logging.DEBUG)
+
+w = TeleopWrapper(get_config_file_path(args.config), 50, rectify=True)
 
 
-def spawn_procs(names: list[str]) -> dict:
+def spawn_procs(names: List[str]) -> Dict[str, sp.Popen]:  # type: ignore [type-arg]
     width, height = 1280, 720
     command = [
         "ffplay",
@@ -54,6 +58,10 @@ procs = spawn_procs(["left", "right"])
 
 while True:
     data, lat, _ = w.get_data()
-    print(lat)
+    logging.info(lat)
     for name, packets in data.items():
-        procs[name].stdin.write(packets)
+        io = procs[name].stdin
+        if io is not None:
+            io.write(packets)
+        else:
+            logging.error(f"io error with {procs[name]}")
