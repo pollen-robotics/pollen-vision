@@ -118,7 +118,6 @@ class Wrapper(ABC):
         self.right.setBoardSocket(right_socket)
         self.right.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1440X1080)
         self.right.setIspScale(*self.cam_config.isp_scale)
-
         # self.cam_config.set_undistort_resolution(self.left.getIspSize())
 
         if self.cam_config.exposure_params is not None:
@@ -151,11 +150,9 @@ class Wrapper(ABC):
 
         return pipeline
 
+    @abstractmethod
     def create_queues(self) -> Dict[str, dai.DataOutputQueue]:
-        queues: Dict[str, dai.DataOutputQueue] = {}
-        for name in ["left", "right"]:
-            queues[name] = self.device.getOutputQueue(name, maxSize=1, blocking=False)
-        return queues
+        pass
 
     def create_manipRectify(
         self,
@@ -170,9 +167,11 @@ class Wrapper(ABC):
             try:
                 mesh, meshWidth, meshHeight = self.get_mesh(cam_name)
                 manipRectify.setWarpMesh(mesh, meshWidth, meshHeight)
+
             except Exception as e:
                 self._logger.error(e)
                 exit()
+
         manipRectify.setMaxOutputFrameSize(resolution[0] * resolution[1] * 3)
 
         return manipRectify
@@ -285,7 +284,7 @@ class Wrapper(ABC):
         device_calibration_backup_file = Path("./CALIBRATION_BACKUP_" + now + ".json")
         deviceCalib = self.device.readCalibration()
         deviceCalib.eepromToJsonFile(device_calibration_backup_file)
-        self._logger.info("Backup of device calibration saved to", device_calibration_backup_file)
+        self._logger.info(f"Backup of device calibration saved to {device_calibration_backup_file}")
 
         os.environ["DEPTHAI_ALLOW_FACTORY_FLASHING"] = "235539980"
 
