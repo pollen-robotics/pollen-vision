@@ -75,35 +75,23 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
         return pipeline
 
     def link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
-        if self.compute_depth:
-            # Linking depth
-            self.left.isp.link(self.left_manipRescale.inputImage)
-            self.right.isp.link(self.right_manipRescale.inputImage)
+        # Resize, optionally rectify
+        self.left.isp.link(self.left_manip.inputImage)
+        self.right.isp.link(self.right_manip.inputImage)
 
-            self.left_manipRescale.out.link(self.depth.left)
-            self.right_manipRescale.out.link(self.depth.right)
+        # output NV12
+        self.left_manip.out.link(self.xout_left.input)
+        self.right_manip.out.link(self.xout_right.input)
+
+        if self.compute_depth:
+            self.left_manip.out.link(self.depth.left)
+            self.right_manip.out.link(self.depth.right)
+
             self.depth.depth.link(self.xout_depth.input)
             self.depth.disparity.link(self.xout_disparity.input)
 
-            # Linking left
             self.depth.rectifiedLeft.link(self.xout_depthNode_left.input)
-
-            # Linking right
             self.depth.rectifiedRight.link(self.xout_depthNode_right.input)
-
-        if self.rectify:
-            # Linking left
-            self.left.isp.link(self.left_manipRectify.inputImage)
-            self.left_manipRectify.out.link(self.left_manipRescale.inputImage)
-            # Linking right
-            self.right.isp.link(self.right_manipRectify.inputImage)
-            self.right_manipRectify.out.link(self.right_manipRescale.inputImage)
-        elif not self.compute_depth:
-            self.left.isp.link(self.left_manipRescale.inputImage)
-            self.right.isp.link(self.right_manipRescale.inputImage)
-
-        self.left_manipRescale.out.link(self.xout_left.input)
-        self.right_manipRescale.out.link(self.xout_right.input)
 
         return pipeline
 

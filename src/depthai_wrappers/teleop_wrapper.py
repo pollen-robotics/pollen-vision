@@ -40,13 +40,10 @@ class TeleopWrapper(Wrapper):  # type: ignore[misc]
         return data, latency, ts
 
     def link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
-        self.left.isp.link(self.left_manipRectify.inputImage)
-        self.left_manipRectify.out.link(self.left_manipRescale.inputImage)
-        self.right.isp.link(self.right_manipRectify.inputImage)
-        self.right_manipRectify.out.link(self.right_manipRescale.inputImage)
-
-        self.left_manipRescale.out.link(self.left_encoder.input)
-        self.right_manipRescale.out.link(self.right_encoder.input)
+        self.left.isp.link(self.left_manip.inputImage)
+        self.left_manip.out.link(self.left_encoder.input)
+        self.right.isp.link(self.right_manip.inputImage)
+        self.right_manip.out.link(self.right_encoder.input)
 
         self.left_encoder.bitstream.link(self.xout_left.input)
         self.right_encoder.bitstream.link(self.xout_right.input)

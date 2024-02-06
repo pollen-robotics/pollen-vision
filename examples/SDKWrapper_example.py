@@ -22,12 +22,12 @@ w = SDKWrapper(get_config_file_path(args.config), compute_depth=compute_depth, r
 
 while True:
     data, _, _ = w.get_data()
-    # cv2.imshow("left", data["left"])
-    # cv2.imshow("right", data["right"])
+    cv2.imshow("left", data["left"])
+    cv2.imshow("right", data["right"])
     if compute_depth:
-        # cv2.imshow("depthNode_left", data["depthNode_left"])
-        # cv2.imshow("depthNode_right", data["depthNode_right"])
-        # cv2.imshow("depth", data["depth"])
+        cv2.imshow("depthNode_left", data["depthNode_left"])
+        cv2.imshow("depthNode_right", data["depthNode_right"])
+        cv2.imshow("depth", data["depth"])
         disparity = data["disparity"]
 
         disparity = data["disparity"]
