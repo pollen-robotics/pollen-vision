@@ -66,12 +66,6 @@ class TeleopWrapper(Wrapper):  # type: ignore[misc]
 
         return pipeline
 
-    def create_manipResize(self, pipeline: dai.Pipeline, resolution: Tuple[int, int]) -> dai.node.ImageManip:
-        manipResize: dai.node.ImageManip = super().create_manipResize(pipeline, resolution)
-        manipResize.initialConfig.setFrameType(dai.ImgFrame.Type.NV12)
-
-        return manipResize
-
     def create_pipeline(self) -> dai.Pipeline:
         pipeline = self.pipeline_basis()
 
