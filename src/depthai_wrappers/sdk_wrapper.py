@@ -22,8 +22,10 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
         compute_depth: bool = False,
         exposure_params: Optional[Tuple[int, int]] = None,
         mx_id: str = "",
+        jpeg_output: bool = False,
     ) -> None:
         self.compute_depth = compute_depth
+        self._mjpeg = jpeg_output
         assert not (self.compute_depth and rectify), "Rectify is not working when compute_depth is True for now"
 
         super().__init__(
@@ -79,9 +81,15 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
         self.left.isp.link(self.left_manip.inputImage)
         self.right.isp.link(self.right_manip.inputImage)
 
-        # output NV12
-        self.left_manip.out.link(self.xout_left.input)
-        self.right_manip.out.link(self.xout_right.input)
+        if self._mjpeg:
+            self.left_manip.out.link(self.left_encoder.input)
+            self.right_manip.out.link(self.right_encoder.input)
+
+            self.left_encoder.bitstream.link(self.xout_left.input)
+            self.right_encoder.bitstream.link(self.xout_right.input)
+        else:
+            self.left_manip.out.link(self.xout_left.input)
+            self.right_manip.out.link(self.xout_right.input)
 
         if self.compute_depth:
             self.left_manip.out.link(self.depth.left)
@@ -92,6 +100,16 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
 
             self.depth.rectifiedLeft.link(self.xout_depthNode_left.input)
             self.depth.rectifiedRight.link(self.xout_depthNode_right.input)
+
+        return pipeline
+
+    def create_encoders(self, pipeline: dai.Pipeline) -> dai.Pipeline:
+        profile = dai.VideoEncoderProperties.Profile.MJPEG
+        self.left_encoder = pipeline.create(dai.node.VideoEncoder)
+        self.left_encoder.setDefaultProfilePreset(self.cam_config.fps, profile)
+
+        self.right_encoder = pipeline.create(dai.node.VideoEncoder)
+        self.right_encoder.setDefaultProfilePreset(self.cam_config.fps, profile)
 
         return pipeline
 
@@ -121,6 +139,9 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
             # config.postProcessing.thresholdFilter.maxRange = 15000
             # config.postProcessing.decimationFilter.decimationFactor = 1
             self.depth.initialConfig.set(config)
+
+        if self._mjpeg:
+            pipeline = self.create_encoders(pipeline)
 
         pipeline = self.create_output_streams(pipeline)
 

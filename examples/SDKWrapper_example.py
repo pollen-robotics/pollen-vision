@@ -18,12 +18,22 @@ argParser.add_argument(
 )
 args = argParser.parse_args()
 compute_depth = True
-w = SDKWrapper(get_config_file_path(args.config), compute_depth=compute_depth, rectify=False)
+jpeg_output = True
+w = SDKWrapper(get_config_file_path(args.config), compute_depth=compute_depth, rectify=False, jpeg_output=jpeg_output)
 
 while True:
     data, _, _ = w.get_data()
-    cv2.imshow("left", data["left"])
-    cv2.imshow("right", data["right"])
+
+    if jpeg_output:
+        left_img = cv2.imdecode(data["left"], cv2.IMREAD_COLOR)
+        right_img = cv2.imdecode(data["right"], cv2.IMREAD_COLOR)
+    else:
+        left_img = data["left"]
+        right_img = data["right"]
+
+    cv2.imshow("left", left_img)
+    cv2.imshow("right", right_img)
+
     if compute_depth:
         cv2.imshow("depthNode_left", data["depthNode_left"])
         cv2.imshow("depthNode_right", data["depthNode_right"])
