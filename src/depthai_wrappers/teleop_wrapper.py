@@ -52,17 +52,19 @@ class TeleopWrapper(Wrapper):  # type: ignore[misc]
 
     def create_encoders(self, pipeline: dai.Pipeline) -> dai.Pipeline:
         profile = dai.VideoEncoderProperties.Profile.H264_MAIN
+        bitrate = 4000
+        numBFrames = 0  # gstreamer recommends 0 B frames
         self.left_encoder = pipeline.create(dai.node.VideoEncoder)
         self.left_encoder.setDefaultProfilePreset(self.cam_config.fps, profile)
         self.left_encoder.setKeyframeFrequency(self.cam_config.fps)  # every 1s
-        self.left_encoder.setNumBFrames(0)  # gstreamer recommends 0 B frames
-        self.left_encoder.setBitrateKbps(4000)
+        self.left_encoder.setNumBFrames(numBFrames)
+        self.left_encoder.setBitrateKbps(bitrate)
 
         self.right_encoder = pipeline.create(dai.node.VideoEncoder)
         self.right_encoder.setDefaultProfilePreset(self.cam_config.fps, profile)
         self.right_encoder.setKeyframeFrequency(self.cam_config.fps)  # every 1s
-        self.right_encoder.setNumBFrames(0)  # gstreamer recommends 0 B frames
-        self.right_encoder.setBitrateKbps(4000)
+        self.right_encoder.setNumBFrames(numBFrames)
+        self.right_encoder.setBitrateKbps(bitrate)
 
         return pipeline
 
@@ -74,3 +76,10 @@ class TeleopWrapper(Wrapper):  # type: ignore[misc]
         pipeline = self.create_output_streams(pipeline)
 
         return self.link_pipeline(pipeline)
+
+    def create_queues(self) -> Dict[str, dai.DataOutputQueue]:
+        # config for video: https://docs.luxonis.com/projects/api/en/latest/components/device/#output-queue-maxsize-and-blocking
+        queues: Dict[str, dai.DataOutputQueue] = {}
+        for name in ["left", "right"]:
+            queues[name] = self.device.getOutputQueue(name, maxSize=10, blocking=True)
+        return queues

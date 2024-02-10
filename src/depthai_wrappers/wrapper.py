@@ -66,11 +66,6 @@ class Wrapper(ABC):
 
         self.pipeline = self.create_pipeline()
 
-        # self.device = dai.Device(
-        #     self.cam_config.get_device_info(),
-        #     maxUsbSpeed=(dai.UsbSpeed.HIGH if self.force_usb2 else dai.UsbSpeed.SUPER_PLUS),
-        # )
-
         self.device.startPipeline(self.pipeline)
         self.queues = self.create_queues()
 
@@ -148,11 +143,9 @@ class Wrapper(ABC):
 
         return pipeline
 
+    @abstractmethod
     def create_queues(self) -> Dict[str, dai.DataOutputQueue]:
-        queues: Dict[str, dai.DataOutputQueue] = {}
-        for name in ["left", "right"]:
-            queues[name] = self.device.getOutputQueue(name, maxSize=1, blocking=False)
-        return queues
+        pass
 
     def create_imageManip(
         self,
@@ -282,7 +275,7 @@ class Wrapper(ABC):
         device_calibration_backup_file = Path("./CALIBRATION_BACKUP_" + now + ".json")
         deviceCalib = self.device.readCalibration()
         deviceCalib.eepromToJsonFile(device_calibration_backup_file)
-        self._logger.info("Backup of device calibration saved to", device_calibration_backup_file)
+        self._logger.info(f"Backup of device calibration saved to {device_calibration_backup_file}")
 
         os.environ["DEPTHAI_ALLOW_FACTORY_FLASHING"] = "235539980"
 
