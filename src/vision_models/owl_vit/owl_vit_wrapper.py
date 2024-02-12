@@ -1,10 +1,10 @@
+import random
 from typing import Dict, List, Tuple
 
 import numpy as np
 import numpy.typing as npt
 import torch
 from PIL import Image, ImageDraw
-import random
 from transformers import pipeline
 
 
