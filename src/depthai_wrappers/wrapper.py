@@ -66,10 +66,6 @@ class Wrapper(ABC):
 
         self.pipeline = self.create_pipeline()
 
-        # self.device = dai.Device(
-        #     self.cam_config.get_device_info(),
-        #     maxUsbSpeed=(dai.UsbSpeed.HIGH if self.force_usb2 else dai.UsbSpeed.SUPER_PLUS),
-        # )
         self.device.startPipeline(self.pipeline)
         self.queues = self.create_queues()
 
@@ -118,6 +114,7 @@ class Wrapper(ABC):
         self.right.setBoardSocket(right_socket)
         self.right.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1440X1080)
         self.right.setIspScale(*self.cam_config.isp_scale)
+
         # self.cam_config.set_undistort_resolution(self.left.getIspSize())
 
         if self.cam_config.exposure_params is not None:
@@ -127,13 +124,9 @@ class Wrapper(ABC):
             self.left.setImageOrientation(dai.CameraImageOrientation.ROTATE_180_DEG)
             self.right.setImageOrientation(dai.CameraImageOrientation.ROTATE_180_DEG)
 
-        self.left_manipRectify = self.create_manipRectify(pipeline, "left", self.cam_config.undistort_resolution, self.rectify)
-        self.right_manipRectify = self.create_manipRectify(
-            pipeline, "right", self.cam_config.undistort_resolution, self.rectify
-        )
+        self.left_manip = self.create_imageManip(pipeline, "left", self.cam_config.undistort_resolution, self.rectify)
+        self.right_manip = self.create_imageManip(pipeline, "right", self.cam_config.undistort_resolution, self.rectify)
 
-        self.left_manipRescale = self.create_manipResize(pipeline, self.cam_config.resize_resolution)
-        self.right_manipRescale = self.create_manipResize(pipeline, self.cam_config.resize_resolution)
         return pipeline
 
     @abstractmethod
@@ -154,34 +147,32 @@ class Wrapper(ABC):
     def create_queues(self) -> Dict[str, dai.DataOutputQueue]:
         pass
 
-    def create_manipRectify(
+    def create_imageManip(
         self,
         pipeline: dai.Pipeline,
         cam_name: str,
         resolution: Tuple[int, int],
         rectify: bool = True,
     ) -> dai.node.ImageManip:
-        manipRectify = pipeline.createImageManip()
+        """
+        Resize and optionally rectify an image
+        """
+        manip = pipeline.createImageManip()
 
         if rectify:
             try:
                 mesh, meshWidth, meshHeight = self.get_mesh(cam_name)
-                manipRectify.setWarpMesh(mesh, meshWidth, meshHeight)
-
+                manip.setWarpMesh(mesh, meshWidth, meshHeight)
             except Exception as e:
                 self._logger.error(e)
                 exit()
+        manip.setMaxOutputFrameSize(resolution[0] * resolution[1] * 3)
 
-        manipRectify.setMaxOutputFrameSize(resolution[0] * resolution[1] * 3)
+        manip.initialConfig.setKeepAspectRatio(True)
+        manip.initialConfig.setResize(resolution[0], resolution[1])
+        manip.initialConfig.setFrameType(dai.ImgFrame.Type.NV12)
 
-        return manipRectify
-
-    def create_manipResize(self, pipeline: dai.Pipeline, resolution: Tuple[int, int]) -> dai.node.ImageManip:
-        manipResize = pipeline.createImageManip()
-        manipResize.initialConfig.setResizeThumbnail(resolution[0], resolution[1])
-        manipResize.setMaxOutputFrameSize(resolution[0] * resolution[1] * 3)
-
-        return manipResize
+        return manip
 
     def compute_undistort_maps(self) -> None:
         left_socket = get_socket_from_name("left", self.cam_config.name_to_socket)

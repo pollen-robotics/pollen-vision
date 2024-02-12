@@ -26,7 +26,7 @@ args = argParser.parse_args()
 
 ARUCO_DICT = aruco.getPredefinedDictionary(aruco.DICT_4X4_1000)
 
-w = SDKWrapper(get_config_file_path(args.config), rectify=True, resize=(1280, 720), fps=50)
+w = SDKWrapper(get_config_file_path(args.config), rectify=True, resize=(1280, 720), fps=60)
 
 while True:
     data, _, _ = w.get_data()

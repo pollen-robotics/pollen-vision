@@ -22,8 +22,10 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
         compute_depth: bool = False,
         exposure_params: Optional[Tuple[int, int]] = None,
         mx_id: str = "",
+        jpeg_output: bool = False,
     ) -> None:
         self.compute_depth = compute_depth
+        self._mjpeg = jpeg_output
         assert not (self.compute_depth and rectify), "Rectify is not working when compute_depth is True for now"
 
         super().__init__(
@@ -75,35 +77,39 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
         return pipeline
 
     def link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
-        if self.compute_depth:
-            # Linking depth
-            self.left.isp.link(self.left_manipRescale.inputImage)
-            self.right.isp.link(self.right_manipRescale.inputImage)
+        # Resize, optionally rectify
+        self.left.isp.link(self.left_manip.inputImage)
+        self.right.isp.link(self.right_manip.inputImage)
 
-            self.left_manipRescale.out.link(self.depth.left)
-            self.right_manipRescale.out.link(self.depth.right)
+        if self._mjpeg:
+            self.left_manip.out.link(self.left_encoder.input)
+            self.right_manip.out.link(self.right_encoder.input)
+
+            self.left_encoder.bitstream.link(self.xout_left.input)
+            self.right_encoder.bitstream.link(self.xout_right.input)
+        else:
+            self.left_manip.out.link(self.xout_left.input)
+            self.right_manip.out.link(self.xout_right.input)
+
+        if self.compute_depth:
+            self.left_manip.out.link(self.depth.left)
+            self.right_manip.out.link(self.depth.right)
+
             self.depth.depth.link(self.xout_depth.input)
             self.depth.disparity.link(self.xout_disparity.input)
 
-            # Linking left
             self.depth.rectifiedLeft.link(self.xout_depthNode_left.input)
-
-            # Linking right
             self.depth.rectifiedRight.link(self.xout_depthNode_right.input)
 
-        if self.rectify:
-            # Linking left
-            self.left.isp.link(self.left_manipRectify.inputImage)
-            self.left_manipRectify.out.link(self.left_manipRescale.inputImage)
-            # Linking right
-            self.right.isp.link(self.right_manipRectify.inputImage)
-            self.right_manipRectify.out.link(self.right_manipRescale.inputImage)
-        elif not self.compute_depth:
-            self.left.isp.link(self.left_manipRescale.inputImage)
-            self.right.isp.link(self.right_manipRescale.inputImage)
+        return pipeline
 
-        self.left_manipRescale.out.link(self.xout_left.input)
-        self.right_manipRescale.out.link(self.xout_right.input)
+    def create_encoders(self, pipeline: dai.Pipeline) -> dai.Pipeline:
+        profile = dai.VideoEncoderProperties.Profile.MJPEG
+        self.left_encoder = pipeline.create(dai.node.VideoEncoder)
+        self.left_encoder.setDefaultProfilePreset(self.cam_config.fps, profile)
+
+        self.right_encoder = pipeline.create(dai.node.VideoEncoder)
+        self.right_encoder.setDefaultProfilePreset(self.cam_config.fps, profile)
 
         return pipeline
 
@@ -133,6 +139,9 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
             # config.postProcessing.thresholdFilter.maxRange = 15000
             # config.postProcessing.decimationFilter.decimationFactor = 1
             self.depth.initialConfig.set(config)
+
+        if self._mjpeg:
+            pipeline = self.create_encoders(pipeline)
 
         pipeline = self.create_output_streams(pipeline)
 
