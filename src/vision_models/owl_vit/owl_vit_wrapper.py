@@ -1,10 +1,15 @@
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import numpy as np
 import numpy.typing as npt
 import torch
 from PIL import Image, ImageDraw
+import random
 from transformers import pipeline
+
+
+def random_color() -> Tuple[int, int, int]:
+    return (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
 
 class OwlVitWrapper:
@@ -20,12 +25,20 @@ class OwlVitWrapper:
     def draw_predictions(self, in_im: npt.NDArray[np.uint8], predictions: Dict) -> Image:  # type: ignore
         im: Image = Image.fromarray(in_im)
         draw = ImageDraw.Draw(im)
+
+        # Pick one random color per class label
+        colors_per_label: Dict[str, Tuple[int, int, int]] = {}
+
         for prediction in predictions:
             box = prediction["box"]
             label = prediction["label"]
+
+            if label not in colors_per_label.keys():
+                colors_per_label[label] = random_color()
+
             score = prediction["score"]
             xmin, ymin, xmax, ymax = box.values()
-            draw.rectangle((xmin, ymin, xmax, ymax), outline="red", width=1)
+            draw.rectangle((xmin, ymin, xmax, ymax), outline=colors_per_label[label], width=1)
             draw.text((xmin, ymin), f"{label}: {round(score,2)}", fill="white")
 
         return im
