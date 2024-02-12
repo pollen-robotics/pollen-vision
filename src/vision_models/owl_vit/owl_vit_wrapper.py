@@ -9,7 +9,7 @@ from transformers import pipeline
 
 
 def random_color() -> Tuple[int, int, int]:
-    return (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+return tuple(np.random.randint(0, 255, 3))
 
 
 class OwlVitWrapper:
