@@ -32,22 +32,22 @@ class Wrapper(ABC):
         isp_scale: Tuple[int, int] = (1, 1),
     ) -> None:
         self.cam_config = CamConfig(cam_config_json, fps, resize, exposure_params, mx_id, isp_scale)
-        self.force_usb2 = force_usb2
-        self.rectify = rectify
+        self._force_usb2 = force_usb2
+        self._rectify = rectify
         self._logger = logging.getLogger(__name__)
 
-        self.prepare()
+        self._prepare()
 
-    def prepare(self) -> None:
+    def _prepare(self) -> None:
         self._logger.debug("Connecting to camera")
 
-        self.device = dai.Device(
+        self._device = dai.Device(
             self.cam_config.get_device_info(),
-            maxUsbSpeed=(dai.UsbSpeed.HIGH if self.force_usb2 else dai.UsbSpeed.SUPER_PLUS),
+            maxUsbSpeed=(dai.UsbSpeed.HIGH if self._force_usb2 else dai.UsbSpeed.SUPER_PLUS),
         )
 
         connected_cameras_features = []
-        for cam in self.device.getConnectedCameraFeatures():
+        for cam in self._device.getConnectedCameraFeatures():
             if socket_camToString[cam.socket] in self.cam_config.socket_to_name.keys():
                 connected_cameras_features.append(cam)
 
@@ -63,22 +63,22 @@ class Wrapper(ABC):
         width_undistort_resolution = int(width * (self.cam_config.isp_scale[0] / self.cam_config.isp_scale[1]))
         height_unistort_resolution = int(height * (self.cam_config.isp_scale[0] / self.cam_config.isp_scale[1]))
         self.cam_config.set_undistort_resolution((width_undistort_resolution, height_unistort_resolution))
-        self.cam_config.set_calib(self.device.readCalibration())
+        self.cam_config.set_calib(self._device.readCalibration())
 
-        if self.rectify:
-            self.compute_undistort_maps()
+        if self._rectify:
+            self._compute_undistort_maps()
 
-        self.pipeline = self.create_pipeline()
+        self.pipeline = self._create_pipeline()
 
-        self.device.startPipeline(self.pipeline)
-        self.queues = self.create_queues()
+        self._device.startPipeline(self.pipeline)
+        self.queues = self._create_queues()
 
         self.print_info()
 
     def print_info(self) -> None:
         self._logger.info(self.cam_config.to_string())
-        self._logger.info(f"Force USB2: {self.force_usb2}")
-        self._logger.info(f"Rectify: {self.rectify}")
+        self._logger.info(f"Force USB2: {self._force_usb2}")
+        self._logger.info(f"Rectify: {self._rectify}")
 
     def get_data(
         self,
@@ -96,11 +96,11 @@ class Wrapper(ABC):
         return data, latency, ts
 
     @abstractmethod
-    def create_pipeline(self) -> dai.Pipeline:
+    def _create_pipeline(self) -> dai.Pipeline:
         self._logger.error("Abstract class Wrapper does not implement create_pipeline()")
         exit()
 
-    def pipeline_basis(self) -> dai.Pipeline:
+    def _pipeline_basis(self) -> dai.Pipeline:
         self._logger.debug("Configuring depthai pipeline")
         pipeline = dai.Pipeline()
 
@@ -128,17 +128,17 @@ class Wrapper(ABC):
             self.left.setImageOrientation(dai.CameraImageOrientation.ROTATE_180_DEG)
             self.right.setImageOrientation(dai.CameraImageOrientation.ROTATE_180_DEG)
 
-        self.left_manip = self.create_imageManip(pipeline, "left", self.cam_config.undistort_resolution, self.rectify)
-        self.right_manip = self.create_imageManip(pipeline, "right", self.cam_config.undistort_resolution, self.rectify)
+        self.left_manip = self._create_imageManip(pipeline, "left", self.cam_config.undistort_resolution, self._rectify)
+        self.right_manip = self._create_imageManip(pipeline, "right", self.cam_config.undistort_resolution, self._rectify)
 
         return pipeline
 
     @abstractmethod
-    def link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
+    def _link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
         self._logger.error("Abstract class Wrapper does not implement link_pipeline()")
         exit()
 
-    def create_output_streams(self, pipeline: dai.Pipeline) -> dai.Pipeline:
+    def _create_output_streams(self, pipeline: dai.Pipeline) -> dai.Pipeline:
         self.xout_left = pipeline.createXLinkOut()
         self.xout_left.setStreamName("left")
 
@@ -147,13 +147,13 @@ class Wrapper(ABC):
 
         return pipeline
 
-    def create_queues(self) -> Dict[str, dai.DataOutputQueue]:
+    def _create_queues(self) -> Dict[str, dai.DataOutputQueue]:
         queues: Dict[str, dai.DataOutputQueue] = {}
         for name in ["left", "right"]:
-            queues[name] = self.device.getOutputQueue(name, maxSize=1, blocking=False)
+            queues[name] = self._device.getOutputQueue(name, maxSize=1, blocking=False)
         return queues
 
-    def create_imageManip(
+    def _create_imageManip(
         self,
         pipeline: dai.Pipeline,
         cam_name: str,
@@ -180,7 +180,7 @@ class Wrapper(ABC):
 
         return manip
 
-    def compute_undistort_maps(self) -> None:
+    def _compute_undistort_maps(self) -> None:
         left_socket = get_socket_from_name("left", self.cam_config.name_to_socket)
         right_socket = get_socket_from_name("right", self.cam_config.name_to_socket)
 
@@ -279,7 +279,7 @@ class Wrapper(ABC):
         now = str(datetime.now()).replace(" ", "_").split(".")[0]
 
         device_calibration_backup_file = Path("./CALIBRATION_BACKUP_" + now + ".json")
-        deviceCalib = self.device.readCalibration()
+        deviceCalib = self._device.readCalibration()
         deviceCalib.eepromToJsonFile(device_calibration_backup_file)
         self._logger.info(f"Backup of device calibration saved to {device_calibration_backup_file}")
 
@@ -335,7 +335,7 @@ class Wrapper(ABC):
 
         self._logger.info("Flashing ...")
         try:
-            self.device.flashCalibration2(ch)
+            self._device.flashCalibration2(ch)
             self._logger.info("Calibration flashed successfully")
         except Exception as e:
             self._logger.error("Flashing failed")

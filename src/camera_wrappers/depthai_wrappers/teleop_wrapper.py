@@ -39,7 +39,7 @@ class TeleopWrapper(Wrapper):  # type: ignore[misc]
 
         return data, latency, ts
 
-    def link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
+    def _link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
         self.left.isp.link(self.left_manip.inputImage)
         self.left_manip.out.link(self.left_encoder.input)
         self.right.isp.link(self.right_manip.inputImage)
@@ -50,7 +50,7 @@ class TeleopWrapper(Wrapper):  # type: ignore[misc]
 
         return pipeline
 
-    def create_encoders(self, pipeline: dai.Pipeline) -> dai.Pipeline:
+    def _create_encoders(self, pipeline: dai.Pipeline) -> dai.Pipeline:
         profile = dai.VideoEncoderProperties.Profile.H264_MAIN
         bitrate = 4000
         numBFrames = 0  # gstreamer recommends 0 B frames
@@ -68,18 +68,18 @@ class TeleopWrapper(Wrapper):  # type: ignore[misc]
 
         return pipeline
 
-    def create_pipeline(self) -> dai.Pipeline:
-        pipeline = self.pipeline_basis()
+    def _create_pipeline(self) -> dai.Pipeline:
+        pipeline = self._pipeline_basis()
 
-        pipeline = self.create_encoders(pipeline)
+        pipeline = self._create_encoders(pipeline)
 
-        pipeline = self.create_output_streams(pipeline)
+        pipeline = self._create_output_streams(pipeline)
 
-        return self.link_pipeline(pipeline)
+        return self._link_pipeline(pipeline)
 
-    def create_queues(self) -> Dict[str, dai.DataOutputQueue]:
+    def _create_queues(self) -> Dict[str, dai.DataOutputQueue]:
         # config for video: https://docs.luxonis.com/projects/api/en/latest/components/device/#output-queue-maxsize-and-blocking
         queues: Dict[str, dai.DataOutputQueue] = {}
         for name in ["left", "right"]:
-            queues[name] = self.device.getOutputQueue(name, maxSize=10, blocking=True)
+            queues[name] = self._device.getOutputQueue(name, maxSize=10, blocking=True)
         return queues

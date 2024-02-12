@@ -24,9 +24,9 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
         mx_id: str = "",
         jpeg_output: bool = False,
     ) -> None:
-        self.compute_depth = compute_depth
+        self._compute_depth = compute_depth
         self._mjpeg = jpeg_output
-        assert not (self.compute_depth and rectify), "Rectify is not working when compute_depth is True for now"
+        assert not (self._compute_depth and rectify), "Rectify is not working when compute_depth is True for now"
 
         super().__init__(
             cam_config_json,
@@ -47,21 +47,21 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
 
         return data, latency, ts
 
-    def create_queues(self) -> Dict[str, dai.DataOutputQueue]:
-        queues: Dict[str, dai.DataOutputQueue] = super().create_queues()
-        if self.compute_depth:
-            queues["depth"] = self.device.getOutputQueue("depth", maxSize=1, blocking=False)
-            queues["disparity"] = self.device.getOutputQueue("disparity", maxSize=1, blocking=False)
+    def _create_queues(self) -> Dict[str, dai.DataOutputQueue]:
+        queues: Dict[str, dai.DataOutputQueue] = super()._create_queues()
+        if self._compute_depth:
+            queues["depth"] = self._device.getOutputQueue("depth", maxSize=1, blocking=False)
+            queues["disparity"] = self._device.getOutputQueue("disparity", maxSize=1, blocking=False)
 
-            queues["depthNode_left"] = self.device.getOutputQueue("depthNode_left", maxSize=1, blocking=False)
-            queues["depthNode_right"] = self.device.getOutputQueue("depthNode_right", maxSize=1, blocking=False)
+            queues["depthNode_left"] = self._device.getOutputQueue("depthNode_left", maxSize=1, blocking=False)
+            queues["depthNode_right"] = self._device.getOutputQueue("depthNode_right", maxSize=1, blocking=False)
 
         return queues
 
-    def create_output_streams(self, pipeline: dai.Pipeline) -> dai.Pipeline:
-        pipeline = super().create_output_streams(pipeline)
+    def _create_output_streams(self, pipeline: dai.Pipeline) -> dai.Pipeline:
+        pipeline = super()._create_output_streams(pipeline)
 
-        if self.compute_depth:
+        if self._compute_depth:
             self.xout_depth = pipeline.createXLinkOut()
             self.xout_depth.setStreamName("depth")
 
@@ -76,7 +76,7 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
 
         return pipeline
 
-    def link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
+    def _link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
         # Resize, optionally rectify
         self.left.isp.link(self.left_manip.inputImage)
         self.right.isp.link(self.right_manip.inputImage)
@@ -91,7 +91,7 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
             self.left_manip.out.link(self.xout_left.input)
             self.right_manip.out.link(self.xout_right.input)
 
-        if self.compute_depth:
+        if self._compute_depth:
             self.left_manip.out.link(self.depth.left)
             self.right_manip.out.link(self.depth.right)
 
@@ -103,7 +103,7 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
 
         return pipeline
 
-    def create_encoders(self, pipeline: dai.Pipeline) -> dai.Pipeline:
+    def _create_encoders(self, pipeline: dai.Pipeline) -> dai.Pipeline:
         profile = dai.VideoEncoderProperties.Profile.MJPEG
         self.left_encoder = pipeline.create(dai.node.VideoEncoder)
         self.left_encoder.setDefaultProfilePreset(self.cam_config.fps, profile)
@@ -113,10 +113,10 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
 
         return pipeline
 
-    def create_pipeline(self) -> dai.Pipeline:
-        pipeline = self.pipeline_basis()
+    def _create_pipeline(self) -> dai.Pipeline:
+        pipeline = self._pipeline_basis()
 
-        if self.compute_depth:
+        if self._compute_depth:
             # Configuring depth node
             left_socket = get_socket_from_name("left", self.cam_config.name_to_socket)
             self.depth = pipeline.createStereoDepth()
@@ -141,8 +141,8 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
             self.depth.initialConfig.set(config)
 
         if self._mjpeg:
-            pipeline = self.create_encoders(pipeline)
+            pipeline = self._create_encoders(pipeline)
 
-        pipeline = self.create_output_streams(pipeline)
+        pipeline = self._create_output_streams(pipeline)
 
-        return self.link_pipeline(pipeline)
+        return self._link_pipeline(pipeline)

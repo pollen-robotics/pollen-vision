@@ -9,15 +9,16 @@ from transformers import pipeline
 
 class OwlVitWrapper:
     def __init__(self) -> None:
-        self.checkpoint = "google/owlvit-base-patch32"
-        self.detector = pipeline(model=self.checkpoint, task="zero-shot-object-detection", device=torch.cuda.current_device())
+        self._checkpoint = "google/owlvit-base-patch32"
+        self._device = torch.cuda.current_device() if torch.cuda.is_available() else "cpu"
+        self._detector = pipeline(model=self._checkpoint, task="zero-shot-object-detection", device=self._device)
 
     def infer(self, im: npt.NDArray[np.uint8], candidate_labels: List[str]) -> List[Dict]:  # type: ignore
         im = Image.fromarray(im)
-        predictions: List[Dict] = self.detector(im, candidate_labels=candidate_labels)  # type: ignore
+        predictions: List[Dict] = self._detector(im, candidate_labels=candidate_labels)  # type: ignore
         return predictions
 
-    def draw_predictions(self, in_im: npt.NDArray[np.uint8], predictions: Dict) -> Image:  # type: ignore
+    def draw_predictions(self, in_im: npt.NDArray[np.uint8], predictions: List[Dict]) -> Image:  # type: ignore
         im: Image = Image.fromarray(in_im)
         draw = ImageDraw.Draw(im)
         for prediction in predictions:

@@ -13,24 +13,24 @@ class MobileSamWrapper:
     def __init__(self, checkpoint_name: str = "mobile_sam") -> None:
         valid_names = get_checkpoints_names()
         assert checkpoint_name in valid_names
-        self.checkpoint_path = get_checkpoint_path(checkpoint_name)
+        self._checkpoint_path = get_checkpoint_path(checkpoint_name)
 
-        self.model_type = "vit_t"
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self._model_type = "vit_t"
+        self._device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        mobile_sam = sam_model_registry[self.model_type](checkpoint=self.checkpoint_path)
+        mobile_sam = sam_model_registry[self._model_type](checkpoint=self._checkpoint_path)
 
-        mobile_sam.to(device=self.device)
+        mobile_sam.to(device=self._device)
         mobile_sam.eval()
 
-        self.predictor = SamPredictor(mobile_sam)
+        self._predictor = SamPredictor(mobile_sam)
 
     def infer(self, im: npt.NDArray[np.uint8], bboxes: List[List]) -> List:  # type: ignore
-        self.predictor.set_image(np.array(im))
+        self._predictor.set_image(np.array(im))
 
         _masks = []
         for bbox in bboxes:
-            _mask, _, _ = self.predictor.predict(box=np.array(bbox))
+            _mask, _, _ = self._predictor.predict(box=np.array(bbox))
             _masks.append(_mask)
 
         masks: List = []  # type: ignore

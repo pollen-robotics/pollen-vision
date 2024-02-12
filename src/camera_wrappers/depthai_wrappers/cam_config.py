@@ -18,7 +18,7 @@ class CamConfig:
         mx_id: str = "",
         isp_scale: Tuple[int, int] = (1, 1),
     ) -> None:
-        self.cam_config_json = cam_config_json
+        self._cam_config_json = cam_config_json
         self.fps = fps
         self.exposure_params = exposure_params
         if self.exposure_params is not None:
@@ -26,10 +26,10 @@ class CamConfig:
             iso = self.exposure_params[1]
             assert 100 <= iso <= 1600
 
-        self.mx_id = mx_id
+        self._mx_id = mx_id
         self.isp_scale = isp_scale
 
-        config = json.load(open(self.cam_config_json, "rb"))
+        config = json.load(open(self._cam_config_json, "rb"))
         self.socket_to_name = config["socket_to_name"]
         self.inverted = config["inverted"]
         self.fisheye = config["fisheye"]
@@ -45,7 +45,7 @@ class CamConfig:
         self.calib: dai.CalibrationHandler = dai.CalibrationHandler()
 
     def get_device_info(self) -> dai.DeviceInfo:
-        return dai.DeviceInfo(self.mx_id)
+        return dai.DeviceInfo(self._mx_id)
 
     def set_sensor_resolution(self, resolution: Tuple[int, int]) -> None:
         self.sensor_resolution = resolution
