@@ -143,9 +143,11 @@ class Wrapper(ABC):
 
         return pipeline
 
-    @abstractmethod
     def create_queues(self) -> Dict[str, dai.DataOutputQueue]:
-        pass
+        queues: Dict[str, dai.DataOutputQueue] = {}
+        for name in ["left", "right"]:
+            queues[name] = self.device.getOutputQueue(name, maxSize=1, blocking=False)
+        return queues
 
     def create_imageManip(
         self,
