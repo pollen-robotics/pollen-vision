@@ -3,8 +3,11 @@ import logging
 import subprocess as sp
 from typing import Dict, List
 
-from depthai_wrappers.teleop_wrapper import TeleopWrapper
-from depthai_wrappers.utils import get_config_file_path, get_config_files_names
+from camera_wrappers.depthai_wrappers.teleop_wrapper import TeleopWrapper
+from camera_wrappers.depthai_wrappers.utils import (
+    get_config_file_path,
+    get_config_files_names,
+)
 
 valid_configs = get_config_files_names()
 

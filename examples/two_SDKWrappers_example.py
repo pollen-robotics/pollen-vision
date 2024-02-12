@@ -1,8 +1,11 @@
 import cv2
 import numpy as np
 
-from depthai_wrappers.sdk_wrapper import SDKWrapper
-from depthai_wrappers.utils import get_config_file_path, get_connected_devices
+from camera_wrappers.depthai_wrappers.sdk_wrapper import SDKWrapper
+from camera_wrappers.depthai_wrappers.utils import (
+    get_config_file_path,
+    get_connected_devices,
+)
 
 devices = get_connected_devices()
 if len(devices.keys()) != 2:

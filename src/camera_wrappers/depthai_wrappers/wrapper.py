@@ -11,8 +11,12 @@ import depthai as dai
 import numpy as np
 import numpy.typing as npt
 
-from depthai_wrappers.cam_config import CamConfig
-from depthai_wrappers.utils import get_inv_R_T, get_socket_from_name, socket_camToString
+from camera_wrappers.depthai_wrappers.cam_config import CamConfig
+from camera_wrappers.depthai_wrappers.utils import (
+    get_inv_R_T,
+    get_socket_from_name,
+    socket_camToString,
+)
 
 
 class Wrapper(ABC):
@@ -143,9 +147,11 @@ class Wrapper(ABC):
 
         return pipeline
 
-    @abstractmethod
     def create_queues(self) -> Dict[str, dai.DataOutputQueue]:
-        pass
+        queues: Dict[str, dai.DataOutputQueue] = {}
+        for name in ["left", "right"]:
+            queues[name] = self.device.getOutputQueue(name, maxSize=1, blocking=False)
+        return queues
 
     def create_imageManip(
         self,

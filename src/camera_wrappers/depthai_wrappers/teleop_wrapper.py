@@ -5,7 +5,7 @@ import depthai as dai
 import numpy as np
 import numpy.typing as npt
 
-from depthai_wrappers.wrapper import Wrapper
+from camera_wrappers.depthai_wrappers.wrapper import Wrapper
 
 
 class TeleopWrapper(Wrapper):  # type: ignore[misc]

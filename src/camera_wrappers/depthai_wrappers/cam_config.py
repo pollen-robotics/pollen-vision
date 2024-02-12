@@ -5,7 +5,7 @@ import depthai as dai
 import numpy as np
 import numpy.typing as npt
 
-from depthai_wrappers.utils import get_socket_from_name
+from camera_wrappers.depthai_wrappers.utils import get_socket_from_name
 
 
 class CamConfig:
