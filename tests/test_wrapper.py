@@ -1,6 +1,6 @@
 import pytest
 
-from src.depthai_wrappers.wrapper import Wrapper
+from camera_wrappers.depthai_wrappers.wrapper import Wrapper
 
 
 def test_wrapper():
@@ -9,7 +9,7 @@ def test_wrapper():
 
 
 def test_get_connected_devices():
-    from src.depthai_wrappers.utils import get_connected_devices
+    from camera_wrappers.depthai_wrappers.utils import get_connected_devices
 
     devices = get_connected_devices()
     assert devices == {}

@@ -25,7 +25,7 @@ class MobileSamWrapper:
 
         self.predictor = SamPredictor(mobile_sam)
 
-    def infer(self, im: npt.NDArray[np.uint8], bboxes: List[List]) -> None:
+    def infer(self, im: npt.NDArray[np.uint8], bboxes: List[List]) -> List:  # type: ignore
         self.predictor.set_image(np.array(im))
 
         _masks = []
@@ -33,7 +33,7 @@ class MobileSamWrapper:
             _mask, _, _ = self.predictor.predict(box=np.array(bbox))
             _masks.append(_mask)
 
-        masks = []
+        masks: List = []  # type: ignore
         for i in range(len(_masks)):
             m = np.array(_masks[i]).astype(np.uint8)
             m = m[0, :, :]
@@ -42,7 +42,7 @@ class MobileSamWrapper:
 
         return masks
 
-    def annotate(self, im, masks, bboxes, labels):
+    def annotate(self, im: npt.NDArray, masks: List, bboxes: List, labels: List) -> npt.NDArray:  # type: ignore
         for i in range(len(masks)):
             mask = masks[i]
             bbox = bboxes[i]

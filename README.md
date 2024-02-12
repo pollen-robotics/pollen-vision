@@ -17,7 +17,7 @@ pip install -e .[dev]
 ```
 
 ## Vision models specific info
-To use [RAM](https://github.com/pollen-robotics/recognize-anything), you need to manually [download](https://huggingface.co/xinyu1205/recognize-anything-plus-model/blob/main/ram_plus_swin_large_14m.pth) the checkpoint and place it in `pollen_vision/src/vision_models/checkpoints/`
+To use [RAM](https://github.com/pollen-robotics/recognize-anything), you need to manually [download](https://huggingface.co/xinyu1205/recognize-anything-plus-model/blob/main/ram_plus_swin_large_14m.pth) the checkpoint and place it in `pollen_vision/src/checkpoints/`
 
 ## Luxonis depthai specific info
 

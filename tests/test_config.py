@@ -1,7 +1,10 @@
 import pytest
 
-from src.depthai_wrappers.cam_config import CamConfig
-from src.depthai_wrappers.utils import get_config_file_path, get_config_files_names
+from camera_wrappers.depthai_wrappers.cam_config import CamConfig
+from camera_wrappers.depthai_wrappers.utils import (
+    get_config_file_path,
+    get_config_files_names,
+)
 
 
 def test_config():

@@ -12,13 +12,13 @@ class OwlVitWrapper:
         self.checkpoint = "google/owlvit-base-patch32"
         self.detector = pipeline(model=self.checkpoint, task="zero-shot-object-detection", device=torch.cuda.current_device())
 
-    def infer(self, im: npt.NDArray[np.uint8], candidate_labels: List[str]) -> List[Dict]:
+    def infer(self, im: npt.NDArray[np.uint8], candidate_labels: List[str]) -> List[Dict]:  # type: ignore
         im = Image.fromarray(im)
-        predictions: List[Dict] = self.detector(im, candidate_labels=candidate_labels)
+        predictions: List[Dict] = self.detector(im, candidate_labels=candidate_labels)  # type: ignore
         return predictions
 
-    def draw_predictions(self, im: npt.NDArray[np.uint8], predictions: Dict) -> Image:
-        im: Image = Image.fromarray(im)
+    def draw_predictions(self, in_im: npt.NDArray[np.uint8], predictions: Dict) -> Image:  # type: ignore
+        im: Image = Image.fromarray(in_im)
         draw = ImageDraw.Draw(im)
         for prediction in predictions:
             box = prediction["box"]
@@ -30,7 +30,7 @@ class OwlVitWrapper:
 
         return im
 
-    def get_bboxes(self, predictions: List[Dict]) -> List[List]:
+    def get_bboxes(self, predictions: List[Dict]) -> List[List]:  # type: ignore
         bboxes = []
         for prediction in predictions:
             box = prediction["box"]
@@ -39,7 +39,7 @@ class OwlVitWrapper:
 
         return bboxes
 
-    def get_labels(self, predictions: List[Dict]) -> List[str]:
+    def get_labels(self, predictions: List[Dict]) -> List[str]:  # type: ignore
         labels = []
         for prediction in predictions:
             labels.append(prediction["label"])
