@@ -12,6 +12,15 @@ from camera_wrappers.depthai_wrappers.wrapper import Wrapper
 # Depth is left aligned by convention
 # TODO do we need to give the option to change this?
 class SDKWrapper(Wrapper):  # type: ignore[misc]
+    """A wrapper for the depthai library that exposes only the relevant features for Pollen's reachy sdk.
+
+    Returns the left and right images, and if compute_depth is True:
+    - returns the depth and disparity maps
+    - returns the rectified left and right images from the depthai's depth node (grayscale)
+
+    If jpeg_output is True, the left and right images are encoded in mjpeg.
+    """
+
     def __init__(
         self,
         cam_config_json: str,
@@ -41,6 +50,7 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
     def get_data(
         self,
     ) -> Tuple[Dict[str, npt.NDArray[np.uint8]], Dict[str, float], Dict[str, timedelta]]:
+        """Extends the base class method get_data() to return opencv frames."""
         data, latency, ts = super().get_data()
         for name, pkt in data.items():
             data[name] = pkt.getCvFrame()
@@ -48,6 +58,10 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
         return data, latency, ts
 
     def _create_queues(self) -> Dict[str, dai.DataOutputQueue]:
+        """Extends the base class method _create_queues() to add the depth and disparity queues
+        as well as the rectified left and right images queues from depthai's depth node.
+        """
+
         queues: Dict[str, dai.DataOutputQueue] = super()._create_queues()
         if self._compute_depth:
             queues["depth"] = self._device.getOutputQueue("depth", maxSize=1, blocking=False)
@@ -59,6 +73,10 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
         return queues
 
     def _create_output_streams(self, pipeline: dai.Pipeline) -> dai.Pipeline:
+        """Extends the base class method _create_output_streams() to add the depth and disparity streams
+        as well as the rectified left and right images streams from depthai's depth node.
+        """
+
         pipeline = super()._create_output_streams(pipeline)
 
         if self._compute_depth:
@@ -77,6 +95,8 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
         return pipeline
 
     def _link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
+        """Overloads the base class abstract method _link_pipeline() to link the nodes together."""
+
         # Resize, optionally rectify
         self.left.isp.link(self.left_manip.inputImage)
         self.right.isp.link(self.right_manip.inputImage)
@@ -104,6 +124,8 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
         return pipeline
 
     def _create_encoders(self, pipeline: dai.Pipeline) -> dai.Pipeline:
+        """Creates the mjpeg encoders."""
+
         profile = dai.VideoEncoderProperties.Profile.MJPEG
         self.left_encoder = pipeline.create(dai.node.VideoEncoder)
         self.left_encoder.setDefaultProfilePreset(self.cam_config.fps, profile)
@@ -114,6 +136,12 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
         return pipeline
 
     def _create_pipeline(self) -> dai.Pipeline:
+        """Overloads the base class abstract method _create_pipeline() to create the pipeline.
+        Sets up the basic pipeline with the left and right cameras from the base class method _pipeline_basis()
+        and adds the depth node if compute_depth is True, and the mjpeg encoders if mjpeg is True.
+        Returns the linked pipeline.
+        """
+
         pipeline = self._pipeline_basis()
 
         if self._compute_depth:

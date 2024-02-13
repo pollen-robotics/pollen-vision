@@ -1,3 +1,6 @@
+"""Depthai Wrapper module.
+"""
+
 import json
 import logging
 import os
@@ -20,6 +23,11 @@ from camera_wrappers.depthai_wrappers.utils import (
 
 
 class Wrapper(ABC):
+    """Wrapper is an abstract class for luxonis cameras using the depthai library.
+
+    It factors out the common code between the different camera wrappers.
+    """
+
     def __init__(
         self,
         cam_config_json: str,
@@ -31,19 +39,28 @@ class Wrapper(ABC):
         mx_id: str,
         isp_scale: Tuple[int, int] = (1, 1),
     ) -> None:
-        self.cam_config = CamConfig(cam_config_json, fps, resize, exposure_params, mx_id, isp_scale)
-        self._force_usb2 = force_usb2
-        self._rectify = rectify
+        self.cam_config = CamConfig(cam_config_json, fps, resize, exposure_params, mx_id, isp_scale, rectify, force_usb2)
         self._logger = logging.getLogger(__name__)
 
         self._prepare()
 
     def _prepare(self) -> None:
+        """Prepares the camera for use.
+
+        Sets up :
+        - camera configuration
+        - device connection
+        - pipeline
+        - queues
+
+        If requested, pre-computes the undistort maps for the rectification.
+
+        """
         self._logger.debug("Connecting to camera")
 
         self._device = dai.Device(
             self.cam_config.get_device_info(),
-            maxUsbSpeed=(dai.UsbSpeed.HIGH if self._force_usb2 else dai.UsbSpeed.SUPER_PLUS),
+            maxUsbSpeed=(dai.UsbSpeed.HIGH if self.cam_config.force_usb2 else dai.UsbSpeed.SUPER_PLUS),
         )
 
         connected_cameras_features = []
@@ -65,7 +82,7 @@ class Wrapper(ABC):
         self.cam_config.set_undistort_resolution((width_undistort_resolution, height_unistort_resolution))
         self.cam_config.set_calib(self._device.readCalibration())
 
-        if self._rectify:
+        if self.cam_config.rectify:
             self._compute_undistort_maps()
 
         self.pipeline = self._create_pipeline()
@@ -76,13 +93,19 @@ class Wrapper(ABC):
         self.print_info()
 
     def print_info(self) -> None:
+        """Prints the camera configuration."""
         self._logger.info(self.cam_config.to_string())
-        self._logger.info(f"Force USB2: {self._force_usb2}")
-        self._logger.info(f"Rectify: {self._rectify}")
 
     def get_data(
         self,
     ) -> Tuple[Dict[str, npt.NDArray[np.uint8]], Dict[str, float], Dict[str, timedelta]]:
+        """Gets the data from the camera.
+
+        Returns a tuple containing the data, the latency and the timestamp.
+        data is a dict containing the left and right images as well as the depth map if it exists.
+        The content of data is defined by the queues created in the _create_queues method.
+        """
+
         data: Dict[str, npt.NDArray[np.uint8]] = {}
         latency: Dict[str, float] = {}
         ts: Dict[str, timedelta] = {}
@@ -97,10 +120,17 @@ class Wrapper(ABC):
 
     @abstractmethod
     def _create_pipeline(self) -> dai.Pipeline:
+        """Abstract method that is implemented by the subclasses."""
+
         self._logger.error("Abstract class Wrapper does not implement create_pipeline()")
         exit()
 
     def _pipeline_basis(self) -> dai.Pipeline:
+        """Creates and configures the left and right cameras and the image manip nodes.
+
+        This method is used (and/or extended) by the subclasses to create the basis pipeline.
+        """
+
         self._logger.debug("Configuring depthai pipeline")
         pipeline = dai.Pipeline()
 
@@ -128,17 +158,29 @@ class Wrapper(ABC):
             self.left.setImageOrientation(dai.CameraImageOrientation.ROTATE_180_DEG)
             self.right.setImageOrientation(dai.CameraImageOrientation.ROTATE_180_DEG)
 
-        self.left_manip = self._create_imageManip(pipeline, "left", self.cam_config.undistort_resolution, self._rectify)
-        self.right_manip = self._create_imageManip(pipeline, "right", self.cam_config.undistort_resolution, self._rectify)
+        self.left_manip = self._create_imageManip(
+            pipeline, "left", self.cam_config.undistort_resolution, self.cam_config.rectify
+        )
+        self.right_manip = self._create_imageManip(
+            pipeline, "right", self.cam_config.undistort_resolution, self.cam_config.rectify
+        )
 
         return pipeline
 
     @abstractmethod
     def _link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
+        """Abstract method that is implemented by the subclasses.
+        Links the nodes together.
+        """
+
         self._logger.error("Abstract class Wrapper does not implement link_pipeline()")
         exit()
 
     def _create_output_streams(self, pipeline: dai.Pipeline) -> dai.Pipeline:
+        """Creates and names the output streams.
+        This method is used (and/or extended) by the subclasses.
+        """
+
         self.xout_left = pipeline.createXLinkOut()
         self.xout_left.setStreamName("left")
 
@@ -148,6 +190,9 @@ class Wrapper(ABC):
         return pipeline
 
     def _create_queues(self) -> Dict[str, dai.DataOutputQueue]:
+        """Creates the output queues.
+        This method is used (and/or extended) by the subclasses.
+        """
         queues: Dict[str, dai.DataOutputQueue] = {}
         for name in ["left", "right"]:
             queues[name] = self._device.getOutputQueue(name, maxSize=1, blocking=False)
@@ -160,9 +205,8 @@ class Wrapper(ABC):
         resolution: Tuple[int, int],
         rectify: bool = True,
     ) -> dai.node.ImageManip:
-        """
-        Resize and optionally rectify an image
-        """
+        """Resize and optionally rectify an image"""
+
         manip = pipeline.createImageManip()
 
         if rectify:
@@ -181,6 +225,8 @@ class Wrapper(ABC):
         return manip
 
     def _compute_undistort_maps(self) -> None:
+        """Pre-computes the undistort maps for the rectification."""
+
         left_socket = get_socket_from_name("left", self.cam_config.name_to_socket)
         right_socket = get_socket_from_name("right", self.cam_config.name_to_socket)
 
@@ -236,6 +282,10 @@ class Wrapper(ABC):
         self.cam_config.set_undistort_maps(mapXL, mapYL, mapXR, mapYR)
 
     def get_mesh(self, cam_name: str) -> Tuple[List[dai.Point2f], int, int]:
+        """Computes and returns the mesh for the rectification.
+        This mesh is used by setWarpMesh in the imageManip nodes.
+        """
+
         mapX, mapY = self.cam_config.undstort_maps[cam_name]
         if mapX is None or mapY is None:
             raise Exception("Undistort maps have not been computed. Call compute_undistort_maps() first.")
@@ -276,6 +326,10 @@ class Wrapper(ABC):
 
     # Takes in the output of multical calibration
     def flash(self, calib_json_file: str) -> None:
+        """Flashes the calibration to the camera.
+
+        The calibration is read from the calib_json_file and flashed into the camera's eeprom.
+        """
         now = str(datetime.now()).replace(" ", "_").split(".")[0]
 
         device_calibration_backup_file = Path("./CALIBRATION_BACKUP_" + now + ".json")
