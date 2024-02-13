@@ -16,7 +16,7 @@ class OwlVitWrapper:
         self._checkpoint = "google/owlvit-base-patch32"
         self._device = torch.cuda.current_device() if torch.cuda.is_available() else "cpu"
         self._detector = pipeline(model=self._checkpoint, task="zero-shot-object-detection", device=self._device)
-        self._labels_colors = {}
+        self._labels_colors: Dict[str, Tuple[int, int, int]] = {}
 
     def infer(self, im: npt.NDArray[np.uint8], candidate_labels: List[str]) -> List[Dict]:  # type: ignore
         im = Image.fromarray(im)
