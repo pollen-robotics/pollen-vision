@@ -11,7 +11,7 @@ from camera_wrappers.depthai_wrappers.utils import (
 
 valid_configs = get_config_files_names()
 
-argParser = argparse.ArgumentParser(description="depth wrapper example")
+argParser = argparse.ArgumentParser(description="sdk wrapper example")
 argParser.add_argument(
     "--config",
     type=str,

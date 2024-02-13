@@ -43,6 +43,7 @@ class MobileSamWrapper:
         return masks
 
     def annotate(self, im: npt.NDArray, masks: List, bboxes: List, labels: List) -> npt.NDArray:  # type: ignore
+        im = np.array(im)
         for i in range(len(masks)):
             mask = masks[i]
             bbox = bboxes[i]
