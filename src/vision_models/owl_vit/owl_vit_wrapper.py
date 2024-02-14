@@ -23,7 +23,7 @@ class OwlVitWrapper:
         im: npt.NDArray[np.uint8],
         candidate_labels: List[str],
         detection_threshold: float = 0.0,
-            ) -> List[Dict]:  # type: ignore
+    ) -> List[Dict]:  # type: ignore
         im = Image.fromarray(im)
         predictions: List[Dict] = self._detector(im, candidate_labels=candidate_labels)  # type: ignore
         predictions = [prediction for prediction in predictions if prediction["score"] > detection_threshold]
