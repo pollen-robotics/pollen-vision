@@ -6,9 +6,7 @@ import torch
 from PIL import Image, ImageDraw
 from transformers import pipeline
 
-
-def random_color() -> Tuple[int, int, int]:
-    return tuple(np.random.randint(0, 255, 3))
+from vision_models.utils import random_color
 
 
 class OwlVitWrapper:
@@ -16,7 +14,7 @@ class OwlVitWrapper:
         self._checkpoint = "google/owlvit-base-patch32"
         self._device = torch.cuda.current_device() if torch.cuda.is_available() else "cpu"
         self._detector = pipeline(model=self._checkpoint, task="zero-shot-object-detection", device=self._device)
-        self._labels_colors: Dict[str, Tuple[int, int, int]] = {}
+        self.labels_colors: Dict[str, Tuple[int, int, int]] = {}
 
     def infer(
         self,
@@ -37,12 +35,12 @@ class OwlVitWrapper:
             box = prediction["box"]
             label = prediction["label"]
 
-            if label not in self._labels_colors.keys():
-                self._labels_colors[label] = random_color()
+            if label not in self.labels_colors.keys():
+                self.labels_colors[label] = random_color()
 
             score = prediction["score"]
             xmin, ymin, xmax, ymax = box.values()
-            draw.rectangle((xmin, ymin, xmax, ymax), outline=self._labels_colors[label], width=5)
+            draw.rectangle((xmin, ymin, xmax, ymax), outline=self.labels_colors[label], width=5)
             draw.text((xmin, ymin), f"{label}: {round(score,2)}", fill="black", font_size=20)
 
         return im

@@ -1,5 +1,7 @@
 from importlib.resources import files
-from typing import Any, List
+from typing import Any, List, Tuple
+
+import numpy as np
 
 
 def get_checkpoints_names() -> List[str]:
@@ -20,3 +22,7 @@ def get_checkpoint_path(name: str) -> Any:
         if file.stem == name:
             return file.resolve()
     return None
+
+
+def random_color() -> Tuple[int, int, int]:
+    return tuple(np.random.randint(0, 255, 3))

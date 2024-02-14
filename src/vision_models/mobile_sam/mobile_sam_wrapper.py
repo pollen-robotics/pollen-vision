@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List, Tuple
 
 import cv2
 import numpy as np
@@ -42,16 +42,30 @@ class MobileSamWrapper:
 
         return masks
 
-    def annotate(self, im: npt.NDArray, masks: List, bboxes: List, labels: List) -> npt.NDArray:  # type: ignore
+    def annotate(
+        self,
+        im: npt.NDArray[np.uint8],
+        masks: List[npt.NDArray[np.uint8]],
+        bboxes: List[List[int]],
+        labels: List[str],
+        labels_colors: Dict[str, Tuple[int, int, int]] = {},
+    ) -> npt.NDArray[np.uint8]:
         im = np.array(im)
         for i in range(len(masks)):
             mask = masks[i]
-            bbox = bboxes[i]
-            x, y = bbox[0], bbox[1]
             label = labels[i]
-            im[mask == 1] = [255, 255, 255]
+
+            # Draw transparent color mask on top of im
+            label = labels[i]
+            color = (255, 255, 255) if label not in labels_colors else labels_colors[label]
+            overlay = np.zeros_like(im, dtype=np.uint8)
+            overlay[mask != 0] = color
+            overlay[mask == 0] = im[mask == 0]
+            im = cv2.addWeighted(overlay, 0.5, im, 1 - 0.5, 0)
 
             # Write label at x, y position in im
-            im = cv2.putText(im, label, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+            # bbox = bboxes[i]
+            # x, y = bbox[0], bbox[1]
+            # im = cv2.putText(im, label, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2, cv2.LINE_AA)
 
         return im
