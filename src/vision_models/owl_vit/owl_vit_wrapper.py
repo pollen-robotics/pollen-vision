@@ -18,9 +18,15 @@ class OwlVitWrapper:
         self._detector = pipeline(model=self._checkpoint, task="zero-shot-object-detection", device=self._device)
         self._labels_colors: Dict[str, Tuple[int, int, int]] = {}
 
-    def infer(self, im: npt.NDArray[np.uint8], candidate_labels: List[str]) -> List[Dict]:  # type: ignore
+    def infer(
+        self,
+        im: npt.NDArray[np.uint8],
+        candidate_labels: List[str],
+        detection_threshold: float = 0.0,
+            ) -> List[Dict]:  # type: ignore
         im = Image.fromarray(im)
         predictions: List[Dict] = self._detector(im, candidate_labels=candidate_labels)  # type: ignore
+        predictions = [prediction for prediction in predictions if prediction["score"] > detection_threshold]
         return predictions
 
     def draw_predictions(self, in_im: npt.NDArray[np.uint8], predictions: List[Dict]) -> Image:  # type: ignore
