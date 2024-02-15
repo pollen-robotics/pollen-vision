@@ -5,8 +5,8 @@ import depthai as dai
 import numpy as np
 import numpy.typing as npt
 
-from camera_wrappers.depthai_wrappers.utils import get_socket_from_name
-from camera_wrappers.depthai_wrappers.wrapper import Wrapper
+from camera_wrappers.depthai.utils import get_socket_from_name
+from camera_wrappers.depthai.wrapper import Wrapper
 
 
 # Depth is left aligned by convention

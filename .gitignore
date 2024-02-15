@@ -167,3 +167,5 @@ cython_debug/
 src/calibration/calib_images/*
 src/calibration/*.json
 *.mp4
+*.obj
+*.mtl

@@ -14,7 +14,7 @@ from torch import nn
 
 from vision_models.utils import get_checkpoint_path, get_checkpoints_names
 
-IMAGE_SIZE = 384
+IMAGE_SIZE: int = 384
 
 
 class RAM_wrapper:

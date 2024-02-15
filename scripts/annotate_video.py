@@ -82,7 +82,7 @@ while True:
     took = end - start
     processing_times.append(took)
     processing_times = processing_times[-10:]
-    mean_processing_time = np.mean(processing_times)
+    mean_processing_time = np.mean(np.array(processing_times))
 
     print(
         "[" + str(i) + "/" + str(nb_frames_left) + "] Estimated remaining time:",

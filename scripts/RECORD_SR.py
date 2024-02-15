@@ -7,8 +7,8 @@ import time
 import numpy as np
 from recorder import FPS, Recorder
 
-from camera_wrappers.depthai_wrappers.sdk_wrapper import SDKWrapper
-from camera_wrappers.depthai_wrappers.utils import get_config_file_path
+from camera_wrappers.depthai.sdk import SDKWrapper
+from camera_wrappers.depthai.utils import get_config_file_path
 
 argParser = argparse.ArgumentParser(description="record sr")
 argParser.add_argument(

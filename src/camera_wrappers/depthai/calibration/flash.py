@@ -1,11 +1,8 @@
 import argparse
 import logging
 
-from camera_wrappers.depthai_wrappers.sdk_wrapper import SDKWrapper
-from camera_wrappers.depthai_wrappers.utils import (
-    get_config_file_path,
-    get_config_files_names,
-)
+from camera_wrappers.depthai.sdk import SDKWrapper
+from camera_wrappers.depthai.utils import get_config_file_path, get_config_files_names
 
 logging.basicConfig(level=logging.DEBUG)
 

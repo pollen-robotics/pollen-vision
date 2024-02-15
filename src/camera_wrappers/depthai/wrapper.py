@@ -14,8 +14,8 @@ import depthai as dai
 import numpy as np
 import numpy.typing as npt
 
-from camera_wrappers.depthai_wrappers.cam_config import CamConfig
-from camera_wrappers.depthai_wrappers.utils import (
+from camera_wrappers.depthai.cam_config import CamConfig
+from camera_wrappers.depthai.utils import (
     get_inv_R_T,
     get_socket_from_name,
     socket_camToString,
@@ -265,19 +265,11 @@ class Wrapper(ABC):
         )
 
         if self.cam_config.fisheye:
-            mapXL, mapYL = cv2.fisheye.initUndistortRectifyMap(
-                left_K, left_D, R1, P1, resolution, cv2.CV_32FC1  # type: ignore[attr-defined]
-            )
-            mapXR, mapYR = cv2.fisheye.initUndistortRectifyMap(
-                right_K, right_D, R2, P2, resolution, cv2.CV_32FC1  # type: ignore[attr-defined]
-            )
+            mapXL, mapYL = cv2.fisheye.initUndistortRectifyMap(left_K, left_D, R1, P1, resolution, cv2.CV_32FC1)
+            mapXR, mapYR = cv2.fisheye.initUndistortRectifyMap(right_K, right_D, R2, P2, resolution, cv2.CV_32FC1)
         else:
-            mapXL, mapYL = cv2.initUndistortRectifyMap(
-                left_K, left_D, R1, P1, resolution, cv2.CV_32FC1  # type: ignore[attr-defined]
-            )
-            mapXR, mapYR = cv2.initUndistortRectifyMap(
-                right_K, right_D, R2, P2, resolution, cv2.CV_32FC1  # type: ignore[attr-defined]
-            )
+            mapXL, mapYL = cv2.initUndistortRectifyMap(left_K, left_D, R1, P1, resolution, cv2.CV_32FC1)
+            mapXR, mapYR = cv2.initUndistortRectifyMap(right_K, right_D, R2, P2, resolution, cv2.CV_32FC1)
 
         self.cam_config.set_undistort_maps(mapXL, mapYL, mapXR, mapYR)
 
