@@ -24,7 +24,7 @@ def get_checkpoint_path(name: str) -> Any:
     path = files("checkpoints")
     for file in path.glob("**/*"):  # type: ignore[attr-defined]
         if file.stem == name:
-            return file.resolve()
+            return str(file.resolve())
     return None
 
 
