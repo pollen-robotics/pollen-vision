@@ -1,7 +1,10 @@
+"""Utility script to generate descriptions for a list of objects using OpenAI's GPT-3.5 model."""
+
 import json
 
-from openai import OpenAI
+from openai import OpenAI  # Needs to be installed with `pip install openai`
 
+# Change the list of objects here
 objects = ["mug", "bottle", "plant", "human face", "hand", "headphones", "laptop", "chair"]
 client = OpenAI()
 

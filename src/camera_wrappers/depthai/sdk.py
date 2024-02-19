@@ -14,11 +14,22 @@ from camera_wrappers.depthai.wrapper import Wrapper
 class SDKWrapper(Wrapper):  # type: ignore[misc]
     """A wrapper for the depthai library that exposes only the relevant features for Pollen's reachy sdk.
 
-    Returns the left and right images, and if compute_depth is True:
+    Calling get_data() returns the left and right images, and if compute_depth is True:
     - returns the depth and disparity maps
     - returns the rectified left and right images from the depthai's depth node (grayscale)
 
     If jpeg_output is True, the left and right images are encoded in mjpeg.
+
+    Args:
+        - cam_config_json: path to the camera configuration json file
+        - fps: frames per second
+        - force_usb2: force the use of USB2
+        - resize: tuple of two integers (width, height) to resize the images
+        - rectify: rectify the images using the calibration data stored in the eeprom of the camera
+        - compute_depth: compute the depth and disparity maps
+        - exposure_params: tuple of two integers (exposure, gain) to set the exposure and gain of the camera
+        - mx_id: the id of the camera
+        - jpeg_output: encode the left and right images in mjpeg
     """
 
     def __init__(
@@ -50,7 +61,11 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
     def get_data(
         self,
     ) -> Tuple[Dict[str, npt.NDArray[np.uint8]], Dict[str, float], Dict[str, timedelta]]:
-        """Extends the base class method get_data() to return opencv frames."""
+        """Extends the base class method get_data() to return opencv frames.
+        Returns:
+            - Tuple(data, latency, timestamp) : Tuple of dictionaries of opencv frames,
+                latencies and timestamps for each camera.
+        """
         data, latency, ts = super().get_data()
         for name, pkt in data.items():
             data[name] = pkt.getCvFrame()

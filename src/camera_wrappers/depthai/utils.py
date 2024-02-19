@@ -1,3 +1,5 @@
+"""A collection of utility functions for the depthai camera wrappers."""
+
 import logging
 from importlib.resources import files
 from typing import Any, Dict, List, Tuple
@@ -24,6 +26,7 @@ socket_camToString = {
 
 
 def get_connected_devices() -> Dict[str, str]:
+    """Returns a dictionary of connected devices and their types. Key is mx_id and value is type (IMX296 or other for now)."""
     devices: Dict[str, str] = {}
 
     for deviceInfo in dai.Device.getAllAvailableDevices():
@@ -40,10 +43,14 @@ def get_connected_devices() -> Dict[str, str]:
 
 
 def get_socket_from_name(name: str, name_to_socket: Dict[str, str]) -> dai.CameraBoardSocket:
+    """Returns the depthai.socket corresponding to the name."""
     return socket_stringToCam[name_to_socket[name]]
 
 
 def get_inv_R_T(R: npt.NDArray[Any], T: npt.NDArray[Any]) -> Tuple[npt.NDArray[Any], npt.NDArray[Any]]:
+    """Builds the homogeneous transformation matrix from the rotation matrix and the translation vector,
+    Inverts it and returns the inverse rotation matrix and translation vector
+    ."""
     tmp = np.eye(4)
     tmp[:3, :3] = R
     tmp[:3, 3] = T
@@ -55,6 +62,8 @@ def get_inv_R_T(R: npt.NDArray[Any], T: npt.NDArray[Any]) -> Tuple[npt.NDArray[A
 
 
 def drawEpiLines(left: npt.NDArray[Any], right: npt.NDArray[Any], aruco_dict: aruco.Dictionary) -> npt.NDArray[Any]:
+    """Draws epipolar lines between the left and right images using the aruco markers,
+    and computes the average slope of the lines."""
     concatIm = np.hstack((left, right))
 
     lcorners, lids, _ = aruco.detectMarkers(image=left, dictionary=aruco_dict)
@@ -105,11 +114,13 @@ def drawEpiLines(left: npt.NDArray[Any], right: npt.NDArray[Any], aruco_dict: ar
 
 
 def get_config_files_names() -> List[str]:
+    """Returns the names of the config files."""
     path = files("config_files")
     return [file.stem for file in path.glob("**/*.json")]  # type: ignore[attr-defined]
 
 
 def get_config_file_path(name: str) -> Any:
+    """Returns the path of the config file based on its name."""
     path = files("config_files")
     for file in path.glob("**/*"):  # type: ignore[attr-defined]
         if file.stem == name:

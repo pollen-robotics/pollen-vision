@@ -10,7 +10,13 @@ from vision_models.utils import get_checkpoint_path, get_checkpoints_names
 
 
 class MobileSamWrapper:
+    """A wrapper for the MobileSam model."""
+
     def __init__(self, checkpoint_name: str = "mobile_sam") -> None:
+        """
+        Args:
+            - checkpoint_name: the name of the checkpoint to load
+        """
         valid_names = get_checkpoints_names()
         assert checkpoint_name in valid_names
         self._checkpoint_path = get_checkpoint_path(checkpoint_name)
@@ -26,6 +32,9 @@ class MobileSamWrapper:
         self._predictor = SamPredictor(mobile_sam)
 
     def infer(self, im: npt.NDArray[np.uint8], bboxes: List[List]) -> List:  # type: ignore
+        """Returns a list of masks found in the input image.
+        A mask is a binary image where the pixels inside the mask are set to 1 and the pixels outside the mask are set to 0.
+        """
         self._predictor.set_image(np.array(im))
 
         _masks = []
@@ -50,6 +59,14 @@ class MobileSamWrapper:
         labels: List[str],
         labels_colors: Dict[str, Tuple[int, int, int]] = {},
     ) -> npt.NDArray[np.uint8]:
+        """Draws the masks and labels on top of the input image and returns the annotated image.
+        Args:
+            - im: the input image
+            - masks: a list of masks
+            - bboxes: a list of bounding boxes
+            - labels: a list of labels
+            - labels_colors: a dictionary of colors for each label (if not set, mask will be drawn in white)
+        """
         im = np.array(im)
         for i in range(len(masks)):
             mask = masks[i]
