@@ -5,7 +5,21 @@ import json
 from openai import OpenAI  # Needs to be installed with `pip install openai`
 
 # Change the list of objects here
-objects = ["mug", "bottle", "plant", "human face", "hand", "headphones", "laptop", "chair"]
+objects = [
+    "mug",
+    "bottle",
+    "fork",
+    "drawer",
+    "laptop",
+    "chair",
+    "lamp",
+    "sponge",
+    "sink",
+    "dishwasher",
+    "oven",
+    "phone",
+    "robot",
+]
 client = OpenAI()
 
 prompt = """
