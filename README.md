@@ -27,6 +27,13 @@ echo 'SUBSYSTEM=="usb", ATTRS{idVendor}=="03e7", MODE="0666"' | sudo tee /etc/ud
 sudo udevadm control --reload-rules && sudo udevadm trigger
 ```
 
+# Usage
+## Vision models wrappers
+- recognize anything (RAM++) : [README](src/vision_models/recognize_anything/README.md)
+- owl vit : [README](src/vision_models/owl_vit/README.md)
+- mobile sam : [README](src/vision_models/mobile_sam/README.md)
+
+
 # Run examples TODO rewrite
 
 There are three example scripts in `examples/`:

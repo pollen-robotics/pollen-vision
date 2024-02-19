@@ -2,7 +2,7 @@
 
 https://github.com/xinyu1205/recognize-anything
 
-## Usage
+## Usage
 
 To use OpenAI's API to generate objects descriptions:
 
@@ -18,17 +18,18 @@ First, generate a `descriptions.json` file. Edit the `objects` list in `generate
 $ python3 generate_objects_descriptions.py
 ```
 
-Then run the example script, for example
+Use the wrapper in your code :
 
-```bash
-$ python3 infer_live.py --config CONFIG_OAK_D_PRO --objects_descriptions descriptions.json
+```python
+
+from vision_models.recognize_anything.RAM_wrapper import RAM_wrapper
+
+ram = RAM_wrapper(
+    objects_descriptions_file_path=<...>
+)
+
+predictions = ram.infer(<image>)
 ```
-
-
-
-
-
-
 
 
 
