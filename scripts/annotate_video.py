@@ -4,6 +4,7 @@ import time
 
 import cv2
 import numpy as np
+import tqdm
 from recorder import Recorder
 
 from vision_models.mobile_sam.mobile_sam_wrapper import MobileSamWrapper
@@ -34,16 +35,9 @@ annotated_video_path = args.video.split(".")[0] + "_annotated.mp4"
 rec_left = Recorder(annotated_video_path)
 
 print("Starting")
-i = -1
-mean_processing_time = 0
-processing_times = []
-while True:
-    i += 1
 
-    # if i > 45:
-    #     break
+for i in tqdm.tqdm(range(nb_frames_left)):
 
-    start = time.time()
     ret, left_frame = cap_left.read()
     # ret, right_frame = cap_right.read()
     # ret, depth_frame = cap_depth.read()
@@ -64,19 +58,6 @@ while True:
     left_frame = sam.annotate(np.array(left_frame), masks, bboxes, labels, labels_colors=owl_vit.labels_colors)
 
     asyncio.run(rec_left.new_im(left_frame.astype(np.uint8)))
-
-    end = time.time()
-    took = end - start
-    processing_times.append(took)
-    processing_times = processing_times[-10:]
-    mean_processing_time = np.mean(np.array(processing_times))
-
-    print(
-        "[" + str(i) + "/" + str(nb_frames_left) + "] Estimated remaining time:",
-        round((mean_processing_time * (nb_frames_left - i)) / 60, 2),
-        "minutes",
-        end="\r",
-    )
 
 
 print("Saving video ...")
