@@ -81,8 +81,9 @@ class MobileSamWrapper:
             im = cv2.addWeighted(overlay, 0.5, im, 1 - 0.5, 0)
 
             # Write label at x, y position in im
-            # bbox = bboxes[i]
-            # x, y = bbox[0], bbox[1]
-            # im = cv2.putText(im, label, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2, cv2.LINE_AA)
+            bbox = bboxes[i]
+            x, y = bbox[0], bbox[1]
+            color = np.array(color).astype(np.uint8).tolist()
+            im = cv2.putText(im, label, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2, cv2.LINE_AA)
 
         return im

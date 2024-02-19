@@ -53,20 +53,7 @@ while True:
 
     predictions = owl_vit.infer(
         left_frame,
-        [
-            "bag of chips",
-            "blue mug",
-            "black mug",
-            "kitchen towel",
-            "paper towels",
-            "pen",
-            "coffee machine",
-            "fridge",
-            "closet handle",
-            "kitchen sink",
-            "high chair",
-            "table",
-        ],
+        ["croissant pastry", "napkin"],
     )
 
     bboxes = owl_vit.get_bboxes(predictions)
