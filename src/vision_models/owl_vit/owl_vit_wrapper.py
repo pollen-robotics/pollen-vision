@@ -58,7 +58,7 @@ class OwlVitWrapper:
             score = prediction["score"]
             xmin, ymin, xmax, ymax = box.values()
             draw.rectangle((xmin, ymin, xmax, ymax), outline=self.labels_colors[label], width=5)
-            draw.text((xmin, ymin), f"{label}: {round(score,2)}", fill="black", font_size=20)
+            # draw.text((xmin, ymin), f"{label}: {round(score,2)}", fill="black", font_size=20)
 
         return im
 
