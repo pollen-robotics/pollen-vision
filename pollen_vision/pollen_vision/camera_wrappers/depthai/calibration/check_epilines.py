@@ -3,9 +3,8 @@ import logging
 
 import cv2
 from cv2 import aruco
-
-from camera_wrappers.depthai.sdk import SDKWrapper
-from camera_wrappers.depthai.utils import (
+from pollen_vision.camera_wrappers.depthai import SDKWrapper
+from pollen_vision.camera_wrappers.depthai.utils import (
     drawEpiLines,
     get_config_file_path,
     get_config_files_names,

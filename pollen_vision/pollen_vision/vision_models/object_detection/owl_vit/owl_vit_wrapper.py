@@ -4,9 +4,8 @@ import numpy as np
 import numpy.typing as npt
 import torch
 from PIL import Image, ImageDraw
+from pollen_vision.vision_models.utils import random_color
 from transformers import pipeline
-
-from vision_models.utils import random_color
 
 
 class OwlVitWrapper:
@@ -55,7 +54,7 @@ class OwlVitWrapper:
             if label not in self.labels_colors.keys():
                 self.labels_colors[label] = random_color()
 
-            score = prediction["score"]
+            # score = prediction["score"]
             xmin, ymin, xmax, ymax = box.values()
             draw.rectangle((xmin, ymin, xmax, ymax), outline=self.labels_colors[label], width=5)
             # draw.text((xmin, ymin), f"{label}: {round(score,2)}", fill="black", font_size=20)

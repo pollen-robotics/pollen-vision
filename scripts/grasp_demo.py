@@ -7,13 +7,15 @@ import FramesViewer.utils as fv_utils
 import numpy as np
 import numpy.typing as npt
 from FramesViewer.viewer import Viewer
+from pollen_vision.camera_wrappers.depthai import SDKWrapper
+from pollen_vision.camera_wrappers.depthai.utils import (
+    get_config_file_path,
+    get_config_files_names,
+)
+from pollen_vision.vision_models.object_detection import OwlVitWrapper
+from pollen_vision.vision_models.object_segmentation import MobileSamWrapper
 from reachy_sdk import ReachySDK
 from reachy_sdk.trajectory import goto
-
-from camera_wrappers.depthai.sdk import SDKWrapper
-from camera_wrappers.depthai.utils import get_config_file_path, get_config_files_names
-from vision_models.mobile_sam.mobile_sam_wrapper import MobileSamWrapper
-from vision_models.owl_vit.owl_vit_wrapper import OwlVitWrapper
 
 valid_configs = get_config_files_names()
 argParser = argparse.ArgumentParser(description="Basic grasping demo")

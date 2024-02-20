@@ -29,12 +29,16 @@ sudo udevadm control --reload-rules && sudo udevadm trigger
 
 # Usage
 ## Vision models wrappers
-- recognize anything (RAM++) : [README](src/vision_models/recognize_anything/README.md)
-- owl vit : [README](src/vision_models/owl_vit/README.md)
-- mobile sam : [README](src/vision_models/mobile_sam/README.md)
+- recognize anything (RAM++) : [README](pollen_vision/pollen_vision/vision_models/object_detection/recognize_anything/README.md)
+- owl vit : [README](pollen_vision/pollen_vision/vision_models/object_detection/owl_vit/README.md)
+- mobile sam : [README](pollen_vision/pollen_vision/vision_models/object_segmentation/mobile_sam/README.md)
 
 
-# Run examples TODO rewrite
+## Luxonis depthai wrappers
+- SDKWrapper and TeleopWrapper: [README](pollen_vision/pollen_vision/camera_wrappers/depthai/README.md)
+
+
+# [DEPRECATED] Run examples
 
 There are three example scripts in `examples/`:
 - `SDKWrapper_example.py` -> returns raw cv2 images, with depth and disparity of so specified

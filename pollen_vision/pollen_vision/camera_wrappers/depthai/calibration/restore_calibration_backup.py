@@ -2,8 +2,7 @@ import argparse
 import os
 
 import depthai as dai
-
-from camera_wrappers.depthai.utils import get_connected_devices
+from pollen_vision.camera_wrappers.depthai.utils import get_connected_devices
 
 parser = argparse.ArgumentParser()
 parser.add_argument(

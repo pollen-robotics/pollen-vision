@@ -3,7 +3,7 @@
 Use the wrapper in your code :
 
 ```python
-from vision_models.mobile_sam.mobile_sam_wrapper import MobileSamWrapper
+from pollen_vision.vision_models.object_segmentation import MobileSamWrapper
 
 MSW = MobileSamWrapper()
 masks = MSW.infer(<image>, [bbox1, bbox2 ...])

@@ -4,9 +4,11 @@ import cv2
 import numpy as np
 import numpy.typing as npt
 import open3d as o3d
-
-from camera_wrappers.depthai.sdk import SDKWrapper
-from camera_wrappers.depthai.utils import get_config_file_path, get_config_files_names
+from pollen_vision.camera_wrappers.depthai import SDKWrapper
+from pollen_vision.camera_wrappers.depthai.utils import (
+    get_config_file_path,
+    get_config_files_names,
+)
 
 # To run this example, you need to install open3d
 # pip install open3d

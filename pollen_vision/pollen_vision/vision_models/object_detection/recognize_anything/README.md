@@ -22,7 +22,7 @@ Use the wrapper in your code :
 
 ```python
 
-from vision_models.recognize_anything.RAM_wrapper import RAM_wrapper
+from pollen_vision.vision_models.object_detection import RAM_wrapper
 
 ram = RAM_wrapper(
     objects_descriptions_file_path=<...>

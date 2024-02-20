@@ -2,9 +2,11 @@ import argparse
 
 import cv2
 import numpy as np
-
-from camera_wrappers.depthai.sdk import SDKWrapper
-from camera_wrappers.depthai.utils import get_config_file_path, get_config_files_names
+from pollen_vision.camera_wrappers.depthai import SDKWrapper
+from pollen_vision.camera_wrappers.depthai.utils import (
+    get_config_file_path,
+    get_config_files_names,
+)
 
 valid_configs = get_config_files_names()
 
