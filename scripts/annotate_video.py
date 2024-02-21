@@ -1,14 +1,12 @@
 import argparse
 import asyncio
-import time
 
 import cv2
 import numpy as np
 import tqdm
+from pollen_vision.vision_models.object_detection import OwlVitWrapper
+from pollen_vision.vision_models.object_segmentation import MobileSamWrapper
 from recorder import Recorder
-
-from vision_models.mobile_sam.mobile_sam_wrapper import MobileSamWrapper
-from vision_models.owl_vit.owl_vit_wrapper import OwlVitWrapper
 
 argParser = argparse.ArgumentParser(description="record sr")
 argParser.add_argument(
@@ -37,7 +35,6 @@ rec_left = Recorder(annotated_video_path)
 print("Starting")
 
 for i in tqdm.tqdm(range(nb_frames_left)):
-
     ret, left_frame = cap_left.read()
     # ret, right_frame = cap_right.read()
     # ret, depth_frame = cap_depth.read()

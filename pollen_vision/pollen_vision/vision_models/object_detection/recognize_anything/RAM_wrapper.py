@@ -6,13 +6,12 @@ import numpy as np
 import numpy.typing as npt
 import torch
 from PIL import Image
+from pollen_vision.vision_models.utils import get_checkpoint_path, get_checkpoints_names
 from ram import get_transform
 from ram import inference_ram_openset as inference
 from ram.models import ram_plus
 from ram.utils import build_openset_llm_label_embedding
 from torch import nn
-
-from vision_models.utils import get_checkpoint_path, get_checkpoints_names
 
 IMAGE_SIZE: int = 384
 

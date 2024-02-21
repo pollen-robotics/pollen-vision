@@ -1,8 +1,10 @@
 import cv2
 import numpy as np
-
-from camera_wrappers.depthai.sdk import SDKWrapper
-from camera_wrappers.depthai.utils import get_config_file_path, get_connected_devices
+from pollen_vision.camera_wrappers.depthai.sdk import SDKWrapper
+from pollen_vision.camera_wrappers.depthai.utils import (
+    get_config_file_path,
+    get_connected_devices,
+)
 
 devices = get_connected_devices()
 if len(devices.keys()) != 2:

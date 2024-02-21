@@ -13,9 +13,8 @@ import cv2
 import depthai as dai
 import numpy as np
 import numpy.typing as npt
-
-from camera_wrappers.depthai.cam_config import CamConfig
-from camera_wrappers.depthai.utils import (
+from pollen_vision.camera_wrappers.depthai.cam_config import CamConfig
+from pollen_vision.camera_wrappers.depthai.utils import (
     get_inv_R_T,
     get_socket_from_name,
     socket_camToString,

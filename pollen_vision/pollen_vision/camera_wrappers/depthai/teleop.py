@@ -4,8 +4,7 @@ from typing import Dict, Optional, Tuple
 import depthai as dai
 import numpy as np
 import numpy.typing as npt
-
-from camera_wrappers.depthai.wrapper import Wrapper
+from pollen_vision.camera_wrappers.depthai.wrapper import Wrapper
 
 
 class TeleopWrapper(Wrapper):  # type: ignore[misc]

@@ -1,6 +1,9 @@
-from camera_wrappers.depthai.cam_config import CamConfig
-from camera_wrappers.depthai.utils import get_config_file_path, get_config_files_names
-from vision_models.utils import get_checkpoint_path, get_checkpoints_names
+from pollen_vision.camera_wrappers.depthai.cam_config import CamConfig
+from pollen_vision.camera_wrappers.depthai.utils import (
+    get_config_file_path,
+    get_config_files_names,
+)
+from pollen_vision.vision_models.utils import get_checkpoint_path, get_checkpoints_names
 
 
 def test_config() -> None:
