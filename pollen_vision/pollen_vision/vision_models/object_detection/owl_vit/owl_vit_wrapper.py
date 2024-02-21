@@ -1,10 +1,9 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 import numpy as np
 import numpy.typing as npt
 import torch
-from PIL import Image, ImageDraw
-from pollen_vision.vision_models.utils import random_color
+from PIL import Image
 from transformers import pipeline
 
 
@@ -15,7 +14,6 @@ class OwlVitWrapper:
         self._checkpoint = "google/owlvit-base-patch32"
         self._device = torch.cuda.current_device() if torch.cuda.is_available() else "cpu"
         self._detector = pipeline(model=self._checkpoint, task="zero-shot-object-detection", device=self._device)
-        self.labels_colors: Dict[str, Tuple[int, int, int]] = {}
 
     def infer(
         self,
@@ -41,26 +39,6 @@ class OwlVitWrapper:
         predictions = [prediction for prediction in predictions if prediction["score"] > detection_threshold]
         return predictions
 
-    def draw_predictions(self, in_im: npt.NDArray[np.uint8], predictions: List[Dict]) -> Image:  # type: ignore
-        """Draws the predictions on a copy of the input image and returns the annotated image."""
-
-        im: Image = Image.fromarray(in_im)
-        draw = ImageDraw.Draw(im)
-
-        for prediction in predictions:
-            box = prediction["box"]
-            label = prediction["label"]
-
-            if label not in self.labels_colors.keys():
-                self.labels_colors[label] = random_color()
-
-            # score = prediction["score"]
-            xmin, ymin, xmax, ymax = box.values()
-            draw.rectangle((xmin, ymin, xmax, ymax), outline=self.labels_colors[label], width=5)
-            # draw.text((xmin, ymin), f"{label}: {round(score,2)}", fill="black", font_size=20)
-
-        return im
-
     def get_bboxes(self, predictions: List[Dict]) -> List[List]:  # type: ignore
         """Returns a list of bounding boxes from the predictions."""
         bboxes = []
@@ -78,3 +56,11 @@ class OwlVitWrapper:
             labels.append(prediction["label"])
 
         return labels
+
+    def get_scores(self, predictions: List[Dict]) -> List[float]:  # type: ignore
+        """Returns a list of scores from the predictions."""
+        scores = []
+        for prediction in predictions:
+            scores.append(prediction["score"])
+
+        return scores
