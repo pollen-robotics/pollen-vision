@@ -1,6 +1,5 @@
-from typing import Dict, List, Tuple
+from typing import List
 
-import cv2
 import numpy as np
 import numpy.typing as npt
 import torch
@@ -49,40 +48,3 @@ class MobileSamWrapper:
             masks.append(m)
 
         return masks
-
-    def annotate(
-        self,
-        im: npt.NDArray[np.uint8],
-        masks: List[npt.NDArray[np.uint8]],
-        bboxes: List[List[int]],
-        labels: List[str],
-        labels_colors: Dict[str, Tuple[int, int, int]] = {},
-    ) -> npt.NDArray[np.uint8]:
-        """Draws the masks and labels on top of the input image and returns the annotated image.
-        Args:
-            - im: the input image
-            - masks: a list of masks
-            - bboxes: a list of bounding boxes
-            - labels: a list of labels
-            - labels_colors: a dictionary of colors for each label (if not set, mask will be drawn in white)
-        """
-        im = np.array(im)
-        for i in range(len(masks)):
-            mask = masks[i]
-            label = labels[i]
-
-            # Draw transparent color mask on top of im
-            label = labels[i]
-            color = (255, 255, 255) if label not in labels_colors else labels_colors[label]
-            overlay = np.zeros_like(im, dtype=np.uint8)
-            overlay[mask != 0] = color
-            overlay[mask == 0] = im[mask == 0]
-            im = cv2.addWeighted(overlay, 0.5, im, 1 - 0.5, 0)
-
-            # Write label at x, y position in im
-            bbox = bboxes[i]
-            x, y = bbox[0], bbox[1]
-            color = np.array(color).astype(np.uint8).tolist()
-            im = cv2.putText(im, label, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2, cv2.LINE_AA)
-
-        return im
