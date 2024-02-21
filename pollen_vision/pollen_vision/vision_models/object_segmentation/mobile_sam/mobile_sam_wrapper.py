@@ -32,6 +32,10 @@ class MobileSamWrapper:
     def infer(self, im: npt.NDArray[np.uint8], bboxes: List[List]) -> List:  # type: ignore
         """Returns a list of masks found in the input image.
         A mask is a binary image where the pixels inside the mask are set to 1 and the pixels outside the mask are set to 0.
+
+        Args:
+            - im: the input image (opencv image, numpy array)
+            - bboxes: a list of bounding boxes in the format [[x1, y1, x2, y2], ...]
         """
         self._predictor.set_image(np.array(im))
 
