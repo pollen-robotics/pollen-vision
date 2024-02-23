@@ -93,7 +93,7 @@ def annotate(
 
         # Write label at x, y position in im
         x, y = bbox[0], bbox[1]
-        im = cv2.putText(im, label + " " + score, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2, cv2.LINE_AA)
+        im = cv2.putText(im, label + " " + score, (x, y+30), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2, cv2.LINE_AA)
 
     return im
 
