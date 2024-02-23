@@ -21,7 +21,7 @@ from openai import OpenAI
 
 
 class ObjectDescriptionGenerator:
-    def __init__(self, api_key: 'str | None' = None) -> None:
+    def __init__(self, api_key: "str | None" = None) -> None:
         """
         Args:
             - api_key: the API key to use to authenticate to the OpenAI API. If None, the API key is read from the
@@ -29,20 +29,15 @@ class ObjectDescriptionGenerator:
         """
         self._openai_client = OpenAI(api_key=api_key)
 
-    def generate_descriptions(
-        self,
-        objects: list[str],
-        generation_nb_per_object: int = 10
-            ) -> dict[str, str]:
+    def generate_descriptions(self, objects: list[str], generation_nb_per_object: int = 10) -> str | None:
         """Returns a dictionary containing the descriptions of the objects."""
 
         prompt = """
             Generate {} descriptions for each of the following objects :
             {}
             """.format(
-                generation_nb_per_object,
-                "\n".join(objects)
-            )
+            generation_nb_per_object, "\n".join(objects)
+        )
 
         completion = self._openai_client.chat.completions.create(
             model="gpt-3.5-turbo-1106",
@@ -53,7 +48,8 @@ class ObjectDescriptionGenerator:
                     "content": """
                     You are a helpful assistant designed to output JSON.
                     You will return a json object of the form :
-                    [{'object': ['description 1', 'description 2', ...]}, {'object2': ['description 1', 'description 2', ...]}, ...]
+                    [{'object': ['description 1', 'description 2', ...]},
+                    {'object2': ['description 1', 'description 2', ...]}, ...]
                     """,
                 },
                 {
@@ -64,7 +60,7 @@ class ObjectDescriptionGenerator:
         )
         return completion.choices[0].message.content
 
-    def save_descriptions(self, descriptions: dict[str, str], descriptor_file_name: str) -> None:
+    def save_descriptions(self, descriptions: str, descriptor_file_name: str) -> None:
         """Saves the descriptions to a JSON file."""
         json_output = json.loads(descriptions)
         final_output = []
@@ -108,4 +104,4 @@ if __name__ == "__main__":
     generator = ObjectDescriptionGenerator()
     descriptions = generator.generate_descriptions(args.objects, args.number)
     print("Descriptions generated!")
-    generator.save_descriptions(descriptions, args.file)
+    generator.save_descriptions(descriptions, args.file)  # type: ignore
