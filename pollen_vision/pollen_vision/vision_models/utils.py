@@ -41,7 +41,7 @@ class WhiteLabels(Labels):
 
 def annotate(
     im: npt.NDArray[np.uint8],
-    detection_predictions: List[Dict],
+    detection_predictions: List[Dict],  # type: ignore
     labels_colors: Labels | WhiteLabels,
     masks: List[npt.NDArray[np.uint8]] = [],
 ) -> npt.NDArray[np.uint8]:
