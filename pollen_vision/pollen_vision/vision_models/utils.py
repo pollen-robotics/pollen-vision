@@ -14,35 +14,31 @@ class Labels:
     def __init__(self) -> None:
         self.labels: Dict[str, Tuple[int, int, int]] = {}
 
-    def push(self, labels: List[str]) -> None:
-        """Pushes a list of labels to the main labels dictionary.
+    def push(self, labels: List[str], colors: List[Tuple[int, int, int]] = []) -> None:
+        """Pushes a list of labels and associated color to the main labels dictionary.
 
-        For each label, a random color is assigned if the label is not already in the dictionary.
+        If the color list is not set, a random color will be assigned to each label not already in the dictionnary.
         """
+        if colors != []:
+            if len(colors) != len(labels):
+                raise ValueError("The length of the labels and colors lists must be the same.")
+
         for label in labels:
             if label not in self.labels:
-                self.labels[label] = random_color()
+                if colors != []:
+                    self.labels[label] = colors[labels.index(label)]
+                else:
+                    self.labels[label] = random_color()
 
     def get_color(self, label: str) -> Tuple[int, int, int]:
         """Returns the color of the label."""
         return self.labels[label]
 
 
-class WhiteLabels(Labels):
-    """A class to store the labels and their colors, with white as the default color."""
-
-    def __init__(self) -> None:
-        super().__init__()
-
-    def get_color(self, label: str) -> Tuple[int, int, int]:
-        """Returns the white color of the label."""
-        return (255, 255, 255)
-
-
 def annotate(
     im: npt.NDArray[np.uint8],
     detection_predictions: List[Dict],  # type: ignore
-    labels_colors: Labels | WhiteLabels,
+    labels_colors: Labels,
     masks: List[npt.NDArray[np.uint8]] = [],
 ) -> npt.NDArray[np.uint8]:
     """Draws the masks and labels on top of the input image and returns the annotated image.
