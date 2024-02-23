@@ -38,29 +38,3 @@ class OwlVitWrapper:
         predictions: List[Dict] = self._detector(im, candidate_labels=candidate_labels)  # type: ignore
         predictions = [prediction for prediction in predictions if prediction["score"] > detection_threshold]
         return predictions
-
-    def get_bboxes(self, predictions: List[Dict]) -> List[List]:  # type: ignore
-        """Returns a list of bounding boxes from the predictions."""
-        bboxes = []
-        for prediction in predictions:
-            box = prediction["box"]
-            xmin, ymin, xmax, ymax = box.values()
-            bboxes.append([xmin, ymin, xmax, ymax])
-
-        return bboxes
-
-    def get_labels(self, predictions: List[Dict]) -> List[str]:  # type: ignore
-        """Returns a list of labels from the predictions."""
-        labels = []
-        for prediction in predictions:
-            labels.append(prediction["label"])
-
-        return labels
-
-    def get_scores(self, predictions: List[Dict]) -> List[float]:  # type: ignore
-        """Returns a list of scores from the predictions."""
-        scores = []
-        for prediction in predictions:
-            scores.append(prediction["score"])
-
-        return scores
