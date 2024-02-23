@@ -1,4 +1,5 @@
 import json
+import os
 from typing import List
 
 import cv2
@@ -19,7 +20,12 @@ IMAGE_SIZE: int = 384
 class RAM_wrapper:
     """A wrapper for the Recognize Anything Model (RAM)."""
 
-    def __init__(self, objects_descriptions_file_path: str, checkpoint_name: str = "ram_plus_swin_large_14m") -> None:
+    def __init__(
+        self,
+        objects_descriptions_filename: str,
+        objects_descriptions_folder_path: str = f"{os.path.dirname(__file__)}/objects_descriptions",
+        checkpoint_name: str = "ram_plus_swin_large_14m",
+    ) -> None:
         """
         Args:
             - objects_descriptions_file_path: path to the json file containing the descriptions of
@@ -27,13 +33,23 @@ class RAM_wrapper:
             - checkpoint_name: the name of the checkpoint to use
         """
         valid_names = get_checkpoints_names()
-        assert checkpoint_name in valid_names
+        if checkpoint_name not in valid_names:
+            raise ValueError(f"Could not find the model checkpoint {checkpoint_name}. Valid checkpoints are: {valid_names}")
+
         self._checkpoint_path = get_checkpoint_path(checkpoint_name)
 
+        try:
+            object_description = json.load(
+                open(f"{objects_descriptions_folder_path}/{objects_descriptions_filename}.json", "rb")
+            )
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                f"Could not find the file {objects_descriptions_folder_path}/{objects_descriptions_filename}.json"
+            )
+
         # Building embeddings
-        self._openset_label_embedding, self._openset_categories = build_openset_llm_label_embedding(
-            json.load(open(objects_descriptions_file_path, "rb"))
-        )
+        self._openset_label_embedding, self._openset_categories = build_openset_llm_label_embedding(object_description)
+        self.open_set_categories = self._openset_categories
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._transform = get_transform(image_size=IMAGE_SIZE)
         self._model = ram_plus(pretrained=self._checkpoint_path, image_size=IMAGE_SIZE, vit="swin_l")
