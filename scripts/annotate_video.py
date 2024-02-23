@@ -24,9 +24,8 @@ import numpy as np
 import tqdm
 from pollen_vision.vision_models.object_detection import OwlVitWrapper
 from pollen_vision.vision_models.object_segmentation import MobileSamWrapper
-from pollen_vision.vision_models.utils import annotate, get_bboxes, Labels
+from pollen_vision.vision_models.utils import Labels, annotate, get_bboxes
 from recorder import Recorder
-
 
 argParser = argparse.ArgumentParser(description="record sr")
 argParser.add_argument(
