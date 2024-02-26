@@ -1,4 +1,4 @@
-# Recognize anything (RAM++) Wrapper
+# (TODO outdated) Recognize anything (RAM++) Wrapper
 
 https://github.com/xinyu1205/recognize-anything
 
