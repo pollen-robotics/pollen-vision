@@ -1,3 +1,5 @@
+# TODO Outdated
+
 import argparse
 import time
 from typing import Tuple
