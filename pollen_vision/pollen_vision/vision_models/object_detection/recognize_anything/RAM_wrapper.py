@@ -40,6 +40,9 @@ class RAM_wrapper:
 
         self._checkpoint_path = get_checkpoint_path(checkpoint_name)
 
+        if objects_descriptions_filename.endswith(".json"):
+            objects_descriptions_filename = objects_descriptions_filename[: -len(".json")]
+
         try:
             object_description = json.load(
                 open(f"{objects_descriptions_folder_path}/{objects_descriptions_filename}.json", "rb")
