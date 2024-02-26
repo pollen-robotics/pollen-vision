@@ -16,6 +16,7 @@ Example:
 Output:
     The annotated video will be saved in the same directory as the input video with the suffix "_annotated".
 """
+
 import argparse
 import asyncio
 
@@ -24,7 +25,7 @@ import numpy as np
 import tqdm
 from pollen_vision.vision_models.object_detection import OwlVitWrapper
 from pollen_vision.vision_models.object_segmentation import MobileSamWrapper
-from pollen_vision.vision_models.utils import Labels, annotate, get_bboxes
+from pollen_vision.vision_models.utils import Annotator, get_bboxes
 from recorder import Recorder
 
 argParser = argparse.ArgumentParser(description="record sr")
@@ -67,6 +68,8 @@ if use_segmentation:
     print("Instantiating mobile sam ...")
     sam = MobileSamWrapper()
 
+A = Annotator()
+
 
 annotated_video_path = args.video.split(".")[0] + "_annotated.mp4"
 rec_left = Recorder(annotated_video_path)
@@ -75,8 +78,6 @@ classes = args.classes
 detection_threshold = args.threshold
 
 print(f"Starting video annotation for classes: {classes} with detection threshold {detection_threshold}...")
-
-labels = Labels()
 
 for i in tqdm.tqdm(range(nb_frames_left)):
     ret, left_frame = cap_left.read()
@@ -95,7 +96,7 @@ for i in tqdm.tqdm(range(nb_frames_left)):
     else:
         masks = []
 
-    left_frame = annotate(im=left_frame, detection_predictions=predictions, labels_colors=labels, masks=masks)
+    left_frame = A.annotate(im=left_frame, detection_predictions=predictions, masks=masks)
 
     asyncio.run(rec_left.new_im(left_frame.astype(np.uint8)))
 
