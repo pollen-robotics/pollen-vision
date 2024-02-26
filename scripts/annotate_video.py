@@ -84,9 +84,6 @@ for i in tqdm.tqdm(range(nb_frames_left)):
     if not ret:
         break
 
-    if i > 50:
-        break
-
     predictions = owl_vit.infer(
         im=left_frame,
         candidate_labels=classes,
