@@ -56,7 +56,8 @@ class Annotator:
     ) -> npt.NDArray[np.uint8]:
         """Draws the masks and labels on top of the input image and returns the annotated image.
 
-        All the args are optional, except for the image. If not set, the corresponding element will not be drawn.
+        masks arg is optional. If not set, masks will not be drawn.
+
         Args:
             - im: the input image
             - detection_predictions: a dictionary containing the predictions of the object detection model. Keys are :
