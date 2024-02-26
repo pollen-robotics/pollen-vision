@@ -13,7 +13,7 @@ Its purpose is to provide a simple and unified interface to use computer vision 
 #### Object segmentation
 - `Mobile-SAM` for (fast) zero-shot object segmentation
 
-Below is an example of combining `Owl-Vit` and `Mobile-Sam` to detect and segment a point cloud, all live. 
+Below is an example of combining `Owl-Vit` and `Mobile-Sam` to detect and segment objects in a point cloud, all live. 
 (Note: in this example, there is no temporal or spatial filtering of any kind, we display the raw outputs of the models computed independently on each frame)
 
 https://github.com/pollen-robotics/pollen-vision/assets/6552564/a5285627-9cba-4af5-aafb-6af3d1e6d40c
