@@ -14,6 +14,7 @@ Usage:
     descriptions = generator.generate_descriptions(["robot", "mug"], 10)
     generator.save_descriptions(descriptions, "my_objects_descriptions")
 """
+
 import json
 import os
 
@@ -33,6 +34,12 @@ class ObjectDescriptionGenerator:
         """Returns a dictionary containing the descriptions of the objects."""
 
         prompt = """
+                For each object : 
+                - Describe concisely what it looks like:",
+                - How can you identify it concisely?",
+                - What does it look like concisely?",
+                - What are the identifying characteristics of it:",
+                - Please provide a concise description of the visual characteristics of it",
             Generate {} descriptions for each of the following objects :
             {}
             """.format(
