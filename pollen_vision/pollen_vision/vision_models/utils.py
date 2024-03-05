@@ -13,6 +13,7 @@ class Labels:
 
     def __init__(self) -> None:
         self.labels: Dict[str, Tuple[int, int, int]] = {}
+        self.labels[""] = (255, 255, 255)
 
     def push(self, labels: List[str], colors: List[Tuple[int, int, int]] = []) -> None:
         """Pushes a list of labels and associated color to the main labels dictionary.
@@ -51,7 +52,7 @@ class Annotator:
     def annotate(
         self,
         im: npt.NDArray[np.uint8],
-        detection_predictions: List[Dict],  # type: ignore
+        detection_predictions: List[Dict] = [],  # type: ignore
         masks: List[npt.NDArray[np.uint8]] = [],
     ) -> npt.NDArray[np.uint8]:
         """Draws the masks and labels on top of the input image and returns the annotated image.

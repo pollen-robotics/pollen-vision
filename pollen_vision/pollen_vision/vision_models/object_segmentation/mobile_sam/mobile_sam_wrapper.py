@@ -29,7 +29,7 @@ class MobileSamWrapper:
 
         self._predictor = SamPredictor(mobile_sam)
 
-    def infer(self, im: npt.NDArray[np.uint8], bboxes: List[List]) -> List:  # type: ignore
+    def infer(self, im: npt.NDArray[np.uint8], bboxes: List[List] = [], points_list: List[List[List]] = []) -> List:  # type: ignore
         """Returns a list of masks found in the input image.
         A mask is a binary image where the pixels inside the mask are set to 1 and the pixels outside the mask are set to 0.
 
@@ -37,11 +37,18 @@ class MobileSamWrapper:
             - im: the input image (opencv image, numpy array)
             - bboxes: a list of bounding boxes in the format [[xmin, ymin, xmax, ymax], ...]
         """
+
+        assert len(bboxes) > 0 or len(points_list) > 0, "You must provide at least one bounding box or one point."
+
         self._predictor.set_image(np.array(im))
 
         _masks = []
         for bbox in bboxes:
             _mask, _, _ = self._predictor.predict(box=np.array(bbox))
+            _masks.append(_mask)
+
+        for points in points_list:
+            _mask, _, _ = self._predictor.predict(point_coords=np.array(points), point_labels=[1] * len(points))
             _masks.append(_mask)
 
         masks: List = []  # type: ignore
