@@ -35,7 +35,7 @@ class MobileSamWrapper:
 
         Args:
             - im: the input image (opencv image, numpy array)
-            - bboxes: a list of bounding boxes in the format [[x1, y1, x2, y2], ...]
+            - bboxes: a list of bounding boxes in the format [[xmin, ymin, xmax, ymax], ...]
         """
         self._predictor.set_image(np.array(im))
 
