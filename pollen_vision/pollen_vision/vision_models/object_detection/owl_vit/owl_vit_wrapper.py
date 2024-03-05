@@ -32,7 +32,7 @@ class OwlVitWrapper:
         A prediction is a dictionary with the following keys:
             - "label": the label of the object
             - "score": the score of the prediction
-            - "box": the bounding box of the object
+            - "box": the bounding box of the object, in the format [xmin, ymin, xmax, ymax]
         """
         im = Image.fromarray(im)
         predictions: List[Dict] = self._detector(im, candidate_labels=candidate_labels)  # type: ignore
