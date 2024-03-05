@@ -36,6 +36,8 @@ class MobileSamWrapper:
         Args:
             - im: the input image (opencv image, numpy array)
             - bboxes: a list of bounding boxes in the format [[xmin, ymin, xmax, ymax], ...]
+            - points: a list of list of points. One list of points per object to segment
+
         """
 
         assert len(bboxes) > 0 or len(points_list) > 0, "You must provide at least one bounding box or one point."
