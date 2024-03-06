@@ -98,13 +98,13 @@ class Annotator:
             if len(masks) > 0:
                 overlay[mask != 0] = color
                 overlay[mask == 0] = im[mask == 0]
-                im = cv2.addWeighted(overlay, 0.5, im, 1 - 0.5, 0)
+                im = np.array(cv2.addWeighted(overlay, 0.5, im, 1 - 0.5, 0))
 
-            im = cv2.rectangle(im, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
+            im = np.array(cv2.rectangle(im, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2))
 
             # Write label at x, y position in im
             x, y = bbox[0], bbox[1]
-            im = cv2.putText(im, label + " " + score, (x, y + 30), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2, cv2.LINE_AA)
+            im = np.array(cv2.putText(im, label + " " + score, (x, y + 30), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2, cv2.LINE_AA))
 
         return im
 

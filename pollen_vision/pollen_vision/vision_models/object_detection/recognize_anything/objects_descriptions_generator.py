@@ -34,7 +34,7 @@ class ObjectDescriptionGenerator:
         """Returns a dictionary containing the descriptions of the objects."""
 
         prompt = """
-                For each object : 
+                For each object :
                 - Describe concisely what it looks like:",
                 - How can you identify it concisely?",
                 - What does it look like concisely?",

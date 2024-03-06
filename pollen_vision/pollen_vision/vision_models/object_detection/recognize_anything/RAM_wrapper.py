@@ -69,7 +69,7 @@ class RAM_wrapper:
 
     def infer(self, im: npt.NDArray[np.uint8]) -> List[str]:
         """Returns a list of labels found in the input image."""
-        im = cv2.resize(im, (IMAGE_SIZE, IMAGE_SIZE))
+        im = np.array(cv2.resize(im, (IMAGE_SIZE, IMAGE_SIZE)))
         im = Image.fromarray(im)
         im = self._transform(im).unsqueeze(0).to(self._device)
         res: str = inference(im, self._model)
