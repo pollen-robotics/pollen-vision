@@ -264,11 +264,19 @@ class Wrapper(ABC):
         )
 
         if self.cam_config.fisheye:
-            mapXL, mapYL = cv2.fisheye.initUndistortRectifyMap(left_K, left_D, R1, P1, resolution, cv2.CV_32FC1)
-            mapXR, mapYR = cv2.fisheye.initUndistortRectifyMap(right_K, right_D, R2, P2, resolution, cv2.CV_32FC1)
+            mapXL, mapYL = cv2.fisheye.initUndistortRectifyMap(
+                left_K, left_D, R1, P1, resolution, cv2.CV_32FC1
+            )  # type ignore[attr-defined]
+            mapXR, mapYR = cv2.fisheye.initUndistortRectifyMap(
+                right_K, right_D, R2, P2, resolution, cv2.CV_32FC1
+            )  # type ignore[attr-defined]
         else:
-            mapXL, mapYL = cv2.initUndistortRectifyMap(left_K, left_D, R1, P1, resolution, cv2.CV_32FC1)
-            mapXR, mapYR = cv2.initUndistortRectifyMap(right_K, right_D, R2, P2, resolution, cv2.CV_32FC1)
+            mapXL, mapYL = cv2.initUndistortRectifyMap(
+                left_K, left_D, R1, P1, resolution, cv2.CV_32FC1
+            )  # type ignore[attr-defined]
+            mapXR, mapYR = cv2.initUndistortRectifyMap(
+                right_K, right_D, R2, P2, resolution, cv2.CV_32FC1
+            )  # type ignore[attr-defined]
 
         self.cam_config.set_undistort_maps(mapXL, mapYL, mapXR, mapYR)
 
