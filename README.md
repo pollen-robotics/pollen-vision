@@ -1,8 +1,10 @@
 # Pollen Vision
 
- <video loop autoplay src="https://github.com/pollen-robotics/pollen-vision/assets/6552564/b446b89c-9e62-401e-acf3-6f4d2c4b09ca">  video </video> 
+<div align="center">
+ 
+![demo](assets/pollen_vision_intro.gif)
 
-
+</div>
 
 This repository contains vision related modules used by Pollen Robotics.
 
