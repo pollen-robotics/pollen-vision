@@ -264,19 +264,12 @@ class Wrapper(ABC):
         )
 
         if self.cam_config.fisheye:
-            mapXL, mapYL = cv2.fisheye.initUndistortRectifyMap(
-                left_K, left_D, R1, P1, resolution, cv2.CV_32FC1  # type ignore[attr-defined]
-            )
-            mapXR, mapYR = cv2.fisheye.initUndistortRectifyMap(
-                right_K, right_D, R2, P2, resolution, cv2.CV_32FC1  # type ignore[attr-defined]
-            )
+            # 5 is the value of cv2.CV_32FC1. mypy does not know about this value
+            mapXL, mapYL = cv2.fisheye.initUndistortRectifyMap(left_K, left_D, R1, P1, resolution, 5)
+            mapXR, mapYR = cv2.fisheye.initUndistortRectifyMap(right_K, right_D, R2, P2, resolution, 5)
         else:
-            mapXL, mapYL = cv2.initUndistortRectifyMap(
-                left_K, left_D, R1, P1, resolution, cv2.CV_32FC1  # type ignore[attr-defined]
-            )
-            mapXR, mapYR = cv2.initUndistortRectifyMap(
-                right_K, right_D, R2, P2, resolution, cv2.CV_32FC1  # type ignore[attr-defined]
-            )
+            mapXL, mapYL = cv2.initUndistortRectifyMap(left_K, left_D, R1, P1, resolution, 5)
+            mapXR, mapYR = cv2.initUndistortRectifyMap(right_K, right_D, R2, P2, resolution, 5)
 
         self.cam_config.set_undistort_maps(mapXL, mapYL, mapXR, mapYR)
 
