@@ -66,8 +66,8 @@ def drawEpiLines(left: npt.NDArray[Any], right: npt.NDArray[Any], aruco_dict: ar
     and computes the average slope of the lines."""
     concatIm = np.hstack((left, right))
 
-    lcorners, lids, _ = aruco.detectMarkers(image=left, dictionary=aruco_dict)
-    rcorners, rids, _ = aruco.detectMarkers(image=right, dictionary=aruco_dict)
+    lcorners, lids, _ = aruco.detectMarkers(image=left, dictionary=aruco_dict)  # type: ignore[attr-defined]
+    rcorners, rids, _ = aruco.detectMarkers(image=right, dictionary=aruco_dict)  # type: ignore[attr-defined]
 
     if len(lcorners) == 0 or len(rcorners) == 0:
         return concatIm
