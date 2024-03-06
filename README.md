@@ -1,5 +1,11 @@
 # Pollen Vision
 
+<div align="center">
+ 
+![demo](assets/pollen_vision_intro.gif)
+
+</div>
+
 This repository contains vision related modules used by Pollen Robotics.
 
 Its purpose is to provide a simple and unified interface to use computer vision models curated for their quality and performance when applied to robotics use cases.
