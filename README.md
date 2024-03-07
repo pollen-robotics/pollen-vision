@@ -116,3 +116,9 @@ Check our [example notebooks](examples/vision_models_examples/)!
 Check our [example scripts](examples/camera_wrappers_examples/)!
 
 </details>
+
+
+[![Twitter URL](https://img.shields.io/twitter/url?url=https%3A%2F%2Ftwitter.com%2Fpollenrobotics)](https://twitter.com/pollenrobotics)
+[![Linkedin URL](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/company/pollen-robotics/mycompany/)
+
+
