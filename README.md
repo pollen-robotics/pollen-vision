@@ -106,7 +106,9 @@ sudo udevadm control --reload-rules && sudo udevadm trigger
 
 <details>
 <summary>Examples</summary>
+    
 # Examples
+
 ## Vision models wrappers
 Check our [example notebooks](examples/vision_models_examples/)!
 
