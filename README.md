@@ -100,21 +100,12 @@ echo 'SUBSYSTEM=="usb", ATTRS{idVendor}=="03e7", MODE="0666"' | sudo tee /etc/ud
 sudo udevadm control --reload-rules && sudo udevadm trigger
 ```
 
-# Usage
+# Examples
 ## Vision models wrappers
-- Recognize Anything (RAM++) : [README](pollen_vision/pollen_vision/vision_models/object_detection/recognize_anything/README.md)
-- Owl-Vit : [README](pollen_vision/pollen_vision/vision_models/object_detection/owl_vit/README.md)
-- Mobile Sam : [README](pollen_vision/pollen_vision/vision_models/object_segmentation/mobile_sam/README.md)
+Check our [example notebooks](examples/vision_models_examples/)!
+
 
 
 ## Luxonis depthai wrappers
-- SDKWrapper and TeleopWrapper: [README](pollen_vision/pollen_vision/camera_wrappers/depthai/README.md)
-
-
-# (TODO outdated) Run examples
-
-There are three example scripts in `examples/`:
-- `SDKWrapper_example.py` -> returns raw cv2 images, with depth and disparity of so specified
-- `two_SDKWrappers_example.py` -> Same, but with two devices connected on the host. They are differentiated by their `mx_id`
-- `teleopWrapper_example.py` -> returns h264 packets encoded on board
+Check our [example scripts](examples/camera_wrappers_examples/)!
 
