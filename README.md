@@ -26,7 +26,7 @@
 
 </div>
 
-## Get started in very few lines of code !
+## Get started in very few lines of code!
 ```python
 from pollen_vision.vision_models.object_detection import OwlVitWrapper
 from pollen_vision.vision_models.utils import Annotator
