@@ -48,7 +48,11 @@ annotated_im = annotator.annotate(im, predictions)
     <img width="20%" src="https://github.com/pollen-robotics/pollen-vision/assets/6552564/2bea3983-2096-4f62-80c1-079b583d6057">
 </p>
 
-**Right now, we support the following models:**
+
+<details>
+<summary>Supported models</summary>
+
+We continue to work on adding new models that could be useful for robotics perception applications. Right now, we support : 
 
 #### Object detection
 - `Owl-Vit` for zero-shot object detection and localization
@@ -66,6 +70,7 @@ https://github.com/pollen-robotics/pollen-vision/assets/6552564/a5285627-9cba-4a
 
 
 We also provide wrappers for the Luxonis cameras which we use internally. They allow to easily access the main features that are interesting to our robotics applications (RBG-D, onboard h264 encoding and onboard stereo rectification).
+</details>
 
 <details>
 <summary>Installation</summary>
