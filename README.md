@@ -29,25 +29,23 @@
 ## Get started in very few lines of code!
 ```python
 from pollen_vision.vision_models.object_detection import OwlVitWrapper
-from pollen_vision.vision_models.utils import Annotator
+from pollen_vision.vision_models.object_segmentation import MobileSamWrapper
+from pollen_vision.vision_models.utils import Annotator, get_bboxes
 
 owl = OwlVitWrapper()
+sam = MobileSamWrapper()
 annotator = Annotator()
-im = ... # Load image
-predictions = owl.infer(im, ["paper cups"])  # Zero-shot object detection and localization
-# [
-#     {
-#         "score": 0.19,
-#         "label": "paper cups",
-#         "box": {"xmin": 1371, "ymin": 222, "xmax": 1566, "ymax": 501},
-#     }
-# ]
-annotated_im = annotator.annotate(im, predictions)
+
+im = ...
+predictions = owl.infer(im, ["paper cups"])  # zero-shot object detection
+bboxes = get_bboxes(predictions)
+
+masks = sam.infer(im, bboxes=bboxes)  # zero-shot object segmentation
+annotated_im = annotator.annotate(im, predictions, masks=masks)
 ```
 <p align="center">
-    <img width="20%" src="https://github.com/pollen-robotics/pollen-vision/assets/6552564/2bea3983-2096-4f62-80c1-079b583d6057">
+    <img width="20%" src="https://github.com/pollen-robotics/pollen-vision/assets/6552564/9f162321-2226-48fc-86e5-eb47c8996ee9">
 </p>
-
 
 <details>
 <summary>Supported models</summary>
