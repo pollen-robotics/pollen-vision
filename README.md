@@ -48,7 +48,11 @@ annotated_im = annotator.annotate(im, predictions)
     <img width="20%" src="https://github.com/pollen-robotics/pollen-vision/assets/6552564/2bea3983-2096-4f62-80c1-079b583d6057">
 </p>
 
-**Right now, we support the following models:**
+
+<details>
+<summary>Supported models</summary>
+
+We continue to work on adding new models that could be useful for robotics perception applications. Right now, we support : 
 
 #### Object detection
 - `Owl-Vit` for zero-shot object detection and localization
@@ -66,6 +70,10 @@ https://github.com/pollen-robotics/pollen-vision/assets/6552564/a5285627-9cba-4a
 
 
 We also provide wrappers for the Luxonis cameras which we use internally. They allow to easily access the main features that are interesting to our robotics applications (RBG-D, onboard h264 encoding and onboard stereo rectification).
+</details>
+
+<details>
+<summary>Installation</summary>
 
 # Installation
 
@@ -75,13 +83,21 @@ Note: This package has only been tested on Ubuntu 22.04.
 
 Install everything in "production" mode:
 ```console
-pip install -e .[all]
+pip install pollen_vision[all]
 ```
 
 OR Install only the modules you want: 
 ```console
-pip install -e .[depthai_wrapper]
-pip install -e .[vision]
+pip install pollen_vision[depthai_wrapper]
+pip install pollen_vision[vision]
+```
+
+## Dev mode
+
+Clone this repo, then :
+
+```console
+pip install -e .[all]
 ```
 
 Add "dev" mode dependencies (CI/CD, testing, etc):
@@ -99,13 +115,23 @@ If this is the first time you use luxonis cameras on this computer, you need to 
 echo 'SUBSYSTEM=="usb", ATTRS{idVendor}=="03e7", MODE="0666"' | sudo tee /etc/udev/rules.d/80-movidius.rules
 sudo udevadm control --reload-rules && sudo udevadm trigger
 ```
+</details>
 
+<details>
+<summary>Examples</summary>
+    
 # Examples
+
 ## Vision models wrappers
 Check our [example notebooks](examples/vision_models_examples/)!
 
-
-
 ## Luxonis depthai wrappers
 Check our [example scripts](examples/camera_wrappers_examples/)!
+
+</details>
+
+
+[![Twitter URL](https://img.shields.io/twitter/url?url=https%3A%2F%2Ftwitter.com%2Fpollenrobotics)](https://twitter.com/pollenrobotics)
+[![Linkedin URL](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/company/pollen-robotics/mycompany/)
+
 
