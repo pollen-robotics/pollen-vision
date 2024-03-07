@@ -3,7 +3,7 @@
     <img width="33%" src="assets/pollen_vision_logo.png">
 </p>
 <p align="center">
-<b>Catchphrase here !</b>
+<b>Simple and unified interface to use computer vision models curated for robotics use cases.</b>
 </p>
 
 <div align="center">
