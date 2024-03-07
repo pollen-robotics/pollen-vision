@@ -67,6 +67,9 @@ https://github.com/pollen-robotics/pollen-vision/assets/6552564/a5285627-9cba-4a
 
 We also provide wrappers for the Luxonis cameras which we use internally. They allow to easily access the main features that are interesting to our robotics applications (RBG-D, onboard h264 encoding and onboard stereo rectification).
 
+<details>
+<summary>Installation</summary>
+
 # Installation
 
 ```
@@ -99,13 +102,15 @@ If this is the first time you use luxonis cameras on this computer, you need to 
 echo 'SUBSYSTEM=="usb", ATTRS{idVendor}=="03e7", MODE="0666"' | sudo tee /etc/udev/rules.d/80-movidius.rules
 sudo udevadm control --reload-rules && sudo udevadm trigger
 ```
+</details>
 
+<details>
+<summary>Examples</summary>
 # Examples
 ## Vision models wrappers
 Check our [example notebooks](examples/vision_models_examples/)!
 
-
-
 ## Luxonis depthai wrappers
 Check our [example scripts](examples/camera_wrappers_examples/)!
 
+</details>
