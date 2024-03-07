@@ -10,7 +10,11 @@
 
   <a href="https://huggingface.co/pollen-robotics">![Huggingface space](https://img.shields.io/badge/🤗-HuggingFace%20Space-cyan.svg)</a>
   <a href="">![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)</a>
-
+  <a href="https://github.com/pollen-robotics/pollen-vision/blob/main/LICENSE">
+    <img alt="GitHub" src="https://img.shields.io/github/license/huggingface/transformers.svg?color=blue">
+  </a>
+  <a href="https://github.com/psf/black">![Code style: black](https://github.com/pollen-robotics/pollen-vision/actions/workflows/lint.yml/badge.svg)</a>
+  <a href="">![pytest](https://github.com/pollen-robotics/reachy2-sdk/actions/workflows/unit_tests.yml/badge.svg)</a>
 </div>
 
 
