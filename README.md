@@ -6,6 +6,14 @@
 <b>Catchphrase here !</b>
 </p>
 
+<div align="center">
+
+  <a href="https://huggingface.co/pollen-robotics">![Huggingface space](https://img.shields.io/badge/🤗-HuggingFace%20Space-cyan.svg)</a>
+  <a href="">![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)</a>
+
+</div>
+
+
 <!-- # Pollen Vision -->
 
 <div align="center">
