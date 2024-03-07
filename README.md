@@ -1,4 +1,11 @@
-# Pollen Vision
+
+<div align="center">
+ 
+![pollen vision](assets/pollen_vision_logo.png)
+
+</div>
+
+<!-- # Pollen Vision -->
 
 <div align="center">
  
