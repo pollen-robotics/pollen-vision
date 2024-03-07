@@ -1,9 +1,10 @@
 
-<div align="center">
- 
-![pollen vision](assets/pollen_vision_logo.png)
-
-</div>
+<p align="center" width="50%">
+    <img width="33%" src="assets/pollen_vision_logo.png">
+</p>
+<p align="center">
+<b>Catchphrase here !</b>
+</p>
 
 <!-- # Pollen Vision -->
 
