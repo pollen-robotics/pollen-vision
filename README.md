@@ -26,9 +26,27 @@
 
 </div>
 
-This repository contains vision related modules used by Pollen Robotics.
+## Get started in very few lines of code !
+```python
+from pollen_vision.vision_models.object_detection import OwlVitWrapper
+from pollen_vision.vision_models.utils import Annotator
 
-Its purpose is to provide a simple and unified interface to use computer vision models curated for their quality and performance when applied to robotics use cases.
+owl = OwlVitWrapper()
+annotator = Annotator()
+im = ... # Load image
+predictions = owl.infer(im, ["paper cups"])  # Zero-shot object detection and localization
+# [
+#     {
+#         "score": 0.19,
+#         "label": "paper cups",
+#         "box": {"xmin": 1371, "ymin": 222, "xmax": 1566, "ymax": 501},
+#     }
+# ]
+annotated_im = annotator.annotate(im, predictions)
+```
+<p align="center">
+    <img width="20%" src="https://github.com/pollen-robotics/pollen-vision/assets/6552564/2bea3983-2096-4f62-80c1-079b583d6057">
+</p>
 
 **Right now, we support the following models:**
 
