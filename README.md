@@ -83,13 +83,21 @@ Note: This package has only been tested on Ubuntu 22.04.
 
 Install everything in "production" mode:
 ```console
-pip install -e .[all]
+pip install pollen_vision[all]
 ```
 
 OR Install only the modules you want: 
 ```console
-pip install -e .[depthai_wrapper]
-pip install -e .[vision]
+pip install pollen_vision[depthai_wrapper]
+pip install pollen_vision[vision]
+```
+
+## Dev mode
+
+Clone this repo, then :
+
+```console
+pip install -e .[all]
 ```
 
 Add "dev" mode dependencies (CI/CD, testing, etc):
