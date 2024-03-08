@@ -29,6 +29,7 @@ w = SDKWrapper(get_config_file_path(args.config), rectify=True, resize=(1280, 72
 
 
 
+
 while True:
     data, _, _ = w.get_data()
 
