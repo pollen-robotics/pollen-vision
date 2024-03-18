@@ -3,7 +3,7 @@
     <img width="33%" src="assets/pollen_vision_logo.png">
 </p>
 <p align="center">
-<b>Simple and unified interface to computer vision models curated for robotics use cases.</b>
+<b>Simple and unified interface to zero-shot computer vision models curated for robotics use cases.</b>
 </p>
 
 <div align="center">
