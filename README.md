@@ -3,7 +3,7 @@
     <img width="33%" src="assets/pollen_vision_logo.png">
 </p> -->
 
-<p align="center" width="50%>
+<p align="center" width="50%">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/pollen_vision_logo.png">
     <source media="(prefers-color-scheme: light)" srcset="assets/pollen_vision_logo_light_theme.png">
