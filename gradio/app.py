@@ -1,20 +1,20 @@
 """
 Gradio app for pollen-vision
 
-This script creates a Gradio app for pollen-vision. The app allows users to perform object detection and object segmentation using the OWL-ViT and MobileSAM models.
+This script creates a Gradio app for pollen-vision. The app allows users to perform object detection and object
+segmentation using the OWL-ViT and MobileSAM models.
 """
 
-from datasets import load_dataset
-import gradio as gr
+from typing import Any, Dict, List
 
 import numpy as np
 import numpy.typing as npt
-from typing import Any, Dict, List
-
+from datasets import load_dataset
 from pollen_vision.vision_models.object_detection import OwlVitWrapper
 from pollen_vision.vision_models.object_segmentation import MobileSamWrapper
 from pollen_vision.vision_models.utils import Annotator, get_bboxes
 
+import gradio as gr
 
 owl_vit = OwlVitWrapper()
 mobile_sam = MobileSamWrapper()
@@ -58,7 +58,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam nec purus et nun
 """
 
 demo_inputs = [
-    gr.Dropdown(
+    gr.Dropdown(  # type: ignore
         [
             "Object detection (OWL-ViT)",
             "Object detection + segmentation (OWL-ViT + MobileSAM)",
@@ -66,9 +66,9 @@ demo_inputs = [
         label="Choose a task",
         value="Object detection (OWL-ViT)",
     ),
-    gr.Image(),
+    gr.Image(),  # type: ignore
     "text",
-    gr.Slider(0, 1, value=0.1),
+    gr.Slider(0, 1, value=0.1),  # type: ignore
 ]
 
 rdt_dataset = load_dataset("pollen-robotics/reachy-doing-things", split="train")
@@ -91,7 +91,7 @@ demo_examples = [
     ],
 ]
 
-demo = gr.Interface(
+demo = gr.Interface(  # type: ignore
     fn=query,
     inputs=demo_inputs,
     outputs="image",
