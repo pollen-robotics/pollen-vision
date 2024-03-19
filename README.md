@@ -116,6 +116,28 @@ sudo udevadm control --reload-rules && sudo udevadm trigger
 </details>
 
 <details>
+<summary>Gradio demo</summary>
+
+# Gradio demo
+## Test the demo online
+A gradio demo is available on Pollen Robotics' [Huggingface space](https://huggingface.co/spaces/pollen-robotics/pollen-vision-demo). It allows to test the models on your own images without having to install anything.
+
+## Run the demo locally
+If you want to run the demo locally, you can install the dependencies with the following command:
+```console
+pip install pollen_vision[gradio]
+```
+
+You can then run the demo locally on your machine with:
+```console
+python pollen-vision/gradio/app.py
+```
+
+
+</details>
+
+<details>
+
 <summary>Examples</summary>
     
 # Examples
