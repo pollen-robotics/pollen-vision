@@ -54,7 +54,18 @@ def query(
 
 
 description = """
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam nec purus et nunc tincidunt tincidunt.
+Welcome to the demo of pollen-vision, a simple and unified Python library to zero-shot computer vision models curated for robotics use cases. **Pollen-vision** is designed for ease of installation and use, composed of independent modules that can be combined to create a 3D object detection pipeline, getting the position of the objects in 3D space (x, y, z). 
+
+\n\nIn this demo, you have the option to choose between two tasks: object detection and object detection + segmentation.
+The models available are:
+
+- **OWL-VIT** (Open World Localization - Vision Transformer, By Google Research): this model performs text-conditionned zero-shot 2D object localization in RGB images.
+- **Mobile SAM**: A lightweight version of the Segment Anything Model (SAM) by Meta AI. SAM is a zero shot image segmentation model. It can be prompted with bounding boxes or points. (https://github.com/ChaoningZhang/MobileSAM)
+
+\n\nYou can input images in this demo in three ways: either by trying out the provided examples, by uploading an image of your choice, or by capturing an image from your computer's webcam.
+Additionally, you should provide text queries representing a list of objects to detect. Separate each object with a comma. The last input parameter is the detection threshold (ranging from 0 to 1), which defaults to 0.1.
+
+\n\nCheck out our blog post introducing pollen-vision or its <a href="https://github.com/pollen-robotics/pollen-vision">Github repository</a> for more info!
 """
 
 demo_inputs = [
@@ -95,7 +106,7 @@ demo = gr.Interface(  # type: ignore
     fn=query,
     inputs=demo_inputs,
     outputs="image",
-    title="pollen-vision",
+    title="Use zero-shot computer vision models with pollen-vision",
     description=description,
     examples=demo_examples,
 )
