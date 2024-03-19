@@ -1,7 +1,18 @@
 
-<p align="center" width="50%">
+<!-- <p align="center" width="50%">
     <img width="33%" src="assets/pollen_vision_logo.png">
+</p> -->
+
+<p align="center" width="50%>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/pollen_vision_logo.png">
+    <source media="(prefers-color-scheme: light)" srcset="assets/pollen_vision_logo_light_theme.png">
+    <img alt="Pollen vision library" src="assets/pollen_vision_logo.png" width="33%">
+  </picture>
+  <br/>
+  <br/>
 </p>
+
 <p align="center">
 <b>Simple and unified interface to zero-shot computer vision models curated for robotics use cases.</b>
 </p>
