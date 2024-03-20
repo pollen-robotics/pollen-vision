@@ -121,6 +121,14 @@ sudo apt-get install git-lfs
 brew install git-lfs
 ```
 
+## One line installation
+You can install the package directly from the repository without having to clone it first with:
+```console
+pip install "pollen-vision[vision] @ git+https://github.com/pollen-robotics/pollen-vision.git@main"
+```
+
+> Note: here we install the package with the `vision` extra, which includes the vision models. You can also install the `depthai_wrapper` extra to use the Luxonis depthai wrappers.
+
 ## Install from source
 Clone this repository and then install the package either in "production" mode or "dev" mode.
 
