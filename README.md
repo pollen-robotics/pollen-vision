@@ -126,24 +126,16 @@ Clone this repository and then install the package either in "production" mode o
 
 >👉 We recommend using a virtual environment to avoid conflicts with other packages.
 
-### Production mode
-Install everything in "production" mode:
+After cloning the repository, you can either install everything with:
 ```console
-pip install pollen_vision[all]
+pip install .[all]
 ```
-
-OR Install only the modules you want: 
+or install only the modules you want:
 ```console
-pip install pollen_vision[depthai_wrapper]
-pip install pollen_vision[vision]
+pip install .[depthai_wrapper]
+pip install .[vision]
 ```
-
-### Dev mode
-```console
-pip install -e .[all]
-```
-
-Add "dev" mode dependencies (CI/CD, testing, etc):
+To add "dev" mode dependencies (CI/CD, testing, etc):
 ```console
 pip install -e .[dev]
 ```
