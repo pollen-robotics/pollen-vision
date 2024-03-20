@@ -87,9 +87,25 @@ We also provide wrappers for the Luxonis cameras which we use internally. They a
 # Installation
 
 ```
-Note: This package has only been tested on Ubuntu 22.04.
+Note: This package has been tested on Ubuntu 22.04 and macOS (with M1 Pro processor).
+```
+## Git LFS
+This repository uses Git LFS to store large files. You need to install it before cloning the repository.
+
+### Ubuntu
+```console
+sudo apt-get install git-lfs
 ```
 
+### macOS
+```console
+brew install git-lfs
+```
+
+## Install from source
+Clone this repository and then install the package either in "production" mode or "dev" mode.
+
+### Production mode
 Install everything in "production" mode:
 ```console
 pip install pollen_vision[all]
@@ -101,10 +117,7 @@ pip install pollen_vision[depthai_wrapper]
 pip install pollen_vision[vision]
 ```
 
-## Dev mode
-
-Clone this repo, then :
-
+### Dev mode
 ```console
 pip install -e .[all]
 ```
