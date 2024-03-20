@@ -37,6 +37,8 @@
 
 </div>
 
+Check out our [HuggingFace space](https://huggingface.co/pollen-robotics) for an online demo or try pollen-vision in a [Colab notebook](https://colab.research.google.com/drive/1Xx42Pk4exkS95iyD-5arHIYQLXyRWTXw?usp=drive_link)!
+
 ## Get started in very few lines of code!
 ```python
 from pollen_vision.vision_models.object_detection import OwlVitWrapper
