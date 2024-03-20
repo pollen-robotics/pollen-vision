@@ -1,7 +1,18 @@
 
-<p align="center" width="50%">
+<!-- <p align="center" width="50%">
     <img width="33%" src="assets/pollen_vision_logo.png">
+</p> -->
+
+<p align="center" width="50%">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/pollen_vision_logo.png">
+    <source media="(prefers-color-scheme: light)" srcset="assets/pollen_vision_logo_light_theme.png">
+    <img alt="Pollen vision library" src="assets/pollen_vision_logo.png" width="33%">
+  </picture>
+  <br/>
+  <br/>
 </p>
+
 <p align="center">
 <b>Simple and unified interface to zero-shot computer vision models curated for robotics use cases.</b>
 </p>
@@ -26,22 +37,38 @@
 
 </div>
 
+Check out our [HuggingFace space](https://huggingface.co/pollen-robotics) for an online demo or try pollen-vision in a [Colab notebook](https://drive.google.com/drive/folders/1Xx42Pk4exkS95iyD-5arHIYQLXyRWTXw?usp=drive_link)!
+
 ## Get started in very few lines of code!
+Perform zero-shot object detection and segmentation on a live video stream from your webcam with the following code:
 ```python
+import cv2
+
 from pollen_vision.vision_models.object_detection import OwlVitWrapper
 from pollen_vision.vision_models.object_segmentation import MobileSamWrapper
 from pollen_vision.vision_models.utils import Annotator, get_bboxes
+
 
 owl = OwlVitWrapper()
 sam = MobileSamWrapper()
 annotator = Annotator()
 
-im = ...
-predictions = owl.infer(im, ["paper cups"])  # zero-shot object detection
-bboxes = get_bboxes(predictions)
+cap = cv2.VideoCapture(0)
 
-masks = sam.infer(im, bboxes=bboxes)  # zero-shot object segmentation
-annotated_im = annotator.annotate(im, predictions, masks=masks)
+while True:
+    ret, frame = cap.read()
+    predictions = owl.infer(
+        frame, ["paper cups"]
+    )  # zero-shot object detection | put your classes here
+    bboxes = get_bboxes(predictions)
+
+    masks = sam.infer(frame, bboxes=bboxes)  # zero-shot object segmentation
+    annotated_frame = annotator.annotate(frame, predictions, masks=masks)
+
+    cv2.imshow("frame", annotated_frame)
+    if cv2.waitKey(1) & 0xFF == ord("q"):
+        cv2.destroyAllWindows()
+        break
 ```
 <p align="center">
     <img width="20%" src="https://github.com/pollen-robotics/pollen-vision/assets/6552564/9f162321-2226-48fc-86e5-eb47c8996ee9">
@@ -50,8 +77,11 @@ annotated_im = annotator.annotate(im, predictions, masks=masks)
 <details>
 <summary>Supported models</summary>
 
-We continue to work on adding new models that could be useful for robotics perception applications. Right now, we support : 
+We continue to work on adding new models that could be useful for robotics perception applications.
 
+We chose to focus on zero-shot models to make it easier to use and deploy. Zero-shot models can recognize objects or segment them based on text queries, without needing to be fine-tuned on annotated datasets.
+
+Right now, we support: 
 #### Object detection
 - `Owl-Vit` for zero-shot object detection and localization
 - `Recognize-Anything` for zero-shot object detection (without localization)
@@ -76,29 +106,44 @@ We also provide wrappers for the Luxonis cameras which we use internally. They a
 # Installation
 
 ```
-Note: This package has only been tested on Ubuntu 22.04.
+Note: This package has been tested on Ubuntu 22.04 and macOS (with M1 Pro processor).
 ```
+## Git LFS
+This repository uses Git LFS to store large files. You need to install it before cloning the repository.
 
-Install everything in "production" mode:
+### Ubuntu
 ```console
-pip install pollen_vision[all]
+sudo apt-get install git-lfs
 ```
 
-OR Install only the modules you want: 
+### macOS
 ```console
-pip install pollen_vision[depthai_wrapper]
-pip install pollen_vision[vision]
+brew install git-lfs
 ```
 
-## Dev mode
-
-Clone this repo, then :
-
+## One line installation
+You can install the package directly from the repository without having to clone it first with:
 ```console
-pip install -e .[all]
+pip install "pollen-vision[vision] @ git+https://github.com/pollen-robotics/pollen-vision.git@main"
 ```
 
-Add "dev" mode dependencies (CI/CD, testing, etc):
+> Note: here we install the package with the `vision` extra, which includes the vision models. You can also install the `depthai_wrapper` extra to use the Luxonis depthai wrappers.
+
+## Install from source
+Clone this repository and then install the package either in "production" mode or "dev" mode.
+
+>👉 We recommend using a virtual environment to avoid conflicts with other packages.
+
+After cloning the repository, you can either install everything with:
+```console
+pip install .[all]
+```
+or install only the modules you want:
+```console
+pip install .[depthai_wrapper]
+pip install .[vision]
+```
+To add "dev" mode dependencies (CI/CD, testing, etc):
 ```console
 pip install -e .[dev]
 ```
