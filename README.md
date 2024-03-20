@@ -110,7 +110,7 @@ brew install git-lfs
 ## Install from source
 Clone this repository and then install the package either in "production" mode or "dev" mode.
 
->💡 We recommend using a virtual environment to avoid conflicts with other packages.
+>👉 We recommend using a virtual environment to avoid conflicts with other packages.
 
 ### Production mode
 Install everything in "production" mode:
