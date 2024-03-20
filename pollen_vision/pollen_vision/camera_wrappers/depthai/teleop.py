@@ -74,7 +74,7 @@ class TeleopWrapper(Wrapper):  # type: ignore[misc]
     def _create_encoders(self, pipeline: dai.Pipeline) -> dai.Pipeline:
         """Creates the h264 encoders for the left and right images."""
 
-        profile = dai.VideoEncoderProperties.Profile.H264_MAIN
+        profile = dai.VideoEncoderProperties.Profile.H264_BASELINE
         bitrate = 4000
         numBFrames = 0  # gstreamer recommends 0 B frames
         self.left_encoder = pipeline.create(dai.node.VideoEncoder)
