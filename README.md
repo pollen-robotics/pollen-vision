@@ -19,7 +19,7 @@
 
 <div align="center">
 
-  <a target="_blank" href="https://huggingface.co/pollen-robotics">![Huggingface space](https://img.shields.io/badge/🤗-HuggingFace%20Space-cyan.svg)</a>
+  <a target="_blank" href="https://huggingface.co/spaces/pollen-robotics/pollen-vision-demo">![Huggingface space](https://img.shields.io/badge/🤗-HuggingFace%20Space-cyan.svg)</a>
   <a target="_blank" href="https://drive.google.com/drive/folders/1Xx42Pk4exkS95iyD-5arHIYQLXyRWTXw?usp=drive_link">![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)</a>
   <a href="https://github.com/pollen-robotics/pollen-vision/blob/main/LICENSE">
     <img alt="GitHub" src="https://img.shields.io/github/license/huggingface/transformers.svg?color=blue">
@@ -158,6 +158,28 @@ sudo udevadm control --reload-rules && sudo udevadm trigger
 </details>
 
 <details>
+<summary>Gradio demo</summary>
+
+# Gradio demo
+## Test the demo online
+A gradio demo is available on Pollen Robotics' [Huggingface space](https://huggingface.co/spaces/pollen-robotics/pollen-vision-demo). It allows to test the models on your own images without having to install anything.
+
+## Run the demo locally
+If you want to run the demo locally, you can install the dependencies with the following command:
+```console
+pip install pollen_vision[gradio]
+```
+
+You can then run the demo locally on your machine with:
+```console
+python pollen-vision/gradio/app.py
+```
+
+
+</details>
+
+<details>
+
 <summary>Examples</summary>
     
 # Examples
