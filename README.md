@@ -63,8 +63,11 @@ annotated_im = annotator.annotate(im, predictions, masks=masks)
 <details>
 <summary>Supported models</summary>
 
-We continue to work on adding new models that could be useful for robotics perception applications. Right now, we support : 
+We continue to work on adding new models that could be useful for robotics perception applications.
 
+We chose to focus on zero-shot models to make it easier to use and deploy. Zero-shot models can recognize objects or segment them based on text queries, without needing to be fine-tuned on annotated datasets.
+
+Right now, we support: 
 #### Object detection
 - `Owl-Vit` for zero-shot object detection and localization
 - `Recognize-Anything` for zero-shot object detection (without localization)
