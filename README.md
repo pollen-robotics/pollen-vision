@@ -103,9 +103,6 @@ Add "dev" mode dependencies (CI/CD, testing, etc):
 pip install -e .[dev]
 ```
 
-## Vision models specific installation information
-To use [RAM](https://github.com/pollen-robotics/recognize-anything), you need to manually [download](https://huggingface.co/xinyu1205/recognize-anything-plus-model/blob/main/ram_plus_swin_large_14m.pth) the checkpoint and place it in `pollen_vision/checkpoints/`
-
 ## Luxonis depthai specific information
 
 If this is the first time you use luxonis cameras on this computer, you need to setup the udev rules:
