@@ -40,21 +40,35 @@
 Check out our [HuggingFace space](https://huggingface.co/pollen-robotics) for an online demo or try pollen-vision in a [Colab notebook](https://drive.google.com/drive/folders/1Xx42Pk4exkS95iyD-5arHIYQLXyRWTXw?usp=drive_link)!
 
 ## Get started in very few lines of code!
+Perform zero-shot object detection and segmentation on a live video stream from your webcam with the following code:
 ```python
+import cv2
+
 from pollen_vision.vision_models.object_detection import OwlVitWrapper
 from pollen_vision.vision_models.object_segmentation import MobileSamWrapper
 from pollen_vision.vision_models.utils import Annotator, get_bboxes
+
 
 owl = OwlVitWrapper()
 sam = MobileSamWrapper()
 annotator = Annotator()
 
-im = ...
-predictions = owl.infer(im, ["paper cups"])  # zero-shot object detection
-bboxes = get_bboxes(predictions)
+cap = cv2.VideoCapture(0)
 
-masks = sam.infer(im, bboxes=bboxes)  # zero-shot object segmentation
-annotated_im = annotator.annotate(im, predictions, masks=masks)
+while True:
+    ret, frame = cap.read()
+    predictions = owl.infer(
+        frame, ["paper cups"]
+    )  # zero-shot object detection | put your classes here
+    bboxes = get_bboxes(predictions)
+
+    masks = sam.infer(frame, bboxes=bboxes)  # zero-shot object segmentation
+    annotated_frame = annotator.annotate(frame, predictions, masks=masks)
+
+    cv2.imshow("frame", annotated_frame)
+    if cv2.waitKey(1) & 0xFF == ord("q"):
+        cv2.destroyAllWindows()
+        break
 ```
 <p align="center">
     <img width="20%" src="https://github.com/pollen-robotics/pollen-vision/assets/6552564/9f162321-2226-48fc-86e5-eb47c8996ee9">
