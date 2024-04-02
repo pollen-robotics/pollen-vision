@@ -7,13 +7,14 @@ import os
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 
 import depthai as dai
 import numpy as np
 import numpy.typing as npt
 from pollen_vision.camera_wrappers.depthai.calibration.undistort import (
     compute_undistort_maps,
+    get_mesh,
 )
 from pollen_vision.camera_wrappers.depthai.cam_config import CamConfig
 from pollen_vision.camera_wrappers.depthai.utils import (
@@ -212,7 +213,7 @@ class Wrapper(ABC):
 
         if rectify:
             try:
-                mesh, meshWidth, meshHeight = self.get_mesh(cam_name)
+                mesh, meshWidth, meshHeight = get_mesh(self.cam_config, cam_name)
                 manip.setWarpMesh(mesh, meshWidth, meshHeight)
             except Exception as e:
                 self._logger.error(e)
@@ -230,49 +231,6 @@ class Wrapper(ABC):
         mapXL, mapYL, mapXR, mapYR = compute_undistort_maps(self.cam_config)
 
         self.cam_config.set_undistort_maps(mapXL, mapYL, mapXR, mapYR)
-
-    def get_mesh(self, cam_name: str) -> Tuple[List[dai.Point2f], int, int]:
-        """Computes and returns the mesh for the rectification.
-        This mesh is used by setWarpMesh in the imageManip nodes.
-        """
-
-        mapX, mapY = self.cam_config.undistort_maps[cam_name]
-        if mapX is None or mapY is None:
-            raise Exception("Undistort maps have not been computed. Call compute_undistort_maps() first.")
-
-        meshCellSize = 16
-        mesh0 = []
-        for y in range(mapX.shape[0] + 1):
-            if y % meshCellSize == 0:
-                rowLeft = []
-                for x in range(mapX.shape[1]):
-                    if x % meshCellSize == 0:
-                        if y == mapX.shape[0] and x == mapX.shape[1]:
-                            rowLeft.append(mapX[y - 1, x - 1])
-                            rowLeft.append(mapY[y - 1, x - 1])
-                        elif y == mapX.shape[0]:
-                            rowLeft.append(mapX[y - 1, x])
-                            rowLeft.append(mapY[y - 1, x])
-                        elif x == mapX.shape[1]:
-                            rowLeft.append(mapX[y, x - 1])
-                            rowLeft.append(mapY[y, x - 1])
-                        else:
-                            rowLeft.append(mapX[y, x])
-                            rowLeft.append(mapY[y, x])
-                if (mapX.shape[1] % meshCellSize) % 2 != 0:
-                    rowLeft.append(0)
-                    rowLeft.append(0)
-
-                mesh0.append(rowLeft)
-
-        mesh0_tmp = np.array(mesh0)
-        meshWidth = mesh0_tmp.shape[1] // 2
-        meshHeight = mesh0_tmp.shape[0]
-        mesh0_tmp.resize(meshWidth * meshHeight, 2)
-
-        mesh = list(map(tuple, mesh0_tmp))
-
-        return mesh, meshWidth, meshHeight  # type: ignore [return-value]
 
     # Takes in the output of multical calibration
     def flash(self, calib_json_file: str) -> None:
