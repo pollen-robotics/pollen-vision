@@ -13,6 +13,10 @@ def test_config() -> None:
         assert c is not None
 
 
+def test_config_file_path() -> None:
+    assert get_config_file_path(".") is None
+
+
 def test_get_checkpoints_names() -> None:
     valid_names = get_checkpoints_names()
 

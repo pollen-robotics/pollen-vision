@@ -56,8 +56,6 @@ def compute_undistort_maps(cam_config: CamConfig) -> Tuple[cv2.UMat, cv2.UMat, c
         mapXL, mapYL = cv2.initUndistortRectifyMap(left_K, left_D, R1, P1, resolution, 5)
         mapXR, mapYR = cv2.initUndistortRectifyMap(right_K, right_D, R2, P2, resolution, 5)
 
-    # self.cam_config.set_undistort_maps(mapXL, mapYL, mapXR, mapYR)
-
     return mapXL, mapYL, mapXR, mapYR
 
 
@@ -66,9 +64,10 @@ def get_mesh(cam_config: CamConfig, cam_name: str) -> Tuple[List[dai.Point2f], i
     This mesh is used by setWarpMesh in the imageManip nodes.
     """
 
-    mapX, mapY = cam_config.undistort_maps[cam_name]
-    if mapX is None or mapY is None:
+    if cam_config.undistort_maps[cam_name] is None:
         raise Exception("Undistort maps have not been computed. Call compute_undistort_maps() first.")
+
+    mapX, mapY = cam_config.undistort_maps[cam_name]
 
     meshCellSize = 16
     mesh0 = []

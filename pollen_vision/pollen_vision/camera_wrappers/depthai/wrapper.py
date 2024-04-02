@@ -229,7 +229,6 @@ class Wrapper(ABC):
     def _set_undistort_maps(self) -> None:
         """Computes and assign the undistort maps for the rectification."""
         mapXL, mapYL, mapXR, mapYR = compute_undistort_maps(self.cam_config)
-
         self.cam_config.set_undistort_maps(mapXL, mapYL, mapXR, mapYR)
 
     # Takes in the output of multical calibration
