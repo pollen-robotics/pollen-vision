@@ -1,9 +1,12 @@
 from pathlib import Path
 
+import cv2
 import depthai as dai
 import numpy as np
+from cv2 import aruco
 from pollen_vision.camera_wrappers.depthai.cam_config import CamConfig
 from pollen_vision.camera_wrappers.depthai.utils import (
+    drawEpiLines,
     get_config_file_path,
     get_inv_R_T,
     get_socket_from_name,
@@ -35,3 +38,18 @@ def test_socket_names() -> None:
 
     assert left_socket == dai.CameraBoardSocket.CAM_B
     assert right_socket == dai.CameraBoardSocket.CAM_C
+
+
+def test_draw_epilines() -> None:
+    path_left = str((Path(__file__).parent / "data" / Path("left_epiline.jpg")).resolve().absolute())
+    path_right = str((Path(__file__).parent / "data" / Path("right_epiline.jpg")).resolve().absolute())
+    path_epilines = str((Path(__file__).parent / "data" / Path("epilines.npz")).resolve().absolute())
+
+    epilines_ref = np.load(path_epilines)
+
+    imleft = cv2.imread(path_left)
+    imright = cv2.imread(path_right)
+    ARUCO_DICT = aruco.getPredefinedDictionary(aruco.DICT_4X4_1000)
+
+    epilines = drawEpiLines(imleft, imright, ARUCO_DICT)
+    assert np.array_equal(epilines, epilines_ref["epilines"])
