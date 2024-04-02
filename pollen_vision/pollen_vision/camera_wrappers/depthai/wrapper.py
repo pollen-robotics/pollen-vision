@@ -236,7 +236,7 @@ class Wrapper(ABC):
         This mesh is used by setWarpMesh in the imageManip nodes.
         """
 
-        mapX, mapY = self.cam_config.undstort_maps[cam_name]
+        mapX, mapY = self.cam_config.undistort_maps[cam_name]
         if mapX is None or mapY is None:
             raise Exception("Undistort maps have not been computed. Call compute_undistort_maps() first.")
 
