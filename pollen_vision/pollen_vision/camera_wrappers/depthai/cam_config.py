@@ -58,7 +58,7 @@ class CamConfig:
         self.sensor_resolution = (0, 0)
         self.undistort_resolution = (0, 0)
         self.resize_resolution = resize
-        self.undstort_maps: Dict[str, Optional[Tuple[npt.NDArray[np.float32], npt.NDArray[np.float32]]]] = {
+        self.undistort_maps: Dict[str, Optional[Tuple[npt.NDArray[np.float32], npt.NDArray[np.float32]]]] = {
             "left": None,
             "right": None,
         }
@@ -92,8 +92,8 @@ class CamConfig:
         mapXR: npt.NDArray[np.float32],
         mapYR: npt.NDArray[np.float32],
     ) -> None:
-        self.undstort_maps["left"] = (mapXL, mapYL)
-        self.undstort_maps["right"] = (mapXR, mapYR)
+        self.undistort_maps["left"] = (mapXL, mapYL)
+        self.undistort_maps["right"] = (mapXR, mapYR)
 
     def set_calib(self, calib: dai.CalibrationHandler) -> None:
         self.calib = calib
@@ -141,6 +141,6 @@ class CamConfig:
         ret_string += "force_usb2: {}\n".format(self.force_usb2)
         exp = "auto" if self.exposure_params is None else str(self.exposure_params)
         ret_string += "Exposure params: {}\n".format(exp)
-        ret_string += "Undistort maps are: " + "set" if self.undstort_maps["left"] is not None else "not set"
+        ret_string += "Undistort maps are: " + "set" if self.undistort_maps["left"] is not None else "not set"
 
         return ret_string
