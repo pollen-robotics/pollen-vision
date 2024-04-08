@@ -38,6 +38,7 @@ def get_connected_devices() -> Dict[str, str]:
 
         type = "teleop_head" if is_teleop_head else "other"
         devices[deviceInfo.getMxId()] = type
+        device.close()
 
     return devices
 
