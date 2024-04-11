@@ -5,12 +5,12 @@ import depthai as dai
 import numpy as np
 import numpy.typing as npt
 from pollen_vision.camera_wrappers.depthai.utils import get_socket_from_name
-from pollen_vision.camera_wrappers.depthai.wrapper import Wrapper
+from pollen_vision.camera_wrappers.depthai.wrapper import DepthaiWrapper
 
 
 # Depth is left aligned by convention
 # TODO do we need to give the option to change this?
-class SDKWrapper(Wrapper):  # type: ignore[misc]
+class SDKWrapper(DepthaiWrapper):  # type: ignore[misc]
     """A wrapper for the depthai library that exposes only the relevant features for Pollen's reachy sdk.
 
     Calling get_data() returns the left and right images, and if compute_depth is True:

@@ -8,6 +8,94 @@ import numpy as np
 import numpy.typing as npt
 
 
+def get_centroid(mask: npt.NDArray[np.uint8]) -> Tuple[int, int]:
+    x_center, y_center = np.argwhere(mask == 1).sum(0) / np.count_nonzero(mask)
+    return int(y_center), int(x_center)
+
+
+def uv_to_xyz(z: float, u: float, v: float, K: npt.NDArray[np.float32]) -> npt.NDArray[np.float32]:
+    cx = K[0, 2]
+    cy = K[1, 2]
+    fx = K[0, 0]
+    fy = K[1, 1]
+
+    # Calcul des coordonnées dans le monde
+    x = (u - cx) * z / fx
+    y = (v - cy) * z / fy
+
+    return np.array([x, y, z])
+
+
+# Actually only computes the position ignoring rotation for now. Still returns pose matrix, with rotation set to identity
+def get_object_pose_in_world(
+    depth: npt.NDArray[np.float32],
+    mask: npt.NDArray[np.uint8],
+    T_world_cam: npt.NDArray[np.float32],
+    K: npt.NDArray[np.float32],
+) -> npt.NDArray[np.float32]:
+    u, v = get_centroid(mask)
+
+    d = depth.copy()
+    d[mask == 0] = 0
+    average_depth = d[d != 0].mean()
+
+    xyz = uv_to_xyz(average_depth * 0.1, u, v, K)
+    xyz *= 0.01
+
+    T_cam_object = np.eye(4)  # Rotation is identity for now
+    T_cam_object[:3, 3] = xyz
+    T_world_object = T_world_cam @ T_cam_object
+    T_world_object[:3, :3] = np.eye(3)
+
+    return T_world_object
+
+
+class ObjectsFilter:
+    def __init__(self, max_objects_in_memory: int = 500) -> None:
+        self.objects: List[Dict[str:Any]] = []  # type: ignore
+        self.max_objects_in_memory = max_objects_in_memory
+
+    def tick(self) -> None:
+        if len(self.objects) == 0:
+            return
+        to_remove = []
+        for i in range(len(self.objects)):
+            self.objects[i]["score"] = max(0, self.objects[i]["score"] - 0.05)  # TODO parametrize and tune this
+            if self.objects[i]["score"] < 0.1:  # TODO parametrize and tune this
+                to_remove.append(i)
+
+        self.objects = [self.objects[i] for i in range(len(self.objects)) if i not in to_remove]
+
+    # pos : (x, y, z), bbox : [xmin, ymin, xmax, ymax]
+    def push_observation(self, object_name: str, pos: npt.NDArray[np.float32], bbox: List[List]) -> None:  # type: ignore
+        if len(self.objects) == 0:
+            self.objects.append({"name": object_name, "pos": pos, "score": 0.2, "bbox": bbox})
+            return
+
+        if len(self.objects) > self.max_objects_in_memory:
+            # print("wait a bit, too many objects in memory")
+            return
+
+        for i in range(len(self.objects)):
+            if np.linalg.norm(pos - self.objects[i]["pos"]) < 0.05:  # meters # TODO parametrize and tune this
+                if object_name == self.objects[i]["name"]:
+                    self.objects[i]["score"] = min(1, self.objects[i]["score"] + 0.2)  # TODO parametrize and tune this
+                    self.objects[i]["pos"] = self.objects[i]["pos"] + 0.3 * (pos - self.objects[i]["pos"])
+                    self.objects[i]["bbox"] = bbox  # last bbox for now
+                    return
+            else:
+                self.objects.append({"name": object_name, "pos": pos, "score": 0.2, "bbox": bbox})
+
+    def show_objects(self, threshold: float = 0.8) -> None:
+        for i in range(len(self.objects)):
+            if self.objects[i]["score"] > threshold:
+                print(self.objects[i]["name"], self.objects[i]["pos"], self.objects[i]["score"])
+
+    def get_objects(self, threshold: float = 0.8) -> List[Dict]:  # type: ignore
+        tmp = sorted(self.objects, key=lambda k: np.linalg.norm(k["pos"]))
+        return [obj for obj in tmp if obj["score"] > threshold]
+
+
 class Labels:
     """A class to store the labels and their colors."""
 

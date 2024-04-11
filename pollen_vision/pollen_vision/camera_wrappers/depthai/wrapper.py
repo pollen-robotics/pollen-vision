@@ -2,9 +2,8 @@
 """
 
 import json
-import logging
 import os
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Tuple
@@ -12,6 +11,7 @@ from typing import Dict, Tuple
 import depthai as dai
 import numpy as np
 import numpy.typing as npt
+from pollen_vision.camera_wrappers import CameraWrapper
 from pollen_vision.camera_wrappers.depthai.calibration.undistort import (
     compute_undistort_maps,
     get_mesh,
@@ -24,7 +24,7 @@ from pollen_vision.camera_wrappers.depthai.utils import (
 )
 
 
-class Wrapper(ABC):
+class DepthaiWrapper(CameraWrapper):  # type: ignore
     """Wrapper is an abstract class for luxonis cameras using the depthai library.
 
     It factors out the common code between the different camera wrappers.
@@ -41,8 +41,9 @@ class Wrapper(ABC):
         mx_id: str,
         isp_scale: Tuple[int, int] = (1, 1),
     ) -> None:
+        super().__init__()
         self.cam_config = CamConfig(cam_config_json, fps, resize, exposure_params, mx_id, isp_scale, rectify, force_usb2)
-        self._logger = logging.getLogger(__name__)
+        # self._logger = logging.getLogger(__name__)
 
         self._prepare()
 
@@ -120,11 +121,14 @@ class Wrapper(ABC):
 
         return data, latency, ts
 
+    def get_K(self, left: bool = True) -> npt.NDArray[np.float32]:
+        return self.cam_config.get_K_left() if left else self.cam_config.get_K_right()  # type: ignore[no-any-return]
+
     @abstractmethod
     def _create_pipeline(self) -> dai.Pipeline:
         """Abstract method that is implemented by the subclasses."""
 
-        self._logger.error("Abstract class Wrapper does not implement create_pipeline()")
+        self._logger.error("Abstract class DepthaiWrapper does not implement create_pipeline()")
         exit()
 
     def _pipeline_basis(self) -> dai.Pipeline:
@@ -175,7 +179,7 @@ class Wrapper(ABC):
         Links the nodes together.
         """
 
-        self._logger.error("Abstract class Wrapper does not implement link_pipeline()")
+        self._logger.error("Abstract class DepthaiWrapper does not implement link_pipeline()")
         exit()
 
     def _create_output_streams(self, pipeline: dai.Pipeline) -> dai.Pipeline:

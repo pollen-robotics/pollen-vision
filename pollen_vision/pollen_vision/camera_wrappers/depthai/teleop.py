@@ -4,10 +4,10 @@ from typing import Dict, Optional, Tuple
 import depthai as dai
 import numpy as np
 import numpy.typing as npt
-from pollen_vision.camera_wrappers.depthai.wrapper import Wrapper
+from pollen_vision.camera_wrappers.depthai.wrapper import DepthaiWrapper
 
 
-class TeleopWrapper(Wrapper):  # type: ignore[misc]
+class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
     """A wrapper for the depthai library that exposes only the relevant features for Pollen's teleoperation feature.
 
     Calling get_data() returns h264 encoded left and right images.
