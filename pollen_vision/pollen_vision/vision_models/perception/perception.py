@@ -69,17 +69,15 @@ class Perception:
                 cv2.waitKey(1)
 
             if len(self.tracked_objects) == 0:
-                print("No objects to track. Use set_tracked_objects().")
                 self._lastTick = time.time()  # Lame
                 continue
 
             self.last_predictions = self.OWL.infer(
-                cv2.cvtColor(self.last_im, cv2.COLOR_BGR2RGB), self.tracked_objects, detection_threshold=0.2
+                cv2.cvtColor(self.last_im, cv2.COLOR_BGR2RGB), self.tracked_objects, detection_threshold=0.1
             )
 
             if len(self.last_predictions) == 0:
                 self._lastTick = time.time()  # Lame
-                print("No objects detected.")
                 continue
 
             bboxes = get_bboxes(self.last_predictions)
@@ -89,7 +87,7 @@ class Perception:
             for i, mask in enumerate(self.last_masks):
                 T_world_object = get_object_pose_in_world(self.last_depth, mask, self.T_world_cam, self.cam.get_K())
                 pos = T_world_object[:3, 3]
-                self.OF.push_observation(labels[i], pos, bboxes[i])
+                self.OF.push_observation(labels[i], pos, bboxes[i], mask)
 
             self._lastTick = time.time()
 
@@ -99,8 +97,46 @@ class Perception:
         """
         return self.OF.get_objects()  # type: ignore
 
+    def get_object_info(self, object_name: str) -> Dict:  # type: ignore
+        """
+        Returns the object info for a given object name.
+        """
+        if object_name not in self.tracked_objects:
+            return {}
+
+        detected_objects = [obj["name"] for obj in self.get_objects()]
+        if object_name not in detected_objects:
+            return {}
+
+        # position, rgb, mask, depth
+        info = {"name": object_name, "position": np.eye(4), "rgb": self.last_im, "mask": None, "depth": self.last_depth}
+
+        for obj in self.get_objects():
+            if obj["name"] == object_name:
+                info["position"] = self.get_object_position(object_name)
+                info["mask"] = obj["mask"]
+                break
+
+        return info
+
     def set_tracked_objects(self, objects: list[str]) -> None:
         self.tracked_objects = objects
+
+    def get_object_position(self, object_name: str) -> npt.NDArray[np.float32]:
+        """
+        Returns the position of the object in the world frame.
+        """
+        for obj in self.get_objects():
+            if obj["name"] == object_name:
+                xyz = obj["pos"]
+            else:
+                return np.array([0, 0, 0], dtype=np.float32)
+
+        T_cam_object = fv_utils.make_pose(xyz, [0, 0, 0])
+        T_world_object: npt.NDArray[np.float32] = self.T_world_cam @ T_cam_object
+        T_world_object[:3, :3] = np.eye(3)
+
+        return T_world_object
 
 
 if __name__ == "__main__":
