@@ -67,9 +67,9 @@ class ObjectsFilter:
         self.objects = [self.objects[i] for i in range(len(self.objects)) if i not in to_remove]
 
     # pos : (x, y, z), bbox : [xmin, ymin, xmax, ymax]
-    def push_observation(self, object_name: str, pos: npt.NDArray[np.float32], bbox: List[List]) -> None:  # type: ignore
+    def push_observation(self, object_name: str, pos: npt.NDArray[np.float32], bbox: List[List], mask: npt.NDArray[np.uint8]) -> None:  # type: ignore
         if len(self.objects) == 0:
-            self.objects.append({"name": object_name, "pos": pos, "score": 0.2, "bbox": bbox})
+            self.objects.append({"name": object_name, "pos": pos, "score": 0.2, "bbox": bbox, "mask": mask})
             return
 
         if len(self.objects) > self.max_objects_in_memory:
@@ -82,6 +82,7 @@ class ObjectsFilter:
                     self.objects[i]["score"] = min(1, self.objects[i]["score"] + 0.2)  # TODO parametrize and tune this
                     self.objects[i]["pos"] = self.objects[i]["pos"] + 0.3 * (pos - self.objects[i]["pos"])
                     self.objects[i]["bbox"] = bbox  # last bbox for now
+                    self.objects[i]["mask"] = mask
                     return
             else:
                 self.objects.append({"name": object_name, "pos": pos, "score": 0.2, "bbox": bbox})
