@@ -86,20 +86,19 @@ class Perception:
 
             for i, mask in enumerate(self.last_masks):
                 T_world_object = get_object_pose_in_world(self.last_depth, mask, self.T_world_cam, self.cam.get_K())
-                pos = T_world_object[:3, 3]
-                self.OF.push_observation(labels[i], pos, bboxes[i], mask)
+                self.OF.push_observation(labels[i], T_world_object, bboxes[i], mask)
 
             self._lastTick = time.time()
 
     def get_objects(self) -> List[Dict]:  # type: ignore
         """
-        Returns list of filtered objects sorted by distance.
+        Return list of filtered objects sorted by distance.
         """
         return self.OF.get_objects()  # type: ignore
 
     def get_object_info(self, object_name: str) -> Dict:  # type: ignore
         """
-        Returns the object info for a given object name.
+        Return the object info for a given object name.
         """
         if object_name not in self.tracked_objects:
             return {}
@@ -120,23 +119,23 @@ class Perception:
         return info
 
     def set_tracked_objects(self, objects: list[str]) -> None:
-        self.tracked_objects = objects
+        for obj in objects:
+            if obj not in self.tracked_objects:
+                print(f"Adding tracking for object: {obj}")
+                self.tracked_objects.append(obj)
 
-    def get_object_position(self, object_name: str) -> npt.NDArray[np.float32]:
+    def get_object_position(self, object_name: str) -> npt.NDArray[np.float64]:
         """
-        Returns the position of the object in the world frame.
+        Return the position of the object in the world frame.
         """
+        if object_name not in self.tracked_objects:
+            return np.eye(4)
+
         for obj in self.get_objects():
             if obj["name"] == object_name:
-                xyz = obj["pos"]
-            else:
-                return np.array([0, 0, 0], dtype=np.float32)
+                return obj["pos"]
 
-        T_cam_object = fv_utils.make_pose(xyz, [0, 0, 0])
-        T_world_object: npt.NDArray[np.float32] = self.T_world_cam @ T_cam_object
-        T_world_object[:3, :3] = np.eye(3)
-
-        return T_world_object
+        return np.eye(4)
 
 
 if __name__ == "__main__":
