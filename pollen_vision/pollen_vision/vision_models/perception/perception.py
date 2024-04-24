@@ -1,6 +1,6 @@
 import threading
 import time
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import cv2
 import FramesViewer.utils as fv_utils
@@ -124,18 +124,19 @@ class Perception:
                 print(f"Adding tracking for object: {obj}")
                 self.tracked_objects.append(obj)
 
-    def get_object_position(self, object_name: str) -> npt.NDArray[np.float64]:
+    def get_object_position(self, object_name: str) -> Optional[npt.NDArray[np.float64]]:
         """
         Return the position of the object in the world frame.
         """
         if object_name not in self.tracked_objects:
-            return np.eye(4)
+            return None
 
         for obj in self.get_objects():
             if obj["name"] == object_name:
-                return obj["pos"]
+                obj_pos: npt.NDArray[np.float64] = obj["pos"]
+                return obj_pos
 
-        return np.eye(4)
+        return None
 
 
 if __name__ == "__main__":
