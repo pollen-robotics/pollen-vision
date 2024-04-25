@@ -64,7 +64,7 @@ class Perception:
                 annotated = self.last_im.copy()
                 for obj in objs:
                     pos2D = (int((obj["bbox"][0] + obj["bbox"][2]) / 2), int((obj["bbox"][1] + obj["bbox"][3]) / 2))
-                    annotated = cv2.circle(self.last_im, pos2D, 5, (0, 255, 0), -1)
+                    annotated = cv2.circle(self.last_im.copy(), pos2D, 5, (0, 255, 0), -1)
                 cv2.imshow("annotated", annotated)
                 cv2.waitKey(1)
 
