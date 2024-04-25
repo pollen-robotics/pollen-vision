@@ -143,7 +143,7 @@ if __name__ == "__main__":
     S = SDKWrapper(get_config_file_path("CONFIG_SR"), compute_depth=True)
     T_world_cam = fv_utils.make_pose([0.03, -0.15, 0.1], [0, 0, 0])
     perception = Perception(S, T_world_cam, freq=10)
-    perception.set_tracked_objects(["mug", "green tape roll"])
+    perception.set_tracked_objects(["orange sunglasses"])
     perception.start(visualize=True)
 
     while True:
