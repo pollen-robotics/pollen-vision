@@ -1,20 +1,10 @@
-import time
-
 import cv2
-import numpy as np
 from pollen_vision.camera_wrappers.depthai import SDKWrapper
 from pollen_vision.camera_wrappers.depthai.utils import get_config_file_path
 from pollen_vision.vision_models.object_detection import YoloWorldWrapper
-from pollen_vision.vision_models.object_segmentation import MobileSamWrapper
-from pollen_vision.vision_models.utils import (
-    Annotator,
-    get_bboxes,
-    get_labels,
-    get_scores,
-)
+from pollen_vision.vision_models.utils import Annotator
 
 w = SDKWrapper(get_config_file_path("CONFIG_SR"))
-M = MobileSamWrapper()
 A = Annotator()
 Y = YoloWorldWrapper()
 

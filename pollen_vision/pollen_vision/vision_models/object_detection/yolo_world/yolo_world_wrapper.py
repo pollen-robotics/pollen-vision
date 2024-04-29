@@ -12,7 +12,9 @@ class YoloWorldWrapper:
         self._model = YOLOWorld(model_id="yolo_world/l")
         self._classes: List[str] = []
 
-    def infer(self, im: npt.NDArray[np.uint8], candidate_labels: List[str], detection_threshold: float = 0.1) -> List[Dict]:  # type: ignore
+    def infer(
+        self, im: npt.NDArray[np.uint8], candidate_labels: List[str], detection_threshold: float = 0.1
+    ) -> List[Dict]:  # type: ignore
         """Returns a list of predictions found in the input image.
         Args:
             - im: the input image
