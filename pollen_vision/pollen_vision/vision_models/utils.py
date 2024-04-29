@@ -80,7 +80,14 @@ class ObjectsFilter:
         self.objects = [self.objects[i] for i in range(len(self.objects)) if i not in to_remove]
 
     # pos : (x, y, z), bbox : [xmin, ymin, xmax, ymax]
-    def push_observation(self, object_name: str, pos: npt.NDArray[np.float32], bbox: List[List], mask: npt.NDArray[np.uint8], detection_score: float) -> None:  # type: ignore
+    def push_observation(
+        self,
+        object_name: str,
+        pos: npt.NDArray[np.float32],
+        bbox: List[List],
+        mask: npt.NDArray[np.uint8],
+        detection_score: float,
+    ) -> None:  # type: ignore
         if len(self.objects) == 0:
             self.objects.append(
                 {

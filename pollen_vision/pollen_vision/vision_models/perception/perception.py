@@ -9,7 +9,7 @@ import numpy.typing as npt
 from pollen_vision.camera_wrappers import CameraWrapper
 from pollen_vision.camera_wrappers.depthai import SDKWrapper
 from pollen_vision.camera_wrappers.depthai.utils import get_config_file_path
-from pollen_vision.vision_models.object_detection import OwlVitWrapper
+from pollen_vision.vision_models.object_detection import YoloWorldWrapper
 from pollen_vision.vision_models.object_segmentation import MobileSamWrapper
 from pollen_vision.vision_models.utils import (
     Annotator,
@@ -29,7 +29,7 @@ class Perception:
         self.cam = camera_wrapper
         self.T_world_cam = T_world_cam
         self.freq = freq
-        self.OWL = OwlVitWrapper()
+        self.YOLO = YoloWorldWrapper()
         self.SAM = MobileSamWrapper()
         self.A = Annotator()
         self.OF = ObjectsFilter()
@@ -71,7 +71,7 @@ class Perception:
                 self._lastTick = time.time()  # Lame
                 continue
 
-            self.last_predictions = self.OWL.infer(
+            self.last_predictions = self.YOLO.infer(
                 cv2.cvtColor(self.last_im, cv2.COLOR_BGR2RGB), self.tracked_objects, detection_threshold=0.2
             )
 
