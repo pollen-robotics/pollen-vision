@@ -71,9 +71,7 @@ class Perception:
                 self._lastTick = time.time()  # Lame
                 continue
 
-            self.last_predictions = self.YOLO.infer(
-                cv2.cvtColor(self.last_im, cv2.COLOR_BGR2RGB), self.tracked_objects, detection_threshold=0.2
-            )
+            self.last_predictions = self.YOLO.infer(self.last_im, self.tracked_objects)
 
             if len(self.last_predictions) == 0:
                 self._lastTick = time.time()  # Lame
@@ -148,8 +146,8 @@ class Perception:
 if __name__ == "__main__":
     S = SDKWrapper(get_config_file_path("CONFIG_SR"), compute_depth=True)
     T_world_cam = fv_utils.make_pose([0.03, -0.15, 0.1], [0, 0, 0])
-    perception = Perception(S, T_world_cam, freq=10)
-    perception.set_tracked_objects(["bottle", "green tape roll"])
+    perception = Perception(S, T_world_cam, freq=30)
+    perception.set_tracked_objects(["apple", "little figurine"])
     perception.start(visualize=True)
 
     while True:

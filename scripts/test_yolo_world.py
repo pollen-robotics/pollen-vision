@@ -14,19 +14,7 @@ while True:
 
     predictions = Y.infer(
         image,
-        candidate_labels=[
-            "green tape roll",
-            "glasses",
-            "mug",
-            "keys",
-            "bottle",
-            "human hand",
-            "human face",
-            "headphones",
-            "blue plate",
-            "brown plate",
-            "small can",
-        ],
+        candidate_labels=["apple", "little figurine"],
         detection_threshold=0.1,
     )
 
