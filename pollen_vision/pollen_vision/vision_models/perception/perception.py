@@ -17,6 +17,7 @@ from pollen_vision.vision_models.utils import (
     get_bboxes,
     get_labels,
     get_object_pose_in_world,
+    get_scores,
 )
 
 
@@ -64,16 +65,14 @@ class Perception:
                 annotated = self.last_im.copy()
                 for obj in objs:
                     pos2D = (int((obj["bbox"][0] + obj["bbox"][2]) / 2), int((obj["bbox"][1] + obj["bbox"][3]) / 2))
-                    annotated = cv2.circle(self.last_im.copy(), pos2D, 5, (0, 255, 0), -1)
-                cv2.imshow("annotated", annotated)
-                cv2.waitKey(1)
+                    annotated = cv2.circle(annotated, pos2D, 5, (0, 255, 0), -1)
 
             if len(self.tracked_objects) == 0:
                 self._lastTick = time.time()  # Lame
                 continue
 
             self.last_predictions = self.OWL.infer(
-                cv2.cvtColor(self.last_im, cv2.COLOR_BGR2RGB), self.tracked_objects, detection_threshold=0.1
+                cv2.cvtColor(self.last_im, cv2.COLOR_BGR2RGB), self.tracked_objects, detection_threshold=0.2
             )
 
             if len(self.last_predictions) == 0:
@@ -82,11 +81,18 @@ class Perception:
 
             bboxes = get_bboxes(self.last_predictions)
             labels = get_labels(self.last_predictions)
+            scores = get_scores(self.last_predictions)
+
             self.last_masks = self.SAM.infer(self.last_im, bboxes=bboxes)
+
+            if self.visualize and self.last_im is not None:
+                annotated = self.A.annotate(annotated, self.last_predictions, self.last_masks)
+                cv2.imshow("annotated", annotated)
+                cv2.waitKey(1)
 
             for i, mask in enumerate(self.last_masks):
                 T_world_object = get_object_pose_in_world(self.last_depth, mask, self.T_world_cam, self.cam.get_K())
-                self.OF.push_observation(labels[i], T_world_object, bboxes[i], mask)
+                self.OF.push_observation(labels[i], T_world_object, bboxes[i], mask, scores[i])
 
             self._lastTick = time.time()
 
@@ -143,11 +149,13 @@ if __name__ == "__main__":
     S = SDKWrapper(get_config_file_path("CONFIG_SR"), compute_depth=True)
     T_world_cam = fv_utils.make_pose([0.03, -0.15, 0.1], [0, 0, 0])
     perception = Perception(S, T_world_cam, freq=10)
-    perception.set_tracked_objects(["orange sunglasses"])
+    perception.set_tracked_objects(["bottle", "green tape roll"])
     perception.start(visualize=True)
 
     while True:
         print("==")
-        print(perception.get_objects())
+        objs = perception.get_objects()
+        for obj in objs:
+            print(obj["name"], obj["pos"][:3, 3], obj["temporal_score"], obj["detection_score"])
         print("==")
         time.sleep(0.1)

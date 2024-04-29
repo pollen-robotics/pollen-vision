@@ -157,6 +157,13 @@ class SDKWrapper(DepthaiWrapper):  # type: ignore[misc]
         """
 
         pipeline = self._pipeline_basis()
+        self.left.initialControl.setSharpness(0)
+        self.left.initialControl.setLumaDenoise(0)
+        self.left.initialControl.setChromaDenoise(0)
+
+        self.right.initialControl.setSharpness(0)
+        self.right.initialControl.setLumaDenoise(0)
+        self.right.initialControl.setChromaDenoise(0)
 
         if self._compute_depth:
             # Configuring depth node
