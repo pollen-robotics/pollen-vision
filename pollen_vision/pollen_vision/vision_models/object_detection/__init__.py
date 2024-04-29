@@ -3,3 +3,4 @@ from .recognize_anything.objects_descriptions_generator import (  # noqa: F401
     ObjectDescriptionGenerator,
 )
 from .recognize_anything.RAM_wrapper import RAM_wrapper  # noqa: F401
+from .yolo_world.yolo_world_wrapper import YoloWorldWrapper  # noqa: F401
