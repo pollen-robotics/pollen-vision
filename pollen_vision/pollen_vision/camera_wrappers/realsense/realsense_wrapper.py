@@ -5,7 +5,6 @@ import cv2
 import numpy as np
 import numpy.typing as npt
 import pyrealsense2 as rs
-from numpy._typing import NDArray
 from pollen_vision.camera_wrappers import CameraWrapper
 
 
@@ -13,11 +12,6 @@ class RealsenseWrapper(CameraWrapper):  # type: ignore
     def __init__(self) -> None:
         self.pipeline = rs.pipeline()
         config = rs.config()
-
-        pipeline_wrapper = rs.pipeline_wrapper(self.pipeline)
-        pipeline_profile = config.resolve(pipeline_wrapper)
-        # device = pipeline_profile.get_device().first_depth_sensor()
-        # device.set_option(rs.option.depth_units, 0.01)
 
         config.enable_stream(rs.stream.depth, rs.format.z16, 30)
         other_stream, other_format = rs.stream.color, rs.format.rgb8
@@ -28,7 +22,6 @@ class RealsenseWrapper(CameraWrapper):  # type: ignore
 
         depth_profile = rs.video_stream_profile(profile.get_stream(rs.stream.depth))
         intrinsics = depth_profile.get_intrinsics()
-        w, h = intrinsics.width, intrinsics.height
         fx = float(intrinsics.fx)  # Focal length of x
         fy = float(intrinsics.fy)  # Focal length of y
         ppx = float(intrinsics.ppx)  # Principle Point Offsey of x (aka. cx)
@@ -60,7 +53,6 @@ class RealsenseWrapper(CameraWrapper):  # type: ignore
 
     def get_K(self, left: bool = True) -> npt.NDArray[np.float32]:
         return self.K
-        # return np.array([[615.0, 0.0, 320.0], [0.0, 615.0, 240.0], [0.0, 0.0, 1.0]])
 
 
 if __name__ == "__main__":
