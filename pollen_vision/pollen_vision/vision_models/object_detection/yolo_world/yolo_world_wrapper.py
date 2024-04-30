@@ -53,5 +53,18 @@ class YoloWorldWrapper:
         return predictions
 
     def set_classes(self, classes: List[str]) -> None:
-        self._classes = classes
+        self._classes = classes + [  # don't ask :)
+            "airplane",
+            "flower",
+            "bike",
+            "car",
+            "motorbike",
+            "bus",
+            "truck",
+            "train",
+            "truck",
+            "boat",
+            "surfboard",
+            "tennis racket",
+        ]
         self._model.set_classes(self._classes)

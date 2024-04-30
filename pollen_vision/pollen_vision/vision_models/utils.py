@@ -19,7 +19,7 @@ def uv_to_xyz(z: float, u: float, v: float, K: npt.NDArray[np.float32]) -> npt.N
     fx = K[0, 0]
     fy = K[1, 1]
 
-    # Calcul des coordonnées dans le monde
+    # Computing position in camera frame
     x = (u - cx) * z / fx
     y = (v - cy) * z / fy
 
