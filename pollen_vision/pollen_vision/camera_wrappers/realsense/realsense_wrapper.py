@@ -45,7 +45,7 @@ class RealsenseWrapper(CameraWrapper):  # type: ignore
         color_frame = np.asanyarray(frames.get_color_frame().get_data())
 
         data["left"] = cv2.cvtColor(color_frame, cv2.COLOR_BGR2RGB)
-        depth = depth * 0.01
+        depth = depth * 0.1
         depth = np.array(depth, dtype=np.float32)
         data["depth"] = depth
 
