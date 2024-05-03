@@ -134,8 +134,22 @@ class ObjectsFilter:
                 print(self.objects[i]["name"], self.objects[i]["pos"], self.objects[i]["temporal_score"])
 
     def get_objects(self, threshold: float = 0.8) -> List[Dict]:  # type: ignore
-        tmp = sorted(self.objects, key=lambda k: np.linalg.norm(k["pos"]))
-        return [obj for obj in tmp if obj["temporal_score"] > threshold]
+        tmp = sorted(self.objects.copy(), key=lambda k: np.linalg.norm(k["pos"]))
+        # IF EVERYTHING IS BROKEN, UNCOMMENT THE LINE BELOW ("return [obj for obj ...")
+        # return [obj for obj in tmp if obj["temporal_score"] > threshold]
+        objects = []
+        used_names: List[str] = []
+        for i in range(len(tmp)):
+            obj = tmp[i].copy()
+            if obj["temporal_score"] <= threshold:
+                continue
+            if obj["name"] in used_names:
+                obj["name"] += "_" + str(used_names.count(obj["name"]))
+            else:
+                used_names.append(obj["name"])
+
+            objects.append(obj)
+        return objects
 
 
 class Labels:
