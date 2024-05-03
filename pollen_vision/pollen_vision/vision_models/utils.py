@@ -68,9 +68,16 @@ class ObjectsFilter:
             if self.objects[i]["temporal_score"] < 0.1:  # TODO parametrize and tune this
                 to_remove.append(i)
             for j in range(i + 1, len(self.objects)):
+                bbox1 = self.objects[i]["bbox"]
+                bbox2 = self.objects[j]["bbox"]
+                area_bbox1 = (bbox1[2] - bbox1[0]) * (bbox1[3] - bbox1[1])
+                area_bbox2 = (bbox2[2] - bbox2[0]) * (bbox2[3] - bbox2[1])
+                similar_bboxes = min(area_bbox1, area_bbox2) > 0.9 * max(area_bbox1, area_bbox2)
+
                 if np.linalg.norm(self.objects[i]["pos"] - self.objects[j]["pos"]) < self.pos_threshold:
-                    if self.objects[i]["name"] != self.objects[j]["name"]:
-                        # objects are at the same position but have different names
+                    if self.objects[i]["name"] != self.objects[j]["name"] and similar_bboxes:
+                        # objects are at the same position but have different names, and their bboxes of similar sizes
+                        # probably the same object detected differently
                         # remove the one with the lowest detection score
                         if self.objects[i]["detection_score"] < self.objects[j]["detection_score"]:
                             to_remove.append(i)
