@@ -74,7 +74,7 @@ class ObjectsFilter:
                 area_bbox2 = (bbox2[2] - bbox2[0]) * (bbox2[3] - bbox2[1])
                 similar_bboxes = min(area_bbox1, area_bbox2) > 0.9 * max(area_bbox1, area_bbox2)
 
-                if np.linalg.norm(self.objects[i]["pos"] - self.objects[j]["pos"]) < self.pos_threshold:
+                if np.linalg.norm(self.objects[i]["pose"][:3, 3] - self.objects[j]["pose"][:3, 3]) < self.pos_threshold:
                     if self.objects[i]["name"] != self.objects[j]["name"] and similar_bboxes:
                         # objects are at the same position but have different names, and their bboxes of similar sizes
                         # probably the same object detected differently
@@ -90,7 +90,7 @@ class ObjectsFilter:
     def push_observation(
         self,
         object_name: str,
-        pos: npt.NDArray[np.float32],
+        pose: npt.NDArray[np.float32],
         bbox: List[List],
         mask: npt.NDArray[np.uint8],
         detection_score: float,
@@ -99,7 +99,7 @@ class ObjectsFilter:
             self.objects.append(
                 {
                     "name": object_name,
-                    "pos": pos,
+                    "pose": pose,
                     "temporal_score": 0.2,
                     "bbox": bbox,
                     "mask": mask,
@@ -113,43 +113,31 @@ class ObjectsFilter:
             return
 
         for i in range(len(self.objects)):
-            if np.linalg.norm(pos - self.objects[i]["pos"]) < self.pos_threshold:  # meters
+            if np.linalg.norm(pose[:3, 3] - self.objects[i]["pose"][:3, 3]) < self.pos_threshold:  # meters
                 if object_name == self.objects[i]["name"]:  # merge same objects -> multiple observations of the same object
                     self.objects[i]["temporal_score"] = min(
                         1, self.objects[i]["temporal_score"] + 0.2
                     )  # TODO parametrize and tune this
-                    self.objects[i]["pos"] = self.objects[i]["pos"] + 0.3 * (pos - self.objects[i]["pos"])
+                    new_pose = np.eye(4)
+                    new_pose[:3, 3] = self.objects[i]["pose"][:3, 3] + 0.3 * (pose[:3, 3] - self.objects[i]["pose"][:3, 3])
+                    self.objects[i]["pose"] = new_pose
                     self.objects[i]["bbox"] = bbox  # last bbox for now
                     self.objects[i]["mask"] = mask
                     self.objects[i]["detection_score"] = self.objects[i]["detection_score"] * 0.5 + detection_score * 0.5
                     return
             else:
                 self.objects.append(
-                    {"name": object_name, "pos": pos, "temporal_score": 0.2, "bbox": bbox, "detection_score": detection_score}
+                    {"name": object_name, "pose": pose, "temporal_score": 0.2, "bbox": bbox, "detection_score": detection_score}
                 )
 
     def show_objects(self, threshold: float = 0.8) -> None:
         for i in range(len(self.objects)):
             if self.objects[i]["temporal_score"] > threshold:
-                print(self.objects[i]["name"], self.objects[i]["pos"], self.objects[i]["temporal_score"])
+                print(self.objects[i]["name"], self.objects[i]["pose"], self.objects[i]["temporal_score"])
 
     def get_objects(self, threshold: float = 0.8) -> List[Dict]:  # type: ignore
-        tmp = sorted(self.objects.copy(), key=lambda k: np.linalg.norm(k["pos"]))
-        # IF EVERYTHING IS BROKEN, UNCOMMENT THE LINE BELOW ("return [obj for obj ...")
-        # return [obj for obj in tmp if obj["temporal_score"] > threshold]
-        objects = []
-        used_names: List[str] = []
-        for i in range(len(tmp)):
-            obj = tmp[i].copy()
-            if obj["temporal_score"] <= threshold:
-                continue
-            if obj["name"] in used_names:
-                obj["name"] += "_" + str(used_names.count(obj["name"]))
-            else:
-                used_names.append(obj["name"])
-
-            objects.append(obj)
-        return objects
+        tmp = sorted(self.objects.copy(), key=lambda k: np.linalg.norm(k["pose"][:3, 3]))
+        return [obj for obj in tmp if obj["temporal_score"] > threshold]
 
 
 class Labels:

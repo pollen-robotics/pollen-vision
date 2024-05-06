@@ -61,7 +61,7 @@ class Perception:
 
             self.OF.tick()
             if self.visualize and self.last_im is not None:
-                objs = self.get_objects()
+                objs = self.get_objects_infos()
                 annotated = self.last_im.copy()
                 for obj in objs:
                     pos2D = (int((obj["bbox"][0] + obj["bbox"][2]) / 2), int((obj["bbox"][1] + obj["bbox"][3]) / 2))
@@ -94,15 +94,31 @@ class Perception:
 
             self._lastTick = time.time()
 
-    def get_objects(self) -> List[Dict]:  # type: ignore
+    def get_objects_infos(self) -> List[Dict]:  # type: ignore
         """
         Return list of filtered objects sorted by distance.
         """
-        return self.OF.get_objects()  # type: ignore
+        objects_infos = []
+        objects = self.OF.get_objects()
+        for obj in objects:
+            info = {
+                "name": obj["name"],
+                "pose": obj["pose"],
+                "rgb": self.last_im,
+                "mask": obj["mask"],
+                "depth": self.last_depth,
+                "bbox": obj["bbox"],
+                "temporal_score": obj["temporal_score"],
+                "detection_score": obj["detection_score"],
+            }
+            objects_infos.append(info)
+
+        return objects_infos
 
     def get_object_info(self, object_name: str) -> Dict:  # type: ignore
         """
         Return the object info for a given object name.
+        Object info is a dict with the following keys: name, pose, rgb, mask, depth
         """
         if object_name not in self.tracked_objects:
             return {}
@@ -111,12 +127,12 @@ class Perception:
         if object_name not in detected_objects:
             return {}
 
-        # position, rgb, mask, depth
-        info = {"name": object_name, "position": np.eye(4), "rgb": self.last_im, "mask": None, "depth": self.last_depth}
+        # name pose, rgb, mask, depth
+        info = {"name": object_name, "pose": np.eye(4), "rgb": self.last_im, "mask": None, "depth": self.last_depth}
 
         for obj in self.get_objects():
             if obj["name"] == object_name:
-                info["position"] = self.get_object_position(object_name)
+                info["pose"] = self.get_object_pose(object_name)
                 info["mask"] = obj["mask"]
                 break
 
@@ -128,17 +144,17 @@ class Perception:
                 print(f"Adding tracking for object: {obj}")
                 self.tracked_objects.append(obj)
 
-    def get_object_position(self, object_name: str) -> Optional[npt.NDArray[np.float64]]:
+    def get_object_pose(self, object_name: str) -> Optional[npt.NDArray[np.float64]]:
         """
-        Return the position of the object in the world frame.
+        Return the pose of the object in the world frame.
         """
         if object_name not in self.tracked_objects:
             return None
 
         for obj in self.get_objects():
             if obj["name"] == object_name:
-                obj_pos: npt.NDArray[np.float64] = obj["pos"]
-                return obj_pos
+                obj_pose: npt.NDArray[np.float64] = obj["pose"]
+                return obj_pose
 
         return None
 
@@ -147,13 +163,18 @@ if __name__ == "__main__":
     S = SDKWrapper(get_config_file_path("CONFIG_SR"), compute_depth=True)
     T_world_cam = fv_utils.make_pose([0.03, -0.15, 0.1], [0, 0, 0])
     perception = Perception(S, T_world_cam, freq=30)
-    perception.set_tracked_objects(["dark plate", "blue plate", "red mug", "dark mug", "yellow ball", "apple", "bottle"])
+    perception.set_tracked_objects(
+        [
+            "blue plate",
+            "mug",
+        ]
+    )
     perception.start(visualize=True)
 
     while True:
         print("==")
-        objs = perception.get_objects()
+        objs = perception.get_objects_infos()
         for obj in objs:
-            print(obj["name"], obj["pos"][:3, 3], obj["temporal_score"], obj["detection_score"])
+            print(obj["name"], np.linalg.norm(obj["pose"][:3, 3]), obj["temporal_score"], obj["detection_score"])
         print("==")
         time.sleep(0.1)
