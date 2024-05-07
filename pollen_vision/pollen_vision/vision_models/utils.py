@@ -26,6 +26,29 @@ def uv_to_xyz(z: float, u: float, v: float, K: npt.NDArray[np.float32]) -> npt.N
     return np.array([x, y, z])
 
 
+# in meters
+def get_object_width_height(bbox: List[List], mask: npt.NDArray[np.uint8], K: npt.NDArray[np.float32]) -> Tuple[int, int]:
+
+    u, v = get_centroid(mask)
+    d = mask.copy()
+    d[mask == 0] = 0
+    average_depth = d[d != 0].mean()
+    xyz = uv_to_xyz(average_depth * 0.1, u, v, K)
+    xyz *= 0.01
+
+    xmin, ymin, xmax, ymax = bbox
+    u1, v1 = xmin, ymin
+    u2, v2 = xmax, ymax
+
+    ltop_xyz = uv_to_xyz(average_depth * 0.1, u1, v1, K)
+    rbottom_xyz = uv_to_xyz(average_depth * 0.1, u2, v2, K)
+
+    width = np.abs(rbottom_xyz[0] - ltop_xyz[0])
+    height = np.abs(rbottom_xyz[1] - ltop_xyz[1])
+
+    return width, height
+
+
 # Actually only computes the position ignoring rotation for now. Still returns pose matrix, with rotation set to identity
 def get_object_pose_in_world(
     depth: npt.NDArray[np.float32],
