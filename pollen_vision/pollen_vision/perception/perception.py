@@ -9,9 +9,7 @@ import numpy.typing as npt
 from pollen_vision.camera_wrappers import CameraWrapper
 from pollen_vision.camera_wrappers.depthai import SDKWrapper
 from pollen_vision.camera_wrappers.depthai.utils import get_config_file_path
-from pollen_vision.vision_models.object_detection import YoloWorldWrapper
-from pollen_vision.vision_models.object_segmentation import MobileSamWrapper
-from pollen_vision.vision_models.utils import (
+from pollen_vision.perception.utils import (
     Annotator,
     ObjectsFilter,
     get_bboxes,
@@ -19,6 +17,8 @@ from pollen_vision.vision_models.utils import (
     get_object_pose_in_world,
     get_scores,
 )
+from pollen_vision.vision_models.object_detection import YoloWorldWrapper
+from pollen_vision.vision_models.object_segmentation import MobileSamWrapper
 
 
 class Perception:
@@ -115,48 +115,11 @@ class Perception:
 
         return objects_infos
 
-    def get_object_info(self, object_name: str) -> Dict:  # type: ignore
-        """
-        Return the object info for a given object name.
-        Object info is a dict with the following keys: name, pose, rgb, mask, depth
-        """
-        if object_name not in self.tracked_objects:
-            return {}
-
-        detected_objects = [obj["name"] for obj in self.get_objects()]
-        if object_name not in detected_objects:
-            return {}
-
-        # name pose, rgb, mask, depth
-        info = {"name": object_name, "pose": np.eye(4), "rgb": self.last_im, "mask": None, "depth": self.last_depth}
-
-        for obj in self.get_objects():
-            if obj["name"] == object_name:
-                info["pose"] = self.get_object_pose(object_name)
-                info["mask"] = obj["mask"]
-                break
-
-        return info
-
     def set_tracked_objects(self, objects: list[str]) -> None:
         for obj in objects:
             if obj not in self.tracked_objects:
                 print(f"Adding tracking for object: {obj}")
                 self.tracked_objects.append(obj)
-
-    def get_object_pose(self, object_name: str) -> Optional[npt.NDArray[np.float64]]:
-        """
-        Return the pose of the object in the world frame.
-        """
-        if object_name not in self.tracked_objects:
-            return None
-
-        for obj in self.get_objects():
-            if obj["name"] == object_name:
-                obj_pose: npt.NDArray[np.float64] = obj["pose"]
-                return obj_pose
-
-        return None
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@ import numpy as np
 import numpy.typing as npt
 import torch
 from mobile_sam import SamPredictor, sam_model_registry
-from pollen_vision.vision_models.utils import get_checkpoint_path, get_checkpoints_names
+from pollen_vision.perception.utils import get_checkpoint_path, get_checkpoints_names
 
 
 class MobileSamWrapper:

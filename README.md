@@ -46,7 +46,7 @@ import cv2
 
 from pollen_vision.vision_models.object_detection import OwlVitWrapper
 from pollen_vision.vision_models.object_segmentation import MobileSamWrapper
-from pollen_vision.vision_models.utils import Annotator, get_bboxes
+from pollen_vision.perception.utils import Annotator, get_bboxes
 
 
 owl = OwlVitWrapper()
