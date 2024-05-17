@@ -1,10 +1,58 @@
 """A collection of utility functions for the vision models wrappers"""
 
 from importlib.resources import files
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import numpy.typing as npt
+from sklearn.linear_model import LinearRegression
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import PolynomialFeatures
+
+
+def fuse_depths(
+    stereo_depth: npt.NDArray[np.float32],
+    mono_depth: npt.NDArray[np.float32],
+    fit_rect: Optional[tuple[int, int, int, int]] = None,
+    poly_degree: int = 4,
+) -> npt.NDArray[np.float32]:
+    """
+    Fuse a stereo depth map and a monocular etimated depth map using a polynomial regression model.
+
+    Args:
+        stereo_depth: The stereo depth map, computed from a stereo camera (considered ground truth here)
+        mono_depth: The monocular estimated depth map, computed from a monocular depth estimation model
+        fit_rect: The rectangle in which to fit the model (xmin, ymin, xmax, ymax). None to fit the model on the whole image
+        poly_degree: The degree of the polynomial used in the regression
+    """
+
+    x = mono_depth
+    y = stereo_depth
+
+    if fit_rect is not None:
+        x = x[fit_rect[0] : fit_rect[2], fit_rect[1] : fit_rect[3]]
+        y = y[fit_rect[0] : fit_rect[2], fit_rect[1] : fit_rect[3]]
+
+    # Filter out valid (non-NaN) corresponding points
+    valid_indices = ~(np.isnan(y) | np.isnan(x))
+    x = x[valid_indices]
+    y = y[valid_indices]
+
+    # normalize x (seems to help mitigate deformation)
+    x = x / max(x)
+
+    # Model with polynomial features
+    model = make_pipeline(PolynomialFeatures(poly_degree), LinearRegression())
+    # Fit the model
+    model.fit(x.reshape(-1, 1), y.reshape(-1, 1))
+
+    # Sample the model on the full image
+    valid_indices = ~(np.isnan(stereo_depth) | np.isnan(mono_depth))
+    x = mono_depth[valid_indices]
+    x = x / max(x)
+    fused_depth = model.predict(x.reshape(-1, 1)).reshape(stereo_depth.shape)
+
+    return np.array(fused_depth, dtype=np.float32)
 
 
 def get_centroid(mask: npt.NDArray[np.uint8]) -> Tuple[int, int]:
