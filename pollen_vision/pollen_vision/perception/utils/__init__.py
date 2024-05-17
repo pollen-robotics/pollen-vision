@@ -3,6 +3,7 @@ from .labels import Labels  # noqa
 from .objects_filter import ObjectsFilter  # noqa
 from .pcl_visualizer import PCLVisualizer  # noqa
 from .utils import (  # noqa
+    fuse_depths,
     get_bboxes,
     get_centroid,
     get_checkpoint_path,
