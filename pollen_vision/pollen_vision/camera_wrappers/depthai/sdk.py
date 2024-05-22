@@ -72,7 +72,7 @@ class SDKWrapper(DepthaiWrapper):  # type: ignore[misc]
         return data, latency, ts
 
 
-    def get_K(self) -> Dict[str:npt.NDArray[np.float32]]:
+    def get_K(self) -> Dict[str, npt.NDArray[np.float32]]:
         K={}
         K["left"]=super().get_K(left=True)
         K["right"]=super().get_K(left=False)
