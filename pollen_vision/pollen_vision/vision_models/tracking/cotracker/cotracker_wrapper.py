@@ -35,14 +35,16 @@ class CotrackerWrapper:
         self._frames_buffer = self._frames_buffer[-self._window_size :]  # keep only the last window_size frames
 
         video_chunk = (
-            torch.tensor(np.stack(self._frames_buffer), device=self._device).float().permute(0, 3, 1, 2)[None]
+            torch.tensor(np.stack(self._frames_buffer), device=self._device)
+            .float()
+            .permute(0, 3, 1, 2)[None]  # ignore[arg-type]
         )  # (1, T, 3, H, W)
 
         # Converting the points to queries
         queries = np.zeros((1, len(self._points), 3))
         for point in self._points:
             queries[0, self._points.index(point), :] = (self._i, point[0], point[1])
-        queries = torch.Tensor(queries).to(self._device)
+        queries = torch.Tensor(queries).to(self._device)  # ignore[call-overload]
 
         pred_tracks, pred_visibility = self._model(video_chunk, is_first_step=self._is_first_step, grid_size=0, queries=queries)
         self._is_first_step = False
