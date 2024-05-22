@@ -9,12 +9,12 @@ import numpy.typing as npt
 from reachy2_sdk import ReachySDK
 
 class PollenSDKCameraWrapper(CameraWrapper):
-    def __init__(self, robot_ip: str="localhost", cam: str="SR") -> None:
+    def __init__(self, robot: ReachySDK, cam: str="SR") -> None:
         super().__init__()
-        self._ip=robot_ip
+        self._reachy=robot
         self._cam_name=cam
         try:
-            self._reachy=ReachySDK(robot_ip)
+            self._reachy.connect()
             time.sleep(1)
             self._logger.info("Connected to Reachy")
         except Exception as err:
@@ -94,7 +94,8 @@ class PollenSDKCameraWrapper(CameraWrapper):
 
 
 if __name__ == '__main__':
-    sdkcam=PollenSDKCameraWrapper()
+    reachy=ReachySDK('localhost')
+    sdkcam=PollenSDKCameraWrapper(reachy)
     data,_,_=sdkcam.get_data()
     print(data)
     K=sdkcam.get_K()
