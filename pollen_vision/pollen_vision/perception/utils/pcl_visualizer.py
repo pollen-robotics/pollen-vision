@@ -4,12 +4,12 @@ import open3d as o3d
 
 
 class PCLVisualizer:
-    def __init__(self, K: npt.NDArray, name: str = "PCLVisualizer") -> None:
+    def __init__(self, K: npt.NDArray[np.float64], name: str = "PCLVisualizer") -> None:
         self.vis = o3d.visualization.Visualizer()
         self.vis.create_window(name)
         self.pcd = o3d.geometry.PointCloud()
 
-        self.frames = {}
+        self.frames = {}  # type: ignore
 
         self.set_geometry = False
 

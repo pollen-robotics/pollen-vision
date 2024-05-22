@@ -1,15 +1,16 @@
 from datetime import timedelta
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 import cv2
 import numpy as np
 import numpy.typing as npt
-import pyrealsense2 as rs
 from pollen_vision.camera_wrappers import CameraWrapper
 
 
 class RealsenseWrapper(CameraWrapper):  # type: ignore
     def __init__(self) -> None:
+        import pyrealsense2 as rs
+
         self.pipeline = rs.pipeline()
         config = rs.config()
 
@@ -32,12 +33,14 @@ class RealsenseWrapper(CameraWrapper):  # type: ignore
 
         self.pc = rs.pointcloud()
 
-    def get_data(self) -> Tuple[Dict[str, npt.NDArray[np.uint8]], Dict[str, float], Dict[str, timedelta]]:
+    def get_data(
+        self,
+    ) -> Tuple[Optional[Dict[str, npt.NDArray[np.uint8]]], Optional[Dict[str, float]], Optional[Dict[str, timedelta]]]:
         success, frames = self.pipeline.try_wait_for_frames(timeout_ms=10)
 
         data = {}
-        latency = {}
-        ts = {}
+        latency: Optional[Dict[str, float]] = {}
+        ts: Optional[Dict[str, timedelta]] = {}
         if not success:
             return None, None, None
 
@@ -58,7 +61,7 @@ class RealsenseWrapper(CameraWrapper):  # type: ignore
 if __name__ == "__main__":
     wrapper = RealsenseWrapper()
     while True:
-        data, _, _ = wrapper.get_data()
+        data, _, _ = wrapper.get_data()  # type: ignore
         if data is None:
             continue
         left = data["left"]

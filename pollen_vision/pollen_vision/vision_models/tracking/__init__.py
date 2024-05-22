@@ -1,1 +1,1 @@
-from .cotracker.cotracker_wrapper import CotrackerWrapper
+from .cotracker.cotracker_wrapper import CotrackerWrapper  # noqa
