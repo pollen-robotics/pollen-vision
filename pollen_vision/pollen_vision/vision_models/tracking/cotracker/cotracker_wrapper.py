@@ -9,9 +9,9 @@ class CotrackerWrapper:
     def __init__(self, initial_points: List[List[np.uint8]] = []) -> None:
         self._device = torch.cuda.current_device() if torch.cuda.is_available() else "cpu"
         self._i = 0
-        self._model = torch.hub.load("facebookresearch/co-tracker", "cotracker2_online").to(
+        self._model = torch.hub.load("facebookresearch/co-tracker", "cotracker2_online").to(  # type: ignore[no-untyped-call]
             self._device
-        )  # type: ignore[no-untyped-call]
+        )
         self._is_first_step = True
         self._tracks = None
         self._points = initial_points
@@ -35,9 +35,9 @@ class CotrackerWrapper:
         self._frames_buffer = self._frames_buffer[-self._window_size :]  # keep only the last window_size frames
 
         video_chunk = (
-            torch.tensor(np.stack(self._frames_buffer), device=self._device)
+            torch.tensor(np.stack(self._frames_buffer), device=self._device)  # type: ignore[arg-type]
             .float()
-            .permute(0, 3, 1, 2)[None]  # type: ignore[arg-type]
+            .permute(0, 3, 1, 2)[None]
         )  # (1, T, 3, H, W)
 
         # Converting the points to queries
