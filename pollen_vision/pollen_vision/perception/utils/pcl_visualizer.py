@@ -1,6 +1,11 @@
 import numpy as np
 import numpy.typing as npt
-import open3d as o3d
+
+try:
+    import open3d as o3d
+except ImportError:
+    print("Open3D not found, please install it with `pip install open3d` (may break opencv aruco :)")
+    raise
 
 
 class PCLVisualizer:
