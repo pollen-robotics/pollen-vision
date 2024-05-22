@@ -2,6 +2,10 @@
 
 import logging
 from importlib.resources import files
+import pkgutil
+from pathlib import Path
+
+
 from typing import Any, Dict, List, Tuple
 
 import cv2
@@ -117,14 +121,19 @@ def drawEpiLines(left: npt.NDArray[Any], right: npt.NDArray[Any], aruco_dict: ar
 def get_config_files_names() -> List[str]:
     """Returns the names of the config files."""
     path = files("config_files_vision")
-    logging.info(f"Config path : {path}")
+
     return [file.stem for file in path.glob("**/*.json")]  # type: ignore[attr-defined]
 
 
 def get_config_file_path(name: str) -> Any:
     """Returns the path of the config file based on its name."""
-    path = files("config_files_vision")
-    logging.info(f"Config path : {path}")
+    # path = files("config_files_vision")
+    # path = pkgutil.get_data(__name__, "../../../config_files_vision")
+
+    resource_path = Path(__file__).parent
+    path = resource_path.joinpath("../../../config_files_vision")
+
+    print(f'PATH: {path}')
     for file in path.glob("**/*"):  # type: ignore[attr-defined]
         if file.stem == name:
             return file.resolve()
