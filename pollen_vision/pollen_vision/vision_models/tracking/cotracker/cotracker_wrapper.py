@@ -9,7 +9,9 @@ class CotrackerWrapper:
     def __init__(self, initial_points: List[List[np.uint8]] = []) -> None:
         self._device = torch.cuda.current_device() if torch.cuda.is_available() else "cpu"
         self._i = 0
-        self._model = torch.hub.load("facebookresearch/co-tracker", "cotracker2_online").to(self._device)
+        self._model = torch.hub.load("facebookresearch/co-tracker", "cotracker2_online").to(
+            self._device
+        )  # ignore[no-untyped-call]
         self._is_first_step = True
         self._tracks = None
         self._points = initial_points
