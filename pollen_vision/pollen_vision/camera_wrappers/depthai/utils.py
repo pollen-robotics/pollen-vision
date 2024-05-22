@@ -127,11 +127,11 @@ def get_config_files_names() -> List[str]:
 
 def get_config_file_path(name: str) -> Any:
     """Returns the path of the config file based on its name."""
-    # path = files("config_files_vision")
+    path = files("config_files_vision")
     # path = pkgutil.get_data(__name__, "../../../config_files_vision")
 
-    resource_path = Path(__file__).parent
-    path = resource_path.joinpath("../../../config_files_vision")
+    # resource_path = Path(__file__).parent
+    # path = resource_path.joinpath("../../../config_files_vision")
 
     print(f'PATH: {path}')
     for file in path.glob("**/*"):  # type: ignore[attr-defined]
