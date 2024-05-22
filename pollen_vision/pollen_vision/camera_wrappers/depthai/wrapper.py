@@ -306,3 +306,29 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
             self._logger.error("Flashing failed")
             self._logger.error(e)
             exit()
+
+
+if __name__ == '__main__':
+    from pollen_vision.camera_wrappers.depthai.utils import get_config_file_path, get_connected_devices
+    from pollen_vision.camera_wrappers.depthai import SDKWrapper
+
+    devices = get_connected_devices()
+    print(f'Detected cameras: {devices}')
+    for mxid, name in devices.items():
+
+        if name == 'other':
+            cam = SDKWrapper(
+                get_config_file_path("CONFIG_SR"),
+                compute_depth=True,
+                rectify=False,
+                mx_id=mxid,
+                jpeg_output=True,
+            )
+        else:
+            cam = SDKWrapper(
+                get_config_file_path("CONFIG_IMX296"),
+                compute_depth=False,
+                rectify=True,
+                mx_id=mxid,
+                jpeg_output=True,
+            )
