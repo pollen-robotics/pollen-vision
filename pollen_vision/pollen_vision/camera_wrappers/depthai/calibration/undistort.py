@@ -101,4 +101,4 @@ def get_mesh(cam_config: CamConfig, cam_name: str) -> Tuple[List[dai.Point2f], i
 
     mesh = list(map(tuple, mesh0_tmp))
 
-    return mesh, meshWidth, meshHeight
+    return mesh, meshWidth, meshHeight  # type: ignore[return-value]

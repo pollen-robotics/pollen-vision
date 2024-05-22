@@ -115,9 +115,9 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
 
         for name, queue in self.queues.items():
             pkt = queue.get()
-            data[name] = pkt
-            latency[name] = dai.Clock.now() - pkt.getTimestamp()
-            ts[name] = pkt.getTimestamp()
+            data[name] = pkt  # type: ignore[assignment]
+            latency[name] = dai.Clock.now() - pkt.getTimestamp()  # type: ignore[attr-defined, call-arg]
+            ts[name] = pkt.getTimestamp()  # type: ignore[attr-defined]
 
         return data, latency, ts
 

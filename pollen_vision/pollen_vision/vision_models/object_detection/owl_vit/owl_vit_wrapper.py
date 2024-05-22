@@ -34,7 +34,7 @@ class OwlVitWrapper:
             - "score": the score of the prediction
             - "box": the bounding box of the object, in the format [xmin, ymin, xmax, ymax]
         """
-        im = Image.fromarray(im)
+        im = Image.fromarray(im)  # type: ignore[no-untyped-call]
         predictions: List[Dict] = self._detector(im, candidate_labels=candidate_labels)  # type: ignore
         predictions = [prediction for prediction in predictions if prediction["score"] > detection_threshold]
         return predictions
