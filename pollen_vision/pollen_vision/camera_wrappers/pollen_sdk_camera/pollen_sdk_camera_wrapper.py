@@ -52,7 +52,7 @@ class PollenSDKCameraWrapper(CameraWrapper):
             raise err
 
     def get_K(self, left: bool = True) -> npt.NDArray[np.float32]:
-        intrinsics={}
+        # intrinsics={}
         try:
             if not self._reachy.is_connected():
                 self._reachy.connect()
@@ -61,12 +61,17 @@ class PollenSDKCameraWrapper(CameraWrapper):
 
             if cam.capture():
 
-                intrinsics["left"]=cam.get_intrinsic_matrix()
-                intrinsics["depth"]=cam.get_depth_intrinsic_matrix()
+                # intrinsics["left"]=cam.get_intrinsic_matrix()
+                # intrinsics["depth"]=cam.get_depth_intrinsic_matrix()
+
+                #always left... FIXME
+                return cam.get_intrinsic_matrix()
+
+
             else:
                 self._logger.error(f"capture failed")
 
-            return intrinsics
+            # return intrinsics
 
         except Exception as err:
             self._logger.error(f"Cannot get instrinsic: {err}")
@@ -74,18 +79,19 @@ class PollenSDKCameraWrapper(CameraWrapper):
 
 
     def get_depth_K(self) -> npt.NDArray[np.float32]:
-        intrinsics={}
+        # intrinsics={}
         try:
             if not self._reachy.is_connected():
                 self._reachy.connect()
 
             cam=getattr(self._reachy.cameras, self._cam_name)
             if cam.capture():
-                intrinsics["depth"]=cam.get_depth_intrinsic_matrix()
+                # intrinsics["depth"]=cam.get_depth_intrinsic_matrix()
+                return cam.get_depth_intrinsic_matrix()
             else:
                 self._logger.error(f"capture failed")
 
-            return intrinsics
+            # return intrinsics
 
 
         except Exception as err:

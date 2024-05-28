@@ -9,7 +9,7 @@ class YoloWorldWrapper:
     """A wrapper for the YOLO World model."""
 
     def __init__(self) -> None:
-        self._model = YOLOWorld(model_id="yolo_world/l")
+        self._model = YOLOWorld(model_id="yolo_world/v2-x")
         self._classes: List[str] = []
 
     def infer(

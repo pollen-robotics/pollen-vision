@@ -20,6 +20,7 @@ class ObjectsFilter:
                 0, self.objects[i]["temporal_score"] - 0.05
             )  # TODO parametrize and tune this
             if self.objects[i]["temporal_score"] < 0.1:  # TODO parametrize and tune this
+                # print(f"DEBUG FILTER: low score {self.objects[i]['temporal_score']}")
                 to_remove.append(i)
             for j in range(i + 1, len(self.objects)):
                 bbox1 = self.objects[i]["bbox"]
@@ -35,9 +36,12 @@ class ObjectsFilter:
                         # remove the one with the lowest detection score
                         if self.objects[i]["detection_score"] < self.objects[j]["detection_score"]:
                             to_remove.append(i)
+                            # print(f"DEBUG FILTER: multiple objects at the same place")
                         else:
                             to_remove.append(j)
+                            # print(f"DEBUG FILTER: multiple objects at the same place")
 
+        # print(f"DEBUG FILTER, to remove: {to_remove}")
         self.objects = [self.objects[i] for i in range(len(self.objects)) if i not in to_remove]
 
     # pos : (x, y, z), bbox : [xmin, ymin, xmax, ymax]

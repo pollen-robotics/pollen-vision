@@ -25,7 +25,7 @@ class Perception:
     # camera_wrapper : An implementation of the CameraWrapper abstract class
     # T_world_cam : Transformation matrix from camera to world (pose of the camera expressed in the world frame)
     # freq : update frequency in Hz
-    def __init__(self, camera_wrapper: CameraWrapper, T_world_cam: npt.NDArray[np.float32], freq: float = 1.0) -> None:
+    def __init__(self, camera_wrapper: CameraWrapper, T_world_cam: npt.NDArray[np.float32], freq: float = 1.0, yolo_thres=0.1) -> None:
         self.cam = camera_wrapper
         self.T_world_cam = T_world_cam
         self.freq = freq
@@ -39,7 +39,7 @@ class Perception:
         self.last_depth = None
         self.last_predictions: List[Dict] = []  # type: ignore
         self.last_masks: List[npt.NDArray[np.uint8]] = []
-
+        self._yolo_thres=yolo_thres
         self._lastTick = time.time()
 
     def start(self, visualize: bool = False) -> None:
@@ -71,7 +71,7 @@ class Perception:
                 self._lastTick = time.time()  # Lame
                 continue
 
-            self.last_predictions = self.YOLO.infer(self.last_im, self.tracked_objects)
+            self.last_predictions = self.YOLO.infer(self.last_im, self.tracked_objects, detection_threshold=self._yolo_thres)
 
             if len(self.last_predictions) == 0:
                 self._lastTick = time.time()  # Lame
@@ -94,12 +94,12 @@ class Perception:
 
             self._lastTick = time.time()
 
-    def get_objects_infos(self) -> List[Dict]:  # type: ignore
+    def get_objects_infos(self, threshold:float=0.8) -> List[Dict]:  # type: ignore
         """
         Return list of filtered objects sorted by distance.
         """
         objects_infos = []
-        objects = self.OF.get_objects()
+        objects = self.OF.get_objects(threshold=threshold)
         for obj in objects:
             info = {
                 "name": obj["name"],
