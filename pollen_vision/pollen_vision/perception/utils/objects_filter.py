@@ -85,7 +85,14 @@ class ObjectsFilter:
                     return
             else:
                 self.objects.append(
-                    {"name": object_name, "pose": pose, "temporal_score": 0.2, "bbox": bbox, "detection_score": detection_score}
+                    {
+                        "name": object_name,
+                        "pose": pose,
+                        "temporal_score": 0.2,
+                        "bbox": bbox,
+                        "detection_score": detection_score,
+                        "mask": mask,
+                    }
                 )
 
     def show_objects(self, threshold: float = 0.8) -> None:
@@ -93,6 +100,6 @@ class ObjectsFilter:
             if self.objects[i]["temporal_score"] > threshold:
                 print(self.objects[i]["name"], self.objects[i]["pose"], self.objects[i]["temporal_score"])
 
-    def get_objects(self, threshold: float = 0.8) -> List[Dict]:  # type: ignore
+    def get_objects(self, threshold: float = 0.0) -> List[Dict]:  # type: ignore
         tmp = sorted(self.objects.copy(), key=lambda k: np.linalg.norm(k["pose"][:3, 3]))
         return [obj for obj in tmp if obj["temporal_score"] > threshold]

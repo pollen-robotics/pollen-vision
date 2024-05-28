@@ -94,7 +94,7 @@ class Perception:
 
             self._lastTick = time.time()
 
-    def get_objects_infos(self, threshold:float=0.8) -> List[Dict]:  # type: ignore
+    def get_objects_infos(self, threshold:float=0.0) -> List[Dict]:  # type: ignore
         """
         Return list of filtered objects sorted by distance.
         """
@@ -139,5 +139,7 @@ if __name__ == "__main__":
         objs = perception.get_objects_infos()
         for obj in objs:
             print(obj["name"], np.linalg.norm(obj["pose"][:3, 3]), obj["temporal_score"], obj["detection_score"])
+        for i in perception.last_predictions:
+            print(f'raw: {i}')
         print("==")
         time.sleep(0.1)
