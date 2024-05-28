@@ -74,8 +74,9 @@ def uv_to_xyz(z: float, u: float, v: float, K: npt.NDArray[np.float32]) -> npt.N
 
 
 # in meters
-def get_object_width_height(bbox: List[List], mask: npt.NDArray[np.uint8], K: npt.NDArray[np.float32]) -> Tuple[int, int]:
-
+def get_object_width_height(
+    bbox: List[List], mask: npt.NDArray[np.uint8], K: npt.NDArray[np.float32]  # type: ignore
+) -> Tuple[int, int]:
     u, v = get_centroid(mask)
     d = mask.copy()
     d[mask == 0] = 0
@@ -87,8 +88,8 @@ def get_object_width_height(bbox: List[List], mask: npt.NDArray[np.uint8], K: np
     u1, v1 = xmin, ymin
     u2, v2 = xmax, ymax
 
-    ltop_xyz = uv_to_xyz(average_depth * 0.1, u1, v1, K)
-    rbottom_xyz = uv_to_xyz(average_depth * 0.1, u2, v2, K)
+    ltop_xyz = uv_to_xyz(average_depth * 0.1, u1, v1, K)  # type: ignore
+    rbottom_xyz = uv_to_xyz(average_depth * 0.1, u2, v2, K)  # type: ignore
 
     width = np.abs(rbottom_xyz[0] - ltop_xyz[0])
     height = np.abs(rbottom_xyz[1] - ltop_xyz[1])

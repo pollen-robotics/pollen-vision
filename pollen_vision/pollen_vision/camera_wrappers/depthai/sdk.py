@@ -42,6 +42,7 @@ class SDKWrapper(DepthaiWrapper):  # type: ignore[misc]
         exposure_params: Optional[Tuple[int, int]] = None,
         mx_id: str = "",
         jpeg_output: bool = False,
+        encoder_quality: int = 95,
     ) -> None:
         self._compute_depth = compute_depth
         self._mjpeg = jpeg_output
@@ -55,6 +56,7 @@ class SDKWrapper(DepthaiWrapper):  # type: ignore[misc]
             rectify=rectify if not compute_depth else False,
             exposure_params=exposure_params,
             mx_id=mx_id,
+            encoder_quality=encoder_quality,
         )
 
     def get_data(
@@ -151,13 +153,14 @@ class SDKWrapper(DepthaiWrapper):  # type: ignore[misc]
 
     def _create_encoders(self, pipeline: dai.Pipeline) -> dai.Pipeline:
         """Creates the mjpeg encoders."""
-
         profile = dai.VideoEncoderProperties.Profile.MJPEG
         self.left_encoder = pipeline.create(dai.node.VideoEncoder)
         self.left_encoder.setDefaultProfilePreset(self.cam_config.fps, profile)
+        self.left_encoder.setQuality(self.cam_config.encoder_quality)
 
         self.right_encoder = pipeline.create(dai.node.VideoEncoder)
         self.right_encoder.setDefaultProfilePreset(self.cam_config.fps, profile)
+        self.right_encoder.setQuality(self.cam_config.encoder_quality)
 
         return pipeline
 

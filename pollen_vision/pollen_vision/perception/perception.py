@@ -1,6 +1,6 @@
 import threading
 import time
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import cv2
 import FramesViewer.utils as fv_utils

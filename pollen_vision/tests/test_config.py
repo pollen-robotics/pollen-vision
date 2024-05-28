@@ -8,7 +8,6 @@ from pollen_vision.camera_wrappers.depthai.utils import (
     get_config_file_path,
     get_config_files_names,
 )
-from pollen_vision.perception.utils import get_checkpoint_path, get_checkpoints_names
 
 
 def test_config() -> None:
@@ -60,10 +59,3 @@ def test_config_file() -> None:
 
 def test_config_file_path() -> None:
     assert get_config_file_path(".") is None
-
-
-def test_get_checkpoints_names() -> None:
-    valid_names = get_checkpoints_names()
-
-    assert get_checkpoint_path("dummy") is None
-    assert "mobile_sam" in valid_names

@@ -82,12 +82,14 @@ class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
         self.left_encoder.setKeyframeFrequency(self.cam_config.fps)  # every 1s
         self.left_encoder.setNumBFrames(numBFrames)
         self.left_encoder.setBitrateKbps(bitrate)
+        # self.left_encoder.setQuality(self.cam_config.encoder_quality)
 
         self.right_encoder = pipeline.create(dai.node.VideoEncoder)
         self.right_encoder.setDefaultProfilePreset(self.cam_config.fps, profile)
         self.right_encoder.setKeyframeFrequency(self.cam_config.fps)  # every 1s
         self.right_encoder.setNumBFrames(numBFrames)
         self.right_encoder.setBitrateKbps(bitrate)
+        # self.right_encoder.setQuality(self.cam_config.encoder_quality)
 
         return pipeline
 

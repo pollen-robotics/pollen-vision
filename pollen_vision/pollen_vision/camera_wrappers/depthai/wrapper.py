@@ -40,10 +40,20 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
         exposure_params: Tuple[int, int],
         mx_id: str,
         isp_scale: Tuple[int, int] = (1, 1),
+        encoder_quality: int = 80,
     ) -> None:
         super().__init__()
-        self.cam_config = CamConfig(cam_config_json, fps, resize, exposure_params, mx_id, isp_scale, rectify, force_usb2)
-        # self._logger = logging.getLogger(__name__)
+        self.cam_config = CamConfig(
+            cam_config_json,
+            fps,
+            resize,
+            exposure_params,
+            mx_id,
+            isp_scale,
+            rectify,
+            force_usb2,
+            encoder_quality=encoder_quality,
+        )
 
         self._prepare()
 

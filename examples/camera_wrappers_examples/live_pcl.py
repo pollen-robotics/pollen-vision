@@ -2,7 +2,6 @@ import argparse
 
 import cv2
 import numpy as np
-import numpy.typing as npt
 from pollen_vision.camera_wrappers.depthai import SDKWrapper
 from pollen_vision.camera_wrappers.depthai.utils import (
     get_config_file_path,

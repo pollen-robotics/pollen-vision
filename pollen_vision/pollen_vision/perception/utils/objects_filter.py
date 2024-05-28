@@ -49,10 +49,10 @@ class ObjectsFilter:
         self,
         object_name: str,
         pose: npt.NDArray[np.float32],
-        bbox: List[List],
+        bbox: List[List],  # type: ignore
         mask: npt.NDArray[np.uint8],
         detection_score: float,
-    ) -> None:  # type: ignore
+    ) -> None:
         if len(self.objects) == 0:
             self.objects.append(
                 {
