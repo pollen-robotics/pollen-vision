@@ -53,7 +53,8 @@ class Perception:
         while True:
             elapsed = time.time() - self._lastTick
             if elapsed < 1 / self.freq:
-                time.sleep(1 / self.freq - elapsed)
+                time.sleep(0.00001)
+                continue
 
             data, _, _ = self.cam.get_data()
             self.last_im = data["left"]
@@ -123,19 +124,16 @@ class Perception:
 
 
 if __name__ == "__main__":
-    S = SDKWrapper(get_config_file_path("CONFIG_SR"), compute_depth=True)
     T_world_cam = fv_utils.make_pose([0.03, -0.15, 0.1], [0, 0, 0])
+
+    S = SDKWrapper(get_config_file_path("CONFIG_SR"), compute_depth=True)
     perception = Perception(S, T_world_cam, freq=30)
-    perception.set_tracked_objects(
-        [
-            "blue plate",
-            "mug",
-        ]
-    )
+    perception.set_tracked_objects(["mug"])
     perception.start(visualize=True)
 
     while True:
         print("==")
+
         objs = perception.get_objects_infos()
         for obj in objs:
             print(obj["name"], np.linalg.norm(obj["pose"][:3, 3]), obj["temporal_score"], obj["detection_score"])
