@@ -3,7 +3,7 @@ from typing import Dict, List
 import numpy as np
 import numpy.typing as npt
 from inference.models import YOLOWorld
-
+import time
 
 class YoloWorldWrapper:
     """A wrapper for the YOLO World model."""
@@ -12,8 +12,9 @@ class YoloWorldWrapper:
         self._model = YOLOWorld(model_id="yolo_world/v2-x")
         self._classes: List[str] = []
 
+
     def infer(
-        self, im: npt.NDArray[np.uint8], candidate_labels: List[str], detection_threshold: float = 0.1
+        self, im: npt.NDArray[np.uint8], candidate_labels: List[str], detection_threshold: float = 0.01
     ) -> List[Dict]:  # type: ignore
         """Returns a list of predictions found in the input image.
         Args:
@@ -28,6 +29,8 @@ class YoloWorldWrapper:
             - "score": the score of the prediction
             - "box": the bounding box of the object, in the format [xmin, ymin, xmax, ymax]
         """
+
+        starttime=time.time()
         if candidate_labels != self._classes:
             self.set_classes(candidate_labels)
 
@@ -50,6 +53,7 @@ class YoloWorldWrapper:
             prediction["box"] = box
             predictions.append(prediction)
 
+        print(f"YOLO infer timing: {time.time()-starttime}")
         return predictions
 
     def set_classes(self, classes: List[str]) -> None:

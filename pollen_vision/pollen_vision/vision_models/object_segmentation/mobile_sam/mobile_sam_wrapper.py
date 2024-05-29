@@ -5,7 +5,7 @@ import numpy.typing as npt
 import torch
 from mobile_sam import SamPredictor, sam_model_registry
 from pollen_vision.perception.utils import get_checkpoint_path, get_checkpoints_names
-
+import time
 
 class MobileSamWrapper:
     """A wrapper for the MobileSam model."""
@@ -43,7 +43,9 @@ class MobileSamWrapper:
                                        obj1                       obj2
         """
 
+        starttime=time.time()
         if len(bboxes) == 0 and len(points_list) == 0:
+            print(f"SAM infer timing (done nothing): {time.time()-starttime}")
             return []
 
         self._predictor.set_image(np.array(im))
@@ -63,5 +65,7 @@ class MobileSamWrapper:
             m = m[0, :, :]
             m.swapaxes(0, 1)
             masks.append(m)
+
+        print(f"SAM infer timing: {time.time()-starttime}")
 
         return masks
