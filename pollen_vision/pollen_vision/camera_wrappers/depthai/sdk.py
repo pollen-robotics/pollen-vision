@@ -5,12 +5,12 @@ import depthai as dai
 import numpy as np
 import numpy.typing as npt
 from pollen_vision.camera_wrappers.depthai.utils import get_socket_from_name
-from pollen_vision.camera_wrappers.depthai.wrapper import Wrapper
+from pollen_vision.camera_wrappers.depthai.wrapper import DepthaiWrapper
 
 
 # Depth is left aligned by convention
 # TODO do we need to give the option to change this?
-class SDKWrapper(Wrapper):  # type: ignore[misc]
+class SDKWrapper(DepthaiWrapper):  # type: ignore[misc]
     """A wrapper for the depthai library that exposes only the relevant features for Pollen's reachy sdk.
 
     Calling get_data() returns the left and right images, and if compute_depth is True:
@@ -42,6 +42,7 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
         exposure_params: Optional[Tuple[int, int]] = None,
         mx_id: str = "",
         jpeg_output: bool = False,
+        encoder_quality: int = 95,
     ) -> None:
         self._compute_depth = compute_depth
         self._mjpeg = jpeg_output
@@ -55,6 +56,7 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
             rectify=rectify if not compute_depth else False,
             exposure_params=exposure_params,
             mx_id=mx_id,
+            encoder_quality=encoder_quality,
         )
 
     def get_data(
@@ -139,13 +141,14 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
 
     def _create_encoders(self, pipeline: dai.Pipeline) -> dai.Pipeline:
         """Creates the mjpeg encoders."""
-
         profile = dai.VideoEncoderProperties.Profile.MJPEG
         self.left_encoder = pipeline.create(dai.node.VideoEncoder)
         self.left_encoder.setDefaultProfilePreset(self.cam_config.fps, profile)
+        self.left_encoder.setQuality(self.cam_config.encoder_quality)
 
         self.right_encoder = pipeline.create(dai.node.VideoEncoder)
         self.right_encoder.setDefaultProfilePreset(self.cam_config.fps, profile)
+        self.right_encoder.setQuality(self.cam_config.encoder_quality)
 
         return pipeline
 
@@ -157,6 +160,13 @@ class SDKWrapper(Wrapper):  # type: ignore[misc]
         """
 
         pipeline = self._pipeline_basis()
+        self.left.initialControl.setSharpness(0)
+        self.left.initialControl.setLumaDenoise(0)
+        self.left.initialControl.setChromaDenoise(0)
+
+        self.right.initialControl.setSharpness(0)
+        self.right.initialControl.setLumaDenoise(0)
+        self.right.initialControl.setChromaDenoise(0)
 
         if self._compute_depth:
             # Configuring depth node

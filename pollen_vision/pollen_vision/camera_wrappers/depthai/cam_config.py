@@ -35,6 +35,7 @@ class CamConfig:
         isp_scale: Tuple[int, int] = (1, 1),
         rectify: bool = False,
         force_usb2: bool = False,
+        encoder_quality: int = 80,
     ) -> None:
         self._cam_config_json = cam_config_json
         self.fps = fps
@@ -48,6 +49,7 @@ class CamConfig:
         self.isp_scale = isp_scale
         self.rectify = rectify
         self.force_usb2 = force_usb2
+        self.encoder_quality = encoder_quality
 
         config = json.load(open(self._cam_config_json, "rb"))
         self.socket_to_name = config["socket_to_name"]

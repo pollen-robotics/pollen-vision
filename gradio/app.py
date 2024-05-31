@@ -10,9 +10,9 @@ from typing import Any, Dict, List
 import numpy as np
 import numpy.typing as npt
 from datasets import load_dataset
+from pollen_vision.perception.utils import Annotator, get_bboxes
 from pollen_vision.vision_models.object_detection import OwlVitWrapper
 from pollen_vision.vision_models.object_segmentation import MobileSamWrapper
-from pollen_vision.vision_models.utils import Annotator, get_bboxes
 
 import gradio as gr
 
