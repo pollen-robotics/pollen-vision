@@ -5,7 +5,7 @@ import time
 import cv2
 import numpy as np
 import numpy.typing as npt
-
+from reachy2_sdk.media.camera import CameraView
 from reachy2_sdk import ReachySDK
 
 class PollenSDKCameraWrapper(CameraWrapper):
@@ -24,6 +24,8 @@ class PollenSDKCameraWrapper(CameraWrapper):
         self.depth=None
         self.left=None
         self.right=None
+        # self.depthleft=None
+        # self.depthright=None
 
     def get_data(self) -> Tuple[Dict[str, npt.NDArray[np.uint8]], Dict[str, float], Dict[str, timedelta]]:
 
@@ -42,6 +44,13 @@ class PollenSDKCameraWrapper(CameraWrapper):
                 data["left"]=self.left
                 # self.right=cam.get_frame() #FIXME, for now, can't get the RIGHT image from the sdk...
                 # data["right"]=self.left
+                self.right=cam.get_frame(CameraView.RIGHT)
+                data["right"]=self.right
+                #fixme
+                data["depthNode_left"]=self.left
+                data["depthNode_right"]=self.right
+
+
 
                 return data,latency,ts
             else:

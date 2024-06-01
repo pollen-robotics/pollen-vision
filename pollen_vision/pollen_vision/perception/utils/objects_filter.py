@@ -57,8 +57,8 @@ class ObjectsFilter:
 
         # print(f"OF nb objects: {len(self.objects)}")
         # print("OF objects:")
-        for o in self.objects:
-            print(f'{o["name"]} {o["temporal_score"]} {o["bbox"]} {o["detection_score"]}')
+        # for o in self.objects:
+        #     print(f'{o["name"]} {o["temporal_score"]} {o["bbox"]} {o["detection_score"]}')
         if len(self.objects) == 0:
             self.objects.append(
                 {
