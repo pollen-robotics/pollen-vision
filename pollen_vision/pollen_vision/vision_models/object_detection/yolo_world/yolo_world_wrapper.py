@@ -53,7 +53,7 @@ class YoloWorldWrapper:
             prediction["box"] = box
             predictions.append(prediction)
 
-        print(f"YOLO infer timing: {time.time()-starttime}")
+        # print(f"YOLO infer timing: {time.time()-starttime}")
         return predictions
 
     def set_classes(self, classes: List[str]) -> None:

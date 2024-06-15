@@ -45,7 +45,7 @@ class MobileSamWrapper:
 
         starttime=time.time()
         if len(bboxes) == 0 and len(points_list) == 0:
-            print(f"SAM infer timing (done nothing): {time.time()-starttime}")
+            # print(f"SAM infer timing (done nothing): {time.time()-starttime}")
             return []
 
         self._predictor.set_image(np.array(im))
@@ -66,6 +66,6 @@ class MobileSamWrapper:
             m.swapaxes(0, 1)
             masks.append(m)
 
-        print(f"SAM infer timing: {time.time()-starttime}")
+        # print(f"SAM infer timing: {time.time()-starttime}")
 
         return masks
