@@ -8,11 +8,12 @@ import numpy.typing as npt
 from reachy2_sdk.media.camera import CameraView
 from reachy2_sdk import ReachySDK
 
+
 class PollenSDKCameraWrapper(CameraWrapper):
-    def __init__(self, robot: ReachySDK, cam: str="SR") -> None:
+    def __init__(self, robot: ReachySDK, cam: str = "SR") -> None:
         super().__init__()
-        self._reachy=robot
-        self._cam_name=cam
+        self._reachy = robot
+        self._cam_name = cam
         try:
             self._reachy.connect()
             time.sleep(1)
@@ -21,41 +22,39 @@ class PollenSDKCameraWrapper(CameraWrapper):
             self._logger.error(f"Cannot connect to Reachy: {err}")
             raise err
 
-        self.depth=None
-        self.left=None
-        self.right=None
+        self.depth = None
+        self.left = None
+        self.right = None
         # self.depthleft=None
         # self.depthright=None
 
     def get_data(self) -> Tuple[Dict[str, npt.NDArray[np.uint8]], Dict[str, float], Dict[str, timedelta]]:
 
-        data={}
-        latency={}
-        ts={}
+        data = {}
+        latency = {}
+        ts = {}
         try:
             if not self._reachy.is_connected():
                 self._reachy.connect()
 
-            cam=getattr(self._reachy.cameras, self._cam_name)
+            cam = getattr(self._reachy.cameras, self._cam_name)
             if cam.capture():
-                self.depth=cam.get_depthmap()
-                data["depth"]=self.depth
-                self.left=cam.get_frame()
-                data["left"]=self.left
+                self.depth = cam.get_depthmap()
+                data["depth"] = self.depth
+                self.left = cam.get_frame()
+                data["left"] = self.left
                 # self.right=cam.get_frame() #FIXME, for now, can't get the RIGHT image from the sdk...
                 # data["right"]=self.left
-                self.right=cam.get_frame(CameraView.RIGHT)
-                data["right"]=self.right
-                #fixme
-                data["depthNode_left"]=self.left
-                data["depthNode_right"]=self.right
+                self.right = cam.get_frame(CameraView.RIGHT)
+                data["right"] = self.right
+                # fixme
+                data["depthNode_left"] = self.left
+                data["depthNode_right"] = self.right
 
-
-
-                return data,latency,ts
+                return data, latency, ts
             else:
                 self._logger.error(f"capture failed")
-                return data,latency,ts
+                return data, latency, ts
         except Exception as err:
             self._logger.error(f"Cannot capture frame: {err}")
             raise err
@@ -66,16 +65,15 @@ class PollenSDKCameraWrapper(CameraWrapper):
             if not self._reachy.is_connected():
                 self._reachy.connect()
 
-            cam=getattr(self._reachy.cameras, self._cam_name)
+            cam = getattr(self._reachy.cameras, self._cam_name)
 
             if cam.capture():
 
                 # intrinsics["left"]=cam.get_intrinsic_matrix()
                 # intrinsics["depth"]=cam.get_depth_intrinsic_matrix()
 
-                #always left... FIXME
+                # always left... FIXME
                 return cam.get_intrinsic_matrix()
-
 
             else:
                 self._logger.error(f"capture failed")
@@ -86,14 +84,13 @@ class PollenSDKCameraWrapper(CameraWrapper):
             self._logger.error(f"Cannot get instrinsic: {err}")
             raise err
 
-
     def get_depth_K(self) -> npt.NDArray[np.float32]:
         # intrinsics={}
         try:
             if not self._reachy.is_connected():
                 self._reachy.connect()
 
-            cam=getattr(self._reachy.cameras, self._cam_name)
+            cam = getattr(self._reachy.cameras, self._cam_name)
             if cam.capture():
                 # intrinsics["depth"]=cam.get_depth_intrinsic_matrix()
                 return cam.get_depth_intrinsic_matrix()
@@ -102,19 +99,18 @@ class PollenSDKCameraWrapper(CameraWrapper):
 
             # return intrinsics
 
-
         except Exception as err:
             self._logger.error(f"Cannot get instrinsic: {err}")
             raise err
 
 
-if __name__ == '__main__':
-    reachy=ReachySDK('localhost')
-    sdkcam=PollenSDKCameraWrapper(reachy)
-    data,_,_=sdkcam.get_data()
+if __name__ == "__main__":
+    reachy = ReachySDK("localhost")
+    sdkcam = PollenSDKCameraWrapper(reachy)
+    data, _, _ = sdkcam.get_data()
     print(data)
-    K=sdkcam.get_K()
+    K = sdkcam.get_K()
     print(K)
 
-    dK=sdkcam.get_depth_K()
+    dK = sdkcam.get_depth_K()
     print(dK)

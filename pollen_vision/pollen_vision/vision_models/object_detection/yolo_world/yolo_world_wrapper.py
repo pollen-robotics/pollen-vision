@@ -5,13 +5,13 @@ import numpy.typing as npt
 from inference.models import YOLOWorld
 import time
 
+
 class YoloWorldWrapper:
     """A wrapper for the YOLO World model."""
 
     def __init__(self) -> None:
         self._model = YOLOWorld(model_id="yolo_world/v2-x")
         self._classes: List[str] = []
-
 
     def infer(
         self, im: npt.NDArray[np.uint8], candidate_labels: List[str], detection_threshold: float = 0.01
@@ -30,7 +30,7 @@ class YoloWorldWrapper:
             - "box": the bounding box of the object, in the format [xmin, ymin, xmax, ymax]
         """
 
-        starttime=time.time()
+        starttime = time.time()
         if candidate_labels != self._classes:
             self.set_classes(candidate_labels)
 

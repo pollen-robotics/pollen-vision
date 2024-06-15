@@ -7,6 +7,7 @@ from mobile_sam import SamPredictor, sam_model_registry
 from pollen_vision.perception.utils import get_checkpoint_path, get_checkpoints_names
 import time
 
+
 class MobileSamWrapper:
     """A wrapper for the MobileSam model."""
 
@@ -43,7 +44,7 @@ class MobileSamWrapper:
                                        obj1                       obj2
         """
 
-        starttime=time.time()
+        starttime = time.time()
         if len(bboxes) == 0 and len(points_list) == 0:
             # print(f"SAM infer timing (done nothing): {time.time()-starttime}")
             return []
