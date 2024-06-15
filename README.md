@@ -83,11 +83,15 @@ We chose to focus on zero-shot models to make it easier to use and deploy. Zero-
 
 Right now, we support: 
 #### Object detection
+- `Yolo-World` for zero-shot object detection and localization
 - `Owl-Vit` for zero-shot object detection and localization
 - `Recognize-Anything` for zero-shot object detection (without localization)
 
 #### Object segmentation
 - `Mobile-SAM` for (fast) zero-shot object segmentation
+
+#### Monocular depth estimation
+- `Depth Anything` for (non metric) monocular depth estimation
 
 Below is an example of combining `Owl-Vit` and `Mobile-Sam` to detect and segment objects in a point cloud, all live. 
 (Note: in this example, there is no temporal or spatial filtering of any kind, we display the raw outputs of the models computed independently on each frame)
