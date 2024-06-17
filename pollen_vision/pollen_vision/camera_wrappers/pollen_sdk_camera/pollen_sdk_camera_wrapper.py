@@ -5,13 +5,14 @@ from typing import Dict, Optional, Tuple
 import numpy as np
 import numpy.typing as npt
 from pollen_vision.camera_wrappers import CameraWrapper
-from reachy2_sdk import ReachySDK
-from reachy2_sdk.media.camera import CameraView
+from reachy2_sdk import ReachySDK  # noqa: F401
+from reachy2_sdk.media.camera import CameraView  # noqa: F401
 
 
 class PollenSDKCameraWrapper(CameraWrapper):  # type: ignore[misc]
     def __init__(self, robot: ReachySDK, cam: str = "SR") -> None:
         super().__init__()
+
         self._reachy = robot
         self._cam_name = cam
         try:
@@ -97,13 +98,13 @@ class PollenSDKCameraWrapper(CameraWrapper):  # type: ignore[misc]
             raise err
 
 
-if __name__ == "__main__":
-    reachy = ReachySDK("localhost")
-    sdkcam = PollenSDKCameraWrapper(reachy)
-    data, _, _ = sdkcam.get_data()  # type: ignore
-    print(data)
-    K = sdkcam.get_K()
-    print(K)
+# if __name__ == "__main__":
+#     reachy = ReachySDK("localhost")
+#     sdkcam = PollenSDKCameraWrapper(reachy)
+#     data, _, _ = sdkcam.get_data()  # type: ignore
+#     print(data)
+#     K = sdkcam.get_K()
+#     print(K)
 
-    dK = sdkcam.get_depth_K()
-    print(dK)
+#     dK = sdkcam.get_depth_K()
+#     print(dK)
