@@ -3,7 +3,6 @@ from typing import Dict, List
 import numpy as np
 import numpy.typing as npt
 from inference.models import YOLOWorld
-import time
 
 
 class YoloWorldWrapper:
@@ -30,7 +29,6 @@ class YoloWorldWrapper:
             - "box": the bounding box of the object, in the format [xmin, ymin, xmax, ymax]
         """
 
-        starttime = time.time()
         if candidate_labels != self._classes:
             self.set_classes(candidate_labels)
 

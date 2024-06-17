@@ -2,8 +2,6 @@
 
 import logging
 from importlib.resources import files
-
-
 from typing import Any, Dict, List, Tuple
 
 import cv2

@@ -54,7 +54,6 @@ class ObjectsFilter:
         mask: npt.NDArray[np.uint8],
         detection_score: float,
     ) -> None:
-
         # print(f"OF nb objects: {len(self.objects)}")
         # print("OF objects:")
         # for o in self.objects:

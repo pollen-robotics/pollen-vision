@@ -319,13 +319,15 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
 
 
 if __name__ == "__main__":
-    from pollen_vision.camera_wrappers.depthai.utils import get_config_file_path, get_connected_devices
     from pollen_vision.camera_wrappers.depthai import SDKWrapper
+    from pollen_vision.camera_wrappers.depthai.utils import (
+        get_config_file_path,
+        get_connected_devices,
+    )
 
     devices = get_connected_devices()
     print(f"Detected cameras: {devices}")
     for mxid, name in devices.items():
-
         if name == "other":
             cam = SDKWrapper(
                 get_config_file_path("CONFIG_SR"),
