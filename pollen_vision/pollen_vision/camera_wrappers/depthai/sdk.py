@@ -73,6 +73,12 @@ class SDKWrapper(DepthaiWrapper):  # type: ignore[misc]
 
         return data, latency, ts
 
+    def get_K(self) -> npt.NDArray[np.float32]:
+        return super().get_K(left=True)  # type: ignore
+
+    def get_depth_K(self) -> npt.NDArray[np.float32]:
+        return super().get_K(left=True)  # type: ignore
+
     def _create_queues(self) -> Dict[str, dai.DataOutputQueue]:
         """Extends the base class method _create_queues() to add the depth and disparity queues
         as well as the rectified left and right images queues from depthai's depth node.

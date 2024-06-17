@@ -15,6 +15,7 @@ while True:
     predictions = Y.infer(
         image,
         candidate_labels=[
+            "mug",
             "orange sunglasses",
             "blue plate",
             "dark plate",

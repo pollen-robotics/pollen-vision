@@ -5,12 +5,13 @@ import numpy.typing as npt
 
 
 class ObjectsFilter:
-    def __init__(self, max_objects_in_memory: int = 500) -> None:
+    def __init__(self, max_objects_in_memory: int = 50) -> None:
         self.objects: List[Dict[str:Any]] = []  # type: ignore
         self.max_objects_in_memory = max_objects_in_memory
         self.pos_threshold = 0.05  # meters
 
     def tick(self) -> None:
+        # print(f"OF tick")
         if len(self.objects) == 0:
             return
         to_remove = []
@@ -20,6 +21,7 @@ class ObjectsFilter:
                 0, self.objects[i]["temporal_score"] - 0.05
             )  # TODO parametrize and tune this
             if self.objects[i]["temporal_score"] < 0.1:  # TODO parametrize and tune this
+                # print(f"DEBUG FILTER: low score {self.objects[i]['temporal_score']}")
                 to_remove.append(i)
             for j in range(i + 1, len(self.objects)):
                 bbox1 = self.objects[i]["bbox"]
@@ -35,9 +37,12 @@ class ObjectsFilter:
                         # remove the one with the lowest detection score
                         if self.objects[i]["detection_score"] < self.objects[j]["detection_score"]:
                             to_remove.append(i)
+                            # print(f"DEBUG FILTER: multiple objects at the same place")
                         else:
                             to_remove.append(j)
+                            # print(f"DEBUG FILTER: multiple objects at the same place")
 
+        # print(f"DEBUG FILTER, to remove: {to_remove}")
         self.objects = [self.objects[i] for i in range(len(self.objects)) if i not in to_remove]
 
     # pos : (x, y, z), bbox : [xmin, ymin, xmax, ymax]
@@ -49,6 +54,10 @@ class ObjectsFilter:
         mask: npt.NDArray[np.uint8],
         detection_score: float,
     ) -> None:
+        # print(f"OF nb objects: {len(self.objects)}")
+        # print("OF objects:")
+        # for o in self.objects:
+        #     print(f'{o["name"]} {o["temporal_score"]} {o["bbox"]} {o["detection_score"]}')
         if len(self.objects) == 0:
             self.objects.append(
                 {
@@ -67,8 +76,10 @@ class ObjectsFilter:
             return
 
         for i in range(len(self.objects)):
+            # print(f'OF obj dist: {np.linalg.norm(pose[:3, 3] - self.objects[i]["pose"][:3, 3])}')
             if np.linalg.norm(pose[:3, 3] - self.objects[i]["pose"][:3, 3]) < self.pos_threshold:  # meters
                 if object_name == self.objects[i]["name"]:  # merge same objects -> multiple observations of the same object
+                    # print(f"OF merging objects: {object_name}")
                     self.objects[i]["temporal_score"] = min(
                         1, self.objects[i]["temporal_score"] + 0.2
                     )  # TODO parametrize and tune this
@@ -96,6 +107,6 @@ class ObjectsFilter:
             if self.objects[i]["temporal_score"] > threshold:
                 print(self.objects[i]["name"], self.objects[i]["pose"], self.objects[i]["temporal_score"])
 
-    def get_objects(self, threshold: float = 0.8) -> List[Dict]:  # type: ignore
+    def get_objects(self, threshold: float = 0.0) -> List[Dict]:  # type: ignore
         tmp = sorted(self.objects.copy(), key=lambda k: np.linalg.norm(k["pose"][:3, 3]))
         return [obj for obj in tmp if obj["temporal_score"] > threshold]

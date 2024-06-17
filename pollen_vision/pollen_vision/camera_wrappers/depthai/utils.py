@@ -117,12 +117,14 @@ def drawEpiLines(left: npt.NDArray[Any], right: npt.NDArray[Any], aruco_dict: ar
 def get_config_files_names() -> List[str]:
     """Returns the names of the config files."""
     path = files("config_files_vision")
+
     return [file.stem for file in path.glob("**/*.json")]  # type: ignore[attr-defined]
 
 
 def get_config_file_path(name: str) -> Any:
     """Returns the path of the config file based on its name."""
     path = files("config_files_vision")
+
     for file in path.glob("**/*"):  # type: ignore[attr-defined]
         if file.stem == name:
             return file.resolve()
