@@ -5,7 +5,7 @@ import numpy.typing as npt
 
 
 class ObjectsFilter:
-    def __init__(self, max_objects_in_memory: int = 50) -> None:
+    def __init__(self, max_objects_in_memory: int = 100) -> None:
         self.objects: List[Dict[str:Any]] = []  # type: ignore
         self.max_objects_in_memory = max_objects_in_memory
         self.pos_threshold = 0.05  # meters
