@@ -7,7 +7,7 @@ from pollen_vision.camera_wrappers.depthai.utils import (
     get_config_file_path,
     get_config_files_names,
 )
-from pollen_vision.perception.utils import PCLVisualizer
+from pollen_vision.perception.utils.pcl_visualizer import PCLVisualizer
 
 valid_configs = get_config_files_names()
 
