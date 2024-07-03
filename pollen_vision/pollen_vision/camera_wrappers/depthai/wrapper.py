@@ -81,9 +81,19 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
             if socket_camToString[cam.socket] in self.cam_config.socket_to_name.keys():
                 connected_cameras_features.append(cam)
 
-        # Assuming both cameras are the same
-        width = connected_cameras_features[0].width
-        height = connected_cameras_features[0].height
+        # Ad hoc solution to NOT select the ToF sensor. Pretty bad
+        tmp = None
+        for cam in connected_cameras_features:
+            if "33D".lower() not in str(cam.sensorName).lower():
+                tmp = cam
+                break
+
+        width = tmp.width
+        height = tmp.height
+
+        # # Assuming both cameras are the same
+        # width = connected_cameras_features[-1].width
+        # height = connected_cameras_features[-1].height
 
         self.cam_config.set_sensor_resolution((width, height))
 

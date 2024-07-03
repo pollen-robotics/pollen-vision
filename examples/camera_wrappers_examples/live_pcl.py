@@ -7,7 +7,7 @@ from pollen_vision.camera_wrappers.depthai.utils import (
     get_config_file_path,
     get_config_files_names,
 )
-from pollen_vision.perception.utils import PCLVisualizer
+from pollen_vision.perception.utils.pcl_visualizer import PCLVisualizer
 
 valid_configs = get_config_files_names()
 
@@ -33,6 +33,7 @@ while True:
     depth = data["depth"]
     rgb = data["left"]
     disparity = data["disparity"]
+
     P.update(cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB), depth)
 
     disparity = (disparity * (255 / w.depth_max_disparity)).astype(np.uint8)

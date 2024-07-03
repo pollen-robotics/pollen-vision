@@ -36,8 +36,8 @@ def create_pipeline():
     tof.initialConfig.set(tofConfig)
 
     cam_tof = pipeline.create(dai.node.Camera)
-    cam_tof.setFps(60)  # ToF node will produce depth frames at /2 of this rate
-    cam_tof.setBoardSocket(dai.CameraBoardSocket.CAM_B)
+    cam_tof.setFps(100)  # ToF node will produce depth frames at /2 of this rate
+    cam_tof.setBoardSocket(dai.CameraBoardSocket.CAM_A)
     cam_tof.raw.link(tof.input)
 
     xout = pipeline.create(dai.node.XLinkOut)
@@ -109,7 +109,7 @@ if __name__ == "__main__":
                 ]
                 currentMedian = tofConfig.median
                 nextMedian = medianSettings[(medianSettings.index(currentMedian) + 1) % len(medianSettings)]
-                print(f"Changing median to {nextMedian.name} from {currentMedian.name}")
+                # print(f"Changing median to {nextMedian.name} from {currentMedian.name}")
                 tofConfig.median = nextMedian
                 tofConfigInQueue.send(tofConfig)
 
@@ -118,6 +118,16 @@ if __name__ == "__main__":
             max_depth = (tofConfig.phaseUnwrappingLevel + 1) * 1500  # 100MHz modulation freq.
             depth_colorized = np.interp(depth_map, (0, max_depth), (0, 255)).astype(np.uint8)
             depth_colorized = cv2.applyColorMap(depth_colorized, cvColorMap)
+
+            print("===")
+            print("tofConfig.enableOpticalCorrection", tofConfig.enableOpticalCorrection)
+            print("tofConfig.enablePhaseShuffleTemporalFilter", tofConfig.enablePhaseShuffleTemporalFilter)
+            print("tofConfig.phaseUnwrappingLevel", tofConfig.phaseUnwrappingLevel)
+            print("tofConfig.phaseUnwrapErrorThreshold", tofConfig.phaseUnwrapErrorThreshold)
+            print("tofConfig.enableFPPNCorrection", tofConfig.enableFPPNCorrection)
+            print("tofConfig.median", tofConfig.median)
+            print("tofConfig.enableTemperatureCorrection", tofConfig.enableTemperatureCorrection)
+            print("===")
 
             cv2.imshow("Colorized depth", depth_colorized)
             counter += 1
