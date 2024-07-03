@@ -4,10 +4,18 @@ from typing import Any, Optional, Union
 import cv2
 import numpy as np
 from pollen_vision.camera_wrappers import CameraWrapper
-from pyorbbecsdk import Config, OBFormat, OBSensorType, Pipeline, VideoFrame
+from pyorbbecsdk import (
+    AlignFilter,
+    Config,
+    OBFormat,
+    OBSensorType,
+    OBStreamType,
+    Pipeline,
+    VideoFrame,
+)
 
-MIN_DEPTH = 20  # 20mm
-MAX_DEPTH = 10000  # 10000mm
+MIN_DEPTH = 200  # 20mm
+MAX_DEPTH = 50000  # 10000mm
 
 
 class OrbbecWrapper(CameraWrapper):  # type: ignore
@@ -21,6 +29,7 @@ class OrbbecWrapper(CameraWrapper):  # type: ignore
             profile_list = self.pipeline.get_stream_profile_list(OBSensorType.DEPTH_SENSOR)
             depth_profile = profile_list.get_default_video_stream_profile()
             self.config.enable_stream(depth_profile)
+            self.align_filter = AlignFilter(align_to_stream=OBStreamType.COLOR_STREAM)
         except Exception as e:
             print(e)
             return
@@ -111,6 +120,7 @@ class OrbbecWrapper(CameraWrapper):  # type: ignore
         if not frames:
             return data, None, None
         depth_frame = frames.get_depth_frame()
+        ddepth_frame = self.align_filter.process(frames)
         color_frame = frames.get_color_frame()
         if depth_frame is None or color_frame is None:
             return data, None, None
