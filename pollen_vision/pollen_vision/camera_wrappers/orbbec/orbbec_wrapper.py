@@ -46,10 +46,16 @@ class OrbbecWrapper(CameraWrapper):  # type: ignore
             return
 
         self.K = np.eye(3)
-        fx = self.pipeline.get_camera_param().depth_intrinsic.fx
-        fy = self.pipeline.get_camera_param().depth_intrinsic.fy
-        cx = self.pipeline.get_camera_param().depth_intrinsic.cx
-        cy = self.pipeline.get_camera_param().depth_intrinsic.cy
+        # fx = self.pipeline.get_camera_param().depth_intrinsic.fx
+        # fy = self.pipeline.get_camera_param().depth_intrinsic.fy
+        # cx = self.pipeline.get_camera_param().depth_intrinsic.cx
+        # cy = self.pipeline.get_camera_param().depth_intrinsic.cy
+
+        # Better !
+        fx = self.pipeline.get_camera_param().rgb_intrinsic.fx
+        fy = self.pipeline.get_camera_param().rgb_intrinsic.fy
+        cx = self.pipeline.get_camera_param().rgb_intrinsic.cx
+        cy = self.pipeline.get_camera_param().rgb_intrinsic.cy
         self.K[0, 0] = fx
         self.K[1, 1] = fy
         self.K[0, 2] = cx
@@ -119,8 +125,8 @@ class OrbbecWrapper(CameraWrapper):  # type: ignore
         frames = self.pipeline.wait_for_frames(100)
         if not frames:
             return data, None, None
+        frames = self.align_filter.process(frames)
         depth_frame = frames.get_depth_frame()
-        ddepth_frame = self.align_filter.process(frames)
         color_frame = frames.get_color_frame()
         if depth_frame is None or color_frame is None:
             return data, None, None
