@@ -58,16 +58,29 @@ class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
 
         return data, latency, ts
 
+    def _create_output_streams(self, pipeline: dai.Pipeline) -> dai.Pipeline:
+        # super()._create_output_streams(pipeline)
+
+        self.xout_left_raw = pipeline.createXLinkOut()
+        self.xout_left_raw.setStreamName("left_raw")
+
+        self.xout_right_raw = pipeline.createXLinkOut()
+        self.xout_right_raw.setStreamName("right_raw")
+
+        return pipeline
+
     def _link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
         """Overloads the base class abstract method to link the pipeline with the nodes together."""
 
         self.left.isp.link(self.left_manip.inputImage)
-        self.left_manip.out.link(self.left_encoder.input)
+        # self.left_manip.out.link(self.left_encoder.input)
+        self.left_manip.out.link(self.xout_left_raw.input)
         self.right.isp.link(self.right_manip.inputImage)
-        self.right_manip.out.link(self.right_encoder.input)
+        self.right_manip.out.link(self.xout_right_raw.input)
+        # self.right_manip.out.link(self.right_encoder.input)
 
-        self.left_encoder.bitstream.link(self.xout_left.input)
-        self.right_encoder.bitstream.link(self.xout_right.input)
+        # self.left_encoder.bitstream.link(self.xout_left.input)
+        # self.right_encoder.bitstream.link(self.xout_right.input)
 
         return pipeline
 
@@ -101,7 +114,7 @@ class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
 
         pipeline = self._pipeline_basis()
 
-        pipeline = self._create_encoders(pipeline)
+        # pipeline = self._create_encoders(pipeline)
 
         pipeline = self._create_output_streams(pipeline)
 
@@ -112,6 +125,8 @@ class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
 
         # config for video: https://docs.luxonis.com/projects/api/en/latest/components/device/#output-queue-maxsize-and-blocking
         queues: Dict[str, dai.DataOutputQueue] = {}
-        for name in ["left", "right"]:
-            queues[name] = self._device.getOutputQueue(name, maxSize=10, blocking=True)
+        # for name in ["left", "right"]:
+        #    queues[name] = self._device.getOutputQueue(name, maxSize=10, blocking=True)
+        for name in ["left_raw", "right_raw"]:
+            queues[name] = self._device.getOutputQueue(name, maxSize=1, blocking=False)
         return queues
