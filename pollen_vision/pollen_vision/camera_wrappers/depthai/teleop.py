@@ -59,13 +59,13 @@ class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
         return data, latency, ts
 
     def _create_output_streams(self, pipeline: dai.Pipeline) -> dai.Pipeline:
-        # super()._create_output_streams(pipeline)
+        super()._create_output_streams(pipeline)
 
-        self.xout_left_raw = pipeline.createXLinkOut()
-        self.xout_left_raw.setStreamName("left_raw")
+        self.xout_left_mjpeg = pipeline.createXLinkOut()
+        self.xout_left_mjpeg.setStreamName("left_mjpeg")
 
-        self.xout_right_raw = pipeline.createXLinkOut()
-        self.xout_right_raw.setStreamName("right_raw")
+        self.xout_right_mjpeg = pipeline.createXLinkOut()
+        self.xout_right_mjpeg.setStreamName("right_mjpeg")
 
         return pipeline
 
@@ -73,14 +73,16 @@ class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
         """Overloads the base class abstract method to link the pipeline with the nodes together."""
 
         self.left.isp.link(self.left_manip.inputImage)
-        # self.left_manip.out.link(self.left_encoder.input)
-        self.left_manip.out.link(self.xout_left_raw.input)
-        self.right.isp.link(self.right_manip.inputImage)
-        self.right_manip.out.link(self.xout_right_raw.input)
-        # self.right_manip.out.link(self.right_encoder.input)
+        self.left_manip.out.link(self.left_encoder.input)
+        self.left_manip.out.link(self.left_encoder_mjpeg.input)
+        self.left_encoder.bitstream.link(self.xout_left.input)
+        self.right_encoder.bitstream.link(self.xout_right.input)
 
-        # self.left_encoder.bitstream.link(self.xout_left.input)
-        # self.right_encoder.bitstream.link(self.xout_right.input)
+        self.right.isp.link(self.right_manip.inputImage)
+        self.right_manip.out.link(self.right_encoder.input)
+        self.right_manip.out.link(self.right_encoder_mjpeg.input)
+        self.left_encoder_mjpeg.bitstream.link(self.xout_left_mjpeg.input)
+        self.right_encoder_mjpeg.bitstream.link(self.xout_right_mjpeg.input)
 
         return pipeline
 
@@ -89,7 +91,7 @@ class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
 
         profile = dai.VideoEncoderProperties.Profile.H264_BASELINE
         bitrate = 4000
-        numBFrames = 0  # gstreamer recommends 0 B frames
+        numBFrames = 0  # no B frames for streaming
         self.left_encoder = pipeline.create(dai.node.VideoEncoder)
         self.left_encoder.setDefaultProfilePreset(self.cam_config.fps, profile)
         self.left_encoder.setKeyframeFrequency(self.cam_config.fps)  # every 1s
@@ -104,6 +106,16 @@ class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
         self.right_encoder.setBitrateKbps(bitrate)
         # self.right_encoder.setQuality(self.cam_config.encoder_quality)
 
+        profile = dai.VideoEncoderProperties.Profile.MJPEG
+
+        self.left_encoder_mjpeg = pipeline.create(dai.node.VideoEncoder)
+        self.left_encoder_mjpeg.setDefaultProfilePreset(self.cam_config.fps, profile)
+        self.left_encoder_mjpeg.setLossless(True)
+
+        self.right_encoder_mjpeg = pipeline.create(dai.node.VideoEncoder)
+        self.right_encoder_mjpeg.setDefaultProfilePreset(self.cam_config.fps, profile)
+        self.right_encoder_mjpeg.setLossless(True)
+
         return pipeline
 
     def _create_pipeline(self) -> dai.Pipeline:
@@ -114,7 +126,7 @@ class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
 
         pipeline = self._pipeline_basis()
 
-        # pipeline = self._create_encoders(pipeline)
+        pipeline = self._create_encoders(pipeline)
 
         pipeline = self._create_output_streams(pipeline)
 
@@ -125,8 +137,7 @@ class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
 
         # config for video: https://docs.luxonis.com/projects/api/en/latest/components/device/#output-queue-maxsize-and-blocking
         queues: Dict[str, dai.DataOutputQueue] = {}
-        # for name in ["left", "right"]:
-        #    queues[name] = self._device.getOutputQueue(name, maxSize=10, blocking=True)
-        for name in ["left_raw", "right_raw"]:
-            queues[name] = self._device.getOutputQueue(name, maxSize=1, blocking=False)
+        for name in ["left", "right", "left_mjpeg", "right_mjpeg"]:
+            queues[name] = self._device.getOutputQueue(name, maxSize=10, blocking=True)
+
         return queues

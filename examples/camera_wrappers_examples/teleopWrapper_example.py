@@ -57,14 +57,14 @@ def spawn_procs(names: List[str]) -> Dict[str, sp.Popen]:  # type: ignore [type-
     return procs
 
 
-# procs = spawn_procs(["left", "right"])  # , "left_raw", "right_raw"])
+procs = spawn_procs(["left", "right", "left_mjpeg", "right_mjpeg"])
 
 while True:
     data, lat, _ = w.get_data()
     logging.info(lat)
     for name, packets in data.items():
-        if name == "left_raw" or name == "right_raw":
-            continue
+        # if name == "left_raw" or name == "right_raw":
+        #    continue
         io = procs[name].stdin
         if io is not None:
             io.write(packets)
