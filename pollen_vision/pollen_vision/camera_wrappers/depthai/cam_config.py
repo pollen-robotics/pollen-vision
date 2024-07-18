@@ -1,7 +1,7 @@
 """Camera configuration class for depthai cameras."""
 
 import json
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import depthai as dai
 import numpy as np
@@ -146,3 +146,28 @@ class CamConfig:
         ret_string += "Undistort maps are: " + "set" if self.undistort_maps["left"] is not None else "not set"
 
         return ret_string
+
+    def to_ROS_msg(self, side : str = "left") -> Tuple[int, int, str, List[float], npt.NDArray[np.float32], npt.NDArray[np.float32], npt.NDArray[np.float32]]:
+        # as defined in https://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/CameraInfo.html
+        # ToDo : double check values
+        height = self.resize_resolution[1]
+        width = self.resize_resolution[0]
+        distortion_model = "plumb_bob"
+        if self.calib.getDistortionModel(get_socket_from_name(side, self.name_to_socket)) == dai.CameraModel.Fisheye:
+            distortion_model = "equidistant"
+        D = self.calib.getDistortionCoefficients(get_socket_from_name(side, self.name_to_socket))
+
+        if side == "left":
+            K = self.get_K_left().flatten()
+            R_tmp = self.calib.getCameraExtrinsics(srcCamera=get_socket_from_name("left", self.name_to_socket),
+                                                   dstCamera=get_socket_from_name("right", self.name_to_socket))
+        else:
+            K = self.get_K_right().flatten()
+            R_tmp = self.calib.getCameraExtrinsics(srcCamera=get_socket_from_name("right", self.name_to_socket),
+                                                   dstCamera=get_socket_from_name("left", self.name_to_socket))
+        # extract rotation matrix     
+        R = np.array(R_tmp).reshape((4, 4))[:3, :3].flatten()
+        # extract projection matrix
+        P = np.array(R_tmp).reshape((4, 4))[:3, :4].flatten()
+
+        return height, width, distortion_model, D, K, R, P
