@@ -34,7 +34,7 @@ class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
             cam_config_json,
             fps,
             force_usb2=force_usb2,
-            resize=(1280, 720),
+            resize=(960, 720),
             rectify=rectify,
             exposure_params=exposure_params,
             mx_id=mx_id,
@@ -110,11 +110,11 @@ class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
 
         self.left_encoder_mjpeg = pipeline.create(dai.node.VideoEncoder)
         self.left_encoder_mjpeg.setDefaultProfilePreset(self.cam_config.fps, profile)
-        self.left_encoder_mjpeg.setLossless(True)
+        # self.left_encoder_mjpeg.setLossless(True)
 
         self.right_encoder_mjpeg = pipeline.create(dai.node.VideoEncoder)
         self.right_encoder_mjpeg.setDefaultProfilePreset(self.cam_config.fps, profile)
-        self.right_encoder_mjpeg.setLossless(True)
+        # self.right_encoder_mjpeg.setLossless(True)
 
         return pipeline
 
@@ -138,6 +138,6 @@ class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
         # config for video: https://docs.luxonis.com/projects/api/en/latest/components/device/#output-queue-maxsize-and-blocking
         queues: Dict[str, dai.DataOutputQueue] = {}
         for name in ["left", "right", "left_mjpeg", "right_mjpeg"]:
-            queues[name] = self._device.getOutputQueue(name, maxSize=10, blocking=True)
+            queues[name] = self._device.getOutputQueue(name, maxSize=30, blocking=True)
 
         return queues
