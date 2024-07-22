@@ -48,6 +48,8 @@ class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
         self._latency_mjpeg: Dict[str, float] = {}
         self._ts_mjpeg: Dict[str, timedelta] = {}
 
+        self._queues_mjpeg: Dict[str, dai.DataOutputQueue] = {}
+
     def get_data_h264(
         self,
     ) -> Tuple[Dict[str, npt.NDArray[np.uint8]], Dict[str, float], Dict[str, timedelta]]:
@@ -60,16 +62,16 @@ class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
 
         for name, queue in self.queues.items():
             pkt = queue.get()
-            self._data_h264[name] = pkt.getData()  # type: ignore[assignment]
-            self._latency_h264[name] = dai.Clock.now() - pkt.getTimestamp()  # type: ignore[attr-defined, call-arg]
-            self._ts_h264[name] = pkt.getTimestamp()  # type: ignore[attr-defined]
+            self._data_h264[name] = pkt.getData()
+            self._latency_h264[name] = dai.Clock.now() - pkt.getTimestamp()  # type: ignore[call-arg]
+            self._ts_h264[name] = pkt.getTimestamp()
 
         return self._data_h264, self._latency_h264, self._ts_h264
 
     def get_data_mjpeg(self) -> Tuple[Dict[str, npt.NDArray[np.uint8]], Dict[str, float], Dict[str, timedelta]]:
         for name, queue in self._queues_mjpeg.items():
             pkt = queue.get()
-            self._data_mjpeg[name] = pkt.getData()  # type: ignore[assignment]
+            self._data_mjpeg[name] = pkt.getData()  # type: ignore[attr-defined]
             self._latency_mjpeg[name] = dai.Clock.now() - pkt.getTimestamp()  # type: ignore[attr-defined, call-arg]
             self._ts_mjpeg[name] = pkt.getTimestamp()  # type: ignore[attr-defined]
 
@@ -156,7 +158,7 @@ class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
         queues_h264: Dict[str, dai.DataOutputQueue] = {}
         for name in ["left", "right"]:
             queues_h264[name] = self._device.getOutputQueue(name, maxSize=30, blocking=True)
-        self._queues_mjpeg: Dict[str, dai.DataOutputQueue] = {}
+
         for name in ["left_mjpeg", "right_mjpeg"]:
             self._queues_mjpeg[name] = self._device.getOutputQueue(name, maxSize=1, blocking=False)
 
