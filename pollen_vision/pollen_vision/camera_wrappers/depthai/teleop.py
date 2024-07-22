@@ -40,8 +40,15 @@ class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
             mx_id=mx_id,
             isp_scale=(2, 3),
         )
+        self._data_h264: Dict[str, npt.NDArray[np.uint8]] = {}
+        self._latency_h264: Dict[str, float] = {}
+        self._ts_h264: Dict[str, timedelta] = {}
 
-    def get_data(
+        self._data_mjpeg: Dict[str, npt.NDArray[np.uint8]] = {}
+        self._latency_mjpeg: Dict[str, float] = {}
+        self._ts_mjpeg: Dict[str, timedelta] = {}
+
+    def get_data_h264(
         self,
     ) -> Tuple[Dict[str, npt.NDArray[np.uint8]], Dict[str, float], Dict[str, timedelta]]:
         """Extends the get_data method of the Wrapper class to return the h264 encoded left and right images.
@@ -51,12 +58,22 @@ class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
                 latencies and timestamps for each camera.
         """
 
-        data, latency, ts = super().get_data()
+        for name, queue in self.queues.items():
+            pkt = queue.get()
+            self._data_h264[name] = pkt.getData()  # type: ignore[assignment]
+            self._latency_h264[name] = dai.Clock.now() - pkt.getTimestamp()  # type: ignore[attr-defined, call-arg]
+            self._ts_h264[name] = pkt.getTimestamp()  # type: ignore[attr-defined]
 
-        for name, pkt in data.items():
-            data[name] = pkt.getData()
+        return self._data_h264, self._latency_h264, self._ts_h264
 
-        return data, latency, ts
+    def get_data_mjpeg(self) -> Tuple[Dict[str, npt.NDArray[np.uint8]], Dict[str, float], Dict[str, timedelta]]:
+        for name, queue in self._queues_mjpeg.items():
+            pkt = queue.get()
+            self._data_mjpeg[name] = pkt.getData()  # type: ignore[assignment]
+            self._latency_mjpeg[name] = dai.Clock.now() - pkt.getTimestamp()  # type: ignore[attr-defined, call-arg]
+            self._ts_mjpeg[name] = pkt.getTimestamp()  # type: ignore[attr-defined]
+
+        return self._data_mjpeg, self._latency_mjpeg, self._ts_mjpeg
 
     def _create_output_streams(self, pipeline: dai.Pipeline) -> dai.Pipeline:
         super()._create_output_streams(pipeline)
@@ -136,8 +153,11 @@ class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
         """Extends the base class method _create_queues() to add the h264 encoded left and right images queues."""
 
         # config for video: https://docs.luxonis.com/projects/api/en/latest/components/device/#output-queue-maxsize-and-blocking
-        queues: Dict[str, dai.DataOutputQueue] = {}
-        for name in ["left", "right", "left_mjpeg", "right_mjpeg"]:
-            queues[name] = self._device.getOutputQueue(name, maxSize=30, blocking=True)
+        queues_h264: Dict[str, dai.DataOutputQueue] = {}
+        for name in ["left", "right"]:
+            queues_h264[name] = self._device.getOutputQueue(name, maxSize=30, blocking=True)
+        self._queues_mjpeg: Dict[str, dai.DataOutputQueue] = {}
+        for name in ["left_mjpeg", "right_mjpeg"]:
+            self._queues_mjpeg[name] = self._device.getOutputQueue(name, maxSize=1, blocking=False)
 
-        return queues
+        return queues_h264
