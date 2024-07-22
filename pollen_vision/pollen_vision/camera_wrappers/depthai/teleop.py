@@ -30,6 +30,16 @@ class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
         exposure_params: Optional[Tuple[int, int]] = None,
         mx_id: str = "",
     ) -> None:
+        self._data_h264: Dict[str, npt.NDArray[np.uint8]] = {}
+        self._latency_h264: Dict[str, float] = {}
+        self._ts_h264: Dict[str, timedelta] = {}
+
+        self._data_mjpeg: Dict[str, npt.NDArray[np.uint8]] = {}
+        self._latency_mjpeg: Dict[str, float] = {}
+        self._ts_mjpeg: Dict[str, timedelta] = {}
+
+        self._queues_mjpeg: Dict[str, dai.DataOutputQueue] = {}
+
         super().__init__(
             cam_config_json,
             fps,
@@ -40,15 +50,6 @@ class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
             mx_id=mx_id,
             isp_scale=(2, 3),
         )
-        self._data_h264: Dict[str, npt.NDArray[np.uint8]] = {}
-        self._latency_h264: Dict[str, float] = {}
-        self._ts_h264: Dict[str, timedelta] = {}
-
-        self._data_mjpeg: Dict[str, npt.NDArray[np.uint8]] = {}
-        self._latency_mjpeg: Dict[str, float] = {}
-        self._ts_mjpeg: Dict[str, timedelta] = {}
-
-        self._queues_mjpeg: Dict[str, dai.DataOutputQueue] = {}
 
     def get_data_h264(
         self,
