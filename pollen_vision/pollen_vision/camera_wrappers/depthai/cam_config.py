@@ -147,9 +147,11 @@ class CamConfig:
 
         return ret_string
 
-    def to_ROS_msg(self, side : str = "left") -> Tuple[int, int, str, List[float], npt.NDArray[np.float32], npt.NDArray[np.float32], npt.NDArray[np.float32]]:
-        # as defined in https://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/CameraInfo.html
-        # ToDo : double check values
+    def to_ROS_msg(
+        self, side: str = "left"
+    ) -> Tuple[int, int, str, List[float], npt.NDArray[np.float32], npt.NDArray[np.float32], npt.NDArray[np.float32]]:
+        # as defined in https://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/CameraInfo.html
+
         height = self.resize_resolution[1]
         width = self.resize_resolution[0]
         distortion_model = "plumb_bob"
@@ -159,15 +161,22 @@ class CamConfig:
 
         if side == "left":
             K = self.get_K_left().flatten()
-            R_tmp = self.calib.getCameraExtrinsics(srcCamera=get_socket_from_name("left", self.name_to_socket),
-                                                   dstCamera=get_socket_from_name("right", self.name_to_socket))
+            R = np.array(self.calib.getStereoLeftRectificationRotation()).flatten()
+            P_t = np.zeros(3).reshape((3, 1))  # Tx, Ty, 0
+            P = np.hstack((self.get_K_left(), P_t)).flatten()
+
         else:
             K = self.get_K_right().flatten()
-            R_tmp = self.calib.getCameraExtrinsics(srcCamera=get_socket_from_name("right", self.name_to_socket),
-                                                   dstCamera=get_socket_from_name("left", self.name_to_socket))
-        # extract rotation matrix     
-        R = np.array(R_tmp).reshape((4, 4))[:3, :3].flatten()
-        # extract projection matrix
-        P = np.array(R_tmp).reshape((4, 4))[:3, :4].flatten()
+            R = np.array(self.calib.getStereoRightRectificationRotation()).flatten()
+            Extrinsics = np.array(
+                self.calib.getCameraExtrinsics(
+                    srcCamera=get_socket_from_name("left", self.name_to_socket),
+                    dstCamera=get_socket_from_name("right", self.name_to_socket),
+                )
+            ).reshape((4, 4))
+            P_t = np.zeros(3).reshape((3, 1))  # Tx, Ty, 0
+            P_t[0] = Extrinsics[0, 3]  # Tx
+            P_t[1] = Extrinsics[1, 3]  # Ty
+            P = np.hstack((self.get_K_right(), P_t)).flatten()
 
         return height, width, distortion_model, D, K, R, P
