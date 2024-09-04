@@ -34,7 +34,7 @@ class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
             cam_config_json,
             fps,
             force_usb2=force_usb2,
-            resize=(1280, 720),
+            resize=(960, 720),
             rectify=rectify,
             exposure_params=exposure_params,
             mx_id=mx_id,

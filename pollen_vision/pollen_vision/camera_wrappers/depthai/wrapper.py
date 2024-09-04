@@ -245,7 +245,7 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
         manip.setMaxOutputFrameSize(resolution[0] * resolution[1] * 3)
 
         manip.initialConfig.setKeepAspectRatio(True)
-        manip.initialConfig.setResize(resolution[0], resolution[1])
+        # manip.initialConfig.setResize(resolution[0], resolution[1])
         manip.initialConfig.setFrameType(dai.ImgFrame.Type.NV12)
 
         return manip
@@ -256,7 +256,7 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
         self.cam_config.set_undistort_maps(mapXL, mapYL, mapXR, mapYR)
 
     # Takes in the output of multical calibration
-    def flash(self, calib_json_file: str) -> None:
+    def flash(self, calib_json_file: str, tof=False) -> None:
         """Flashes the calibration to the camera.
 
         The calibration is read from the calib_json_file and flashed into the camera's eeprom.
@@ -289,9 +289,45 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
                 self._logger.info("Setting camera type to fisheye ...")
                 ch.setCameraType(cam_socket, dai.CameraModel.Fisheye)
 
+        if tof:
+            K = np.eye(3)
+            # Piffed, need to find the real values
+            K[0][0] = 550  # fx
+            K[1][1] = 550  # fy
+            K[0][2] = 320  # cx
+            K[1][2] = 240  # cy
+            tof_socket = get_socket_from_name("tof", self.cam_config.name_to_socket)
+            ch.setCameraIntrinsics(tof_socket, K.tolist(), (640, 480))
+
         self._logger.info("Setting extrinsics ...")
         left_socket = get_socket_from_name("left", self.cam_config.name_to_socket)
         right_socket = get_socket_from_name("right", self.cam_config.name_to_socket)
+
+        if tof:
+            # right->left
+            # left->tof
+            # tof->-1
+            print("FLASHING TOF EXTRINSICS")
+            tof_socket = get_socket_from_name("tof", self.cam_config.name_to_socket)
+            print("TOF SOCKET", tof_socket)
+            T_tof_to_left = np.eye(4)
+            T_tof_to_left[:3, 3] = [-3.2509, 0, 0]
+            T_left_to_tof = np.linalg.inv(T_tof_to_left)
+            ch.setCameraExtrinsics(
+                tof_socket,
+                left_socket,
+                T_left_to_tof[:3, :3].tolist(),
+                T_left_to_tof[:3, 3].tolist(),
+                specTranslation=T_left_to_tof[:3, 3].tolist(),
+            )
+
+            ch.setCameraExtrinsics(
+                left_socket,
+                tof_socket,
+                T_left_to_tof[:3, :3].tolist(),
+                T_left_to_tof[:3, 3].tolist(),
+                specTranslation=T_left_to_tof[:3, 3].tolist(),
+            )
 
         right_to_left = camera_poses["right_to_left"]
         R_right_to_left = np.array(right_to_left["R"])
@@ -300,24 +336,53 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
 
         R_left_to_right, T_left_to_right = get_inv_R_T(R_right_to_left, T_right_to_left)
 
+        # ch.setCameraExtrinsics(
+        #     right_socket,
+        #     left_socket,
+        #     R_right_to_left,
+        #     T_right_to_left,
+        #     specTranslation=T_right_to_left,
+        # )
+
         ch.setCameraExtrinsics(
             left_socket,
             right_socket,
-            R_right_to_left.tolist(),
-            T_right_to_left.tolist(),
-            specTranslation=T_right_to_left.tolist(),
+            R_left_to_right.tolist(),
+            T_left_to_right.tolist(),
+            specTranslation=T_left_to_right.tolist(),
         )
-        ch.setCameraExtrinsics(
-            right_socket,
-            left_socket,
-            R_left_to_right,
-            T_left_to_right,
-            specTranslation=T_left_to_right,
-        )
+        # if not tof:
+        #     ch.setCameraExtrinsics(
+        #         left_socket,
+        #         right_socket,
+        #         R_right_to_left.tolist(),
+        #         T_right_to_left.tolist(),
+        #         specTranslation=T_right_to_left.tolist(),
+        #     )
 
         ch.setStereoLeft(left_socket, np.eye(3).tolist())
         ch.setStereoRight(right_socket, R_right_to_left.tolist())
 
+        # print(
+        #     ch.getCameraExtrinsics(dai.CameraBoardSocket.CAM_C, dai.CameraBoardSocket.CAM_B)
+        # )  # extrinsics left camera <-> ToF OK
+        # print(
+        #     ch.getCameraExtrinsics(dai.CameraBoardSocket.CAM_B, dai.CameraBoardSocket.CAM_C)
+        # )  # extrinsics left camera <-> ToF OK
+        # print(
+        #     ch.getCameraExtrinsics(dai.CameraBoardSocket.CAM_B, dai.CameraBoardSocket.CAM_D)
+        # )  # extrinsics left camera <-> ToF OK
+        # print(
+        #     ch.getCameraExtrinsics(dai.CameraBoardSocket.CAM_D, dai.CameraBoardSocket.CAM_B)
+        # )  # extrinsics left camera <-> ToF OK
+        # print(
+        #     ch.getCameraExtrinsics(dai.CameraBoardSocket.CAM_C, dai.CameraBoardSocket.CAM_D)
+        # )  # extrinsics left camera <-> ToF OK
+        # print(
+        #     ch.getCameraExtrinsics(dai.CameraBoardSocket.CAM_D, dai.CameraBoardSocket.CAM_C)
+        # )  # extrinsics left camera <-> ToF OK
+
+        ch.eepromToJsonFile("saved_calib.json")
         self._logger.info("Flashing ...")
         try:
             self._device.flashCalibration2(ch)

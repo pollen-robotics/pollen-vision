@@ -35,7 +35,7 @@ while True:
     for name in data.keys():
         _data[name] = data[name]
     epi = drawEpiLines(_data["left"], _data["right"], ARUCO_DICT)
-    epi = cv2.resize(epi, (0, 0), fx=0.9, fy=0.9)
+    epi = cv2.resize(epi, (0, 0), fx=0.5, fy=0.5)
     cv2.imshow("epi", epi)
     key = cv2.waitKey(1)
 
