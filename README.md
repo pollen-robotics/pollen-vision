@@ -32,7 +32,7 @@
 <!-- # Pollen Vision -->
 
 <div align="center">
- 
+
 ![demo](assets/pollen_vision_intro.gif)
 
 </div>
@@ -46,7 +46,7 @@ import cv2
 
 from pollen_vision.vision_models.object_detection import OwlVitWrapper
 from pollen_vision.vision_models.object_segmentation import MobileSamWrapper
-from pollen_vision.perception.utils import Annotator, get_bboxes
+from pollen_vision.utils import Annotator, get_bboxes
 
 
 owl = OwlVitWrapper()
@@ -81,7 +81,7 @@ We continue to work on adding new models that could be useful for robotics perce
 
 We chose to focus on zero-shot models to make it easier to use and deploy. Zero-shot models can recognize objects or segment them based on text queries, without needing to be fine-tuned on annotated datasets.
 
-Right now, we support: 
+Right now, we support:
 #### Object detection
 - `Yolo-World` for zero-shot object detection and localization
 - `Owl-Vit` for zero-shot object detection and localization
@@ -93,7 +93,7 @@ Right now, we support:
 #### Monocular depth estimation
 - `Depth Anything` for (non metric) monocular depth estimation
 
-Below is an example of combining `Owl-Vit` and `Mobile-Sam` to detect and segment objects in a point cloud, all live. 
+Below is an example of combining `Owl-Vit` and `Mobile-Sam` to detect and segment objects in a point cloud, all live.
 (Note: in this example, there is no temporal or spatial filtering of any kind, we display the raw outputs of the models computed independently on each frame)
 
 https://github.com/pollen-robotics/pollen-vision/assets/6552564/a5285627-9cba-4af5-aafb-6af3d1e6d40c
@@ -185,7 +185,7 @@ python pollen-vision/gradio/app.py
 <details>
 
 <summary>Examples</summary>
-    
+
 # Examples
 
 ## Vision models wrappers
@@ -199,5 +199,3 @@ Check our [example scripts](examples/camera_wrappers_examples/)!
 
 [![Twitter URL](https://img.shields.io/twitter/url?url=https%3A%2F%2Ftwitter.com%2Fpollenrobotics)](https://twitter.com/pollenrobotics)
 [![Linkedin URL](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/company/pollen-robotics/mycompany/)
-
-
