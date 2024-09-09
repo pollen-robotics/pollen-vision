@@ -110,7 +110,7 @@ We also provide wrappers for the Luxonis cameras which we use internally. They a
 # Installation
 
 ```
-Note: This package has been tested on Ubuntu 22.04 and macOS (with M1 Pro processor).
+Note: This package has been tested on Ubuntu 22.04 and macOS (with M1 Pro processor), with python3.10.
 ```
 ## Git LFS
 This repository uses Git LFS to store large files. You need to install it before cloning the repository.
