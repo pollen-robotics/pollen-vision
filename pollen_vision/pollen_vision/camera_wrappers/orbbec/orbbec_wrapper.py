@@ -1,8 +1,9 @@
-import time
-from typing import Any, Optional, Union
+from datetime import timedelta
+from typing import Any, Dict, Optional, Tuple, Union
 
 import cv2
 import numpy as np
+import numpy.typing as npt
 from pollen_vision.camera_wrappers import CameraWrapper
 from pyorbbecsdk import (
     AlignFilter,
@@ -45,7 +46,7 @@ class OrbbecWrapper(CameraWrapper):  # type: ignore
             print(e)
             return
 
-        self.K = np.eye(3)
+        self.K = np.eye(3).astype(np.float32)
         # fx = self.pipeline.get_camera_param().depth_intrinsic.fx
         # fy = self.pipeline.get_camera_param().depth_intrinsic.fy
         # cx = self.pipeline.get_camera_param().depth_intrinsic.cx
@@ -61,32 +62,32 @@ class OrbbecWrapper(CameraWrapper):  # type: ignore
         self.K[0, 2] = cx
         self.K[1, 2] = cy
 
-    def i420_to_bgr(self, frame: np.ndarray, width: int, height: int) -> np.ndarray:
+    def i420_to_bgr(self, frame: npt.NDArray, width: int, height: int) -> npt.NDArray[np.uint8]:  # type: ignore
         y = frame[0:height, :]
         u = frame[height : height + height // 4].reshape(height // 2, width // 2)
         v = frame[height + height // 4 :].reshape(height // 2, width // 2)
         yuv_image = cv2.merge([y, u, v])
         bgr_image = cv2.cvtColor(yuv_image, cv2.COLOR_YUV2BGR_I420)
 
-        return bgr_image
+        return bgr_image  # type: ignore
 
-    def nv21_to_bgr(self, frame: np.ndarray, width: int, height: int) -> np.ndarray:
+    def nv21_to_bgr(self, frame: np.ndarray, width: int, height: int) -> np.ndarray:  # type: ignore
         y = frame[0:height, :]
         uv = frame[height : height + height // 2].reshape(height // 2, width)
         yuv_image = cv2.merge([y, uv])
         bgr_image = cv2.cvtColor(yuv_image, cv2.COLOR_YUV2BGR_NV21)
 
-        return bgr_image
+        return bgr_image  # type: ignore
 
-    def nv12_to_bgr(self, frame: np.ndarray, width: int, height: int) -> np.ndarray:
+    def nv12_to_bgr(self, frame: np.ndarray, width: int, height: int) -> np.ndarray:  # type: ignore
         y = frame[0:height, :]
         uv = frame[height : height + height // 2].reshape(height // 2, width)
         yuv_image = cv2.merge([y, uv])
         bgr_image = cv2.cvtColor(yuv_image, cv2.COLOR_YUV2BGR_NV12)
 
-        return bgr_image
+        return bgr_image  # type: ignore
 
-    def frame_to_bgr_image(self, frame: VideoFrame) -> Union[Optional[np.array], Any]:
+    def frame_to_bgr_image(self, frame: VideoFrame) -> Union[Optional[np.array], Any]:  # type: ignore
         width = frame.get_width()
         height = frame.get_height()
         color_format = frame.get_format()
@@ -120,8 +121,8 @@ class OrbbecWrapper(CameraWrapper):  # type: ignore
             return None
         return image
 
-    def get_data(self) -> None:
-        data = {}
+    def get_data(self) -> Tuple[Dict[str, npt.NDArray[np.uint8]], Optional[Dict[str, float]], Optional[Dict[str, timedelta]]]:
+        data: Dict[str, npt.NDArray[np.uint8]] = {}
         frames = self.pipeline.wait_for_frames(100)
         if not frames:
             return data, None, None
@@ -144,36 +145,36 @@ class OrbbecWrapper(CameraWrapper):  # type: ignore
         color_image = self.frame_to_bgr_image(color_frame)
         color_image = cv2.resize(color_image, (width, height))
 
-        data["depth"] = depth_data
+        data["depth"] = depth_data  # type: ignore
         data["left"] = color_image
         return data, None, None
 
-    def get_K(self) -> None:
+    def get_K(self) -> npt.NDArray[np.float32]:
         return self.K
 
 
 mouse_x, mouse_y = 0, 0
 
 
-def cv2_callback(event, x, y, flags, param):
-    global mouse_x, mouse_y
-    mouse_x, mouse_y = x, y
+# def cv2_callback(event, x, y, flags, param):
+#     global mouse_x, mouse_y
+#     mouse_x, mouse_y = x, y
 
 
-if __name__ == "__main__":
-    o = OrbbecWrapper()
+# if __name__ == "__main__":
+#     o = OrbbecWrapper()
 
-    cv2.namedWindow("depth")
-    cv2.setMouseCallback("depth", cv2_callback)
+#     cv2.namedWindow("depth")
+#     cv2.setMouseCallback("depth", cv2_callback)
 
-    while True:
-        data, _, _ = o.get_data()
-        if "depth" in data:
-            cv2.imshow("depth", data["depth"])
-            depth_value = data["depth"][mouse_y, mouse_x]
-            print(depth_value)
-        if "left" in data:
-            cv2.imshow("left", data["left"])
+#     while True:
+#         data, _, _ = o.get_data()
+#         if "depth" in data:
+#             cv2.imshow("depth", data["depth"])
+#             depth_value = data["depth"][mouse_y, mouse_x]
+#             print(depth_value)
+#         if "left" in data:
+#             cv2.imshow("left", data["left"])
 
-        cv2.waitKey(1)
-        time.sleep(0.01)
+#         cv2.waitKey(1)
+#         time.sleep(0.01)
