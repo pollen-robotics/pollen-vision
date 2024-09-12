@@ -10,7 +10,7 @@ from reachy2_sdk.media.camera import CameraView  # noqa: F401
 
 
 class PollenSDKCameraWrapper(CameraWrapper):  # type: ignore[misc]
-    def __init__(self, robot: ReachySDK, cam: str = "SR") -> None:
+    def __init__(self, robot: ReachySDK, cam: str = "depth") -> None:
         super().__init__()
 
         self._reachy = robot
@@ -38,24 +38,28 @@ class PollenSDKCameraWrapper(CameraWrapper):  # type: ignore[misc]
             if not self._reachy.is_connected():
                 self._reachy.connect()
 
-            cam = getattr(self._reachy.cameras, self._cam_name)
-            if cam.capture():
-                self.depth = cam.get_depthmap()
-                data["depth"] = self.depth  # type: ignore
-                self.left = cam.get_frame()
-                data["left"] = self.left  # type: ignore
-                # self.right=cam.get_frame() #FIXME, for now, can't get the RIGHT image from the sdk...
-                # data["right"]=self.left
-                self.right = cam.get_frame(CameraView.RIGHT)
-                data["right"] = self.right  # type: ignore
-                # fixme
-                data["depthNode_left"] = self.left  # type: ignore
-                data["depthNode_right"] = self.right  # type: ignore
+            # cam = getattr(self._reachy.cameras, self._cam_name)
+            # if cam.capture():
+            #     self.depth = cam.get_depthmap()
+            #     data["depth"] = self.depth  # type: ignore
+            #     self.left = cam.get_frame()
+            #     data["left"] = self.left  # type: ignore
+            #     # self.right=cam.get_frame() #FIXME, for now, can't get the RIGHT image from the sdk...
+            #     # data["right"]=self.left
+            #     self.right = cam.get_frame(CameraView.RIGHT)
+            #     data["right"] = self.right  # type: ignore
+            #     # fixme
+            #     data["depthNode_left"] = self.left  # type: ignore
+            #     data["depthNode_right"] = self.right  # type: ignore
 
-                return data, latency, ts
-            else:
-                self._logger.error("capture failed")
-                return data, latency, ts
+            frame, ts = self._reachy.cameras.depth.get_frame()
+            depth_frame, ts_depth = self._reachy.cameras.depth.get_depth_frame()
+            data["depth"] = depth_frame
+            data["left"] = frame[:, :, ::-1]
+            return data, latency, ts
+            # else:
+            #     self._logger.error("capture failed")
+            #     return data, latency, ts
         except Exception as err:
             self._logger.error(f"Cannot capture frame: {err}")
             raise err
@@ -65,16 +69,16 @@ class PollenSDKCameraWrapper(CameraWrapper):  # type: ignore[misc]
             if not self._reachy.is_connected():
                 self._reachy.connect()
 
-            cam = getattr(self._reachy.cameras, self._cam_name)
+            #cam = getattr(self._reachy.cameras, self._cam_name)
 
-            if not cam.capture():
-                self._logger.error("capture failed")
-                return None
+            # if not cam.capture():
+            #     self._logger.error("capture failed")
+            #     return None
             # intrinsics["left"]=cam.get_intrinsic_matrix()
             # intrinsics["depth"]=cam.get_depth_intrinsic_matrix()
 
             # always left... FIXME
-            return cam.get_intrinsic_matrix()  # type: ignore
+            return np.array(self._reachy.cameras.depth.get_parameters()[4]).reshape(3,3)
 
         except Exception as err:
             self._logger.error(f"Cannot get instrinsic: {err}")

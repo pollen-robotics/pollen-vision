@@ -14,7 +14,7 @@ from pollen_vision.perception.utils import (
     get_object_pose_in_world,
     get_scores,
 )
-from pollen_vision.vision_models.object_detection import YoloWorldWrapper
+from pollen_vision.vision_models.object_detection import YoloWorldWrapper, OwlVitWrapper
 from pollen_vision.vision_models.object_segmentation import MobileSamWrapper
 
 
@@ -28,6 +28,7 @@ class Perception:
         self.cam = camera_wrapper
         self.T_world_cam = T_world_cam
         self.freq = freq
+        self.Owl = OwlVitWrapper()
         self.YOLO = YoloWorldWrapper()
         self.SAM = MobileSamWrapper()
         self.A = Annotator()
@@ -71,7 +72,7 @@ class Perception:
                 self._lastTick = time.time()  # Lame
                 continue
 
-            self.last_predictions = self.YOLO.infer(self.last_im, self.tracked_objects, detection_threshold=self._yolo_thres)
+            self.last_predictions = self.Owl.infer(self.last_im, self.tracked_objects, detection_threshold=self._yolo_thres)
             if len(self.last_predictions) == 0:
                 self._lastTick = time.time()  # Lame
                 continue
