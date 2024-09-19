@@ -3,7 +3,7 @@ import os
 
 import cv2
 import numpy as np
-from pollen_vision.camera_wrappers.depthai import SDKWrapper
+from pollen_vision.camera_wrappers.depthai import SDKWrapper, TOFWrapper
 from pollen_vision.camera_wrappers.depthai.utils import (
     get_config_file_path,
     get_config_files_names,
@@ -24,9 +24,14 @@ argParser.add_argument(
     default="./calib_images/",
     help="Directory where the acquired images are stored (default ./calib_images/)",
 )
+argParser.add_argument("--tof", action="store_true", help="Has tof sensor ?")
 args = argParser.parse_args()
 
-w = SDKWrapper(get_config_file_path(args.config), compute_depth=False, rectify=False)
+if not args.tof:
+    w = SDKWrapper(get_config_file_path(args.config), compute_depth=False, rectify=False)
+else:
+    w = TOFWrapper(get_config_file_path("CONFIG_IMX296_TOF"), fps=30)
+
 
 left_path = os.path.join(args.imagesPath, "left")
 right_path = os.path.join(args.imagesPath, "right")
@@ -44,7 +49,14 @@ while True:
     for name in data.keys():
         _data[name] = data[name]
 
-    concat = np.hstack((_data["left"], _data["right"]))
+    if args.tof:
+        tof_amplitude = _data["tof_amplitude"]
+        print(_data["left"].shape)
+        tof_amplitude = cv2.resize(tof_amplitude, _data["left"].shape[:2][::-1])
+        tof_amplitude = np.dstack((tof_amplitude, tof_amplitude, tof_amplitude))
+        concat = np.hstack((_data["left"], _data["right"], tof_amplitude))
+    else:
+        concat = np.hstack((_data["left"], _data["right"]))
     cv2.imshow(name, cv2.resize(concat, (0, 0), fx=0.5, fy=0.5))
     key = cv2.waitKey(1)
     if key == 13:

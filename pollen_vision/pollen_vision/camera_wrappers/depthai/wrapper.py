@@ -292,10 +292,10 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
         if tof:
             K = np.eye(3)
             # Piffed, need to find the real values
-            K[0][0] = 550  # fx
-            K[1][1] = 550  # fy
-            K[0][2] = 320  # cx
-            K[1][2] = 240  # cy
+            K[0][0] = 471.8361511230469  # fx
+            K[1][1] = 471.7205810546875  # fy
+            K[0][2] = 322.25347900390625  # cx
+            K[1][2] = 246.209716796875  # cy
             tof_socket = get_socket_from_name("tof", self.cam_config.name_to_socket)
             ch.setCameraIntrinsics(tof_socket, K.tolist(), (640, 480))
 

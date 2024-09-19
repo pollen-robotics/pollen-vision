@@ -16,11 +16,7 @@ from pollen_vision.camera_wrappers.depthai.wrapper import DepthaiWrapper
 
 class TOFWrapper(DepthaiWrapper):
     def __init__(
-        self,
-        cam_config_json: str,
-        fps: int = 30,
-        force_usb2: bool = False,
-        mx_id: str = "",
+        self, cam_config_json: str, fps: int = 30, force_usb2: bool = False, mx_id: str = "", crop: bool = False
     ) -> None:
         super().__init__(
             cam_config_json,
@@ -35,6 +31,7 @@ class TOFWrapper(DepthaiWrapper):
         self.cvColorMap = cv2.applyColorMap(np.arange(256, dtype=np.uint8), cv2.COLORMAP_JET)
         self.cvColorMap[0] = [0, 0, 0]
         self.cam_config.undistort_resolution = (640, 480)
+        self.crop = crop
 
     def crop_image(self, im, depth):
         # threshold depth
@@ -64,18 +61,20 @@ class TOFWrapper(DepthaiWrapper):
         left = messageGroup["left"].getCvFrame()
         right = messageGroup["right"].getCvFrame()
         depth = messageGroup["depth_aligned"].getFrame()
+        tof_amplitude = messageGroup["tof_amplitude"].getCvFrame()
 
         # Temporary, not ideal
-        cropped_left, cropped_depth = self.crop_image(left, depth)
 
-        data["left"] = cropped_left
+        if self.crop:
+            cropped_left, cropped_depth = self.crop_image(left, depth)
+            data["left"] = cropped_left
+            data["depth"] = cropped_depth
+        else:
+            data["left"] = left
+            data["depth"] = depth
+
         data["right"] = right
-        data["depth"] = cropped_depth
-
-        # data["left"] = left
-        # data["right"] = right
-        # data["depth"] = depth
-
+        data["tof_amplitude"] = tof_amplitude
         return data, latency, ts
 
     def get_K(self) -> npt.NDArray[np.float32]:
@@ -124,6 +123,7 @@ class TOFWrapper(DepthaiWrapper):
     def _link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
         self.left.isp.link(self.left_manip.inputImage)
         self.right.isp.link(self.right_manip.inputImage)
+        self.tof.amplitude.link(self.sync.inputs["tof_amplitude"])
 
         self.left_manip.out.link(self.sync.inputs["left"])
         self.right_manip.out.link(self.sync.inputs["right"])
@@ -164,7 +164,7 @@ def cv_callback(event, x, y, flags, param):
 
 
 if __name__ == "__main__":
-    t = TOFWrapper(get_config_file_path("CONFIG_AR0234_TOF"), fps=30)
+    t = TOFWrapper(get_config_file_path("CONFIG_IMX296_TOF"), fps=30)
 
     # P = PCLVisualizer(t.get_K())
     cv2.namedWindow("depth")
@@ -174,14 +174,16 @@ if __name__ == "__main__":
         data, _, _ = t.get_data()
         left = data["left"]
         right = data["right"]
+        tof_amplitude = data["tof_amplitude"]
         # left = cv2.resize(left, (640, 480))
         # right = cv2.resize(right, (640, 480))
         depth = data["depth"]
         cv2.imshow("left", left)
-        cv2.imshow("right", right)
+        # cv2.imshow("right", right)
         print(data["depth"][mouse_y, mouse_x])
         depth = cv2.circle(depth, (mouse_x, mouse_y), 5, (0, 255, 0), -1)
         cv2.imshow("depth", depth)
+        cv2.imshow("tof_amplitude", tof_amplitude)
         # P.update(cv2.cvtColor(left, cv2.COLOR_BGR2RGB), depth)
         # P.tick()
         cv2.waitKey(1)

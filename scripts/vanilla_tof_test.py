@@ -47,6 +47,10 @@ def create_pipeline():
     xout.setStreamName("depth")
     tof.depth.link(xout.input)
 
+    xout_tof_amplitude = pipeline.create(dai.node.XLinkOut)
+    tof.amplitude.link(xout_tof_amplitude.input)
+    xout_tof_amplitude.setStreamName("tof_amplitude")
+
     tofConfig = tof.initialConfig.get()
 
     right = pipeline.create(dai.node.ColorCamera)
@@ -91,6 +95,7 @@ if __name__ == "__main__":
 
         left_q = device.getOutputQueue(name="left", maxSize=8, blocking=False)
         right_q = device.getOutputQueue(name="right", maxSize=8, blocking=False)
+        tof_amplitude = device.getOutputQueue(name="tof_amplitude", maxSize=8, blocking=False)
 
         tofConfigInQueue = device.getInputQueue("tofConfig")
 
@@ -172,12 +177,18 @@ if __name__ == "__main__":
             in_left = left_q.get()
             in_right = right_q.get()
 
+            tof_amplitude_frame = tof_amplitude.get()
+
             left_im = in_left.getCvFrame()
             right_im = in_right.getCvFrame()
+
+            tof_amplitude_img = tof_amplitude_frame.getCvFrame().astype(np.float32)
 
             cv2.imshow("left", left_im)
             cv2.imshow("right", right_im)
             cv2.imshow("Colorized depth", depth_colorized)
+            cv2.imshow("tof_amplitude", tof_amplitude_img / tof_amplitude_img.max() * 255)
+
             counter += 1
             time.sleep(1 / 30)
 
