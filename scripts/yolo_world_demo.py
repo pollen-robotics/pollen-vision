@@ -1,7 +1,7 @@
 import cv2
 from pollen_vision.camera_wrappers.depthai import SDKWrapper
 from pollen_vision.camera_wrappers.depthai.utils import get_config_file_path
-from pollen_vision.perception.utils import Annotator
+from pollen_vision.utils import Annotator
 from pollen_vision.vision_models.object_detection import YoloWorldWrapper
 
 w = SDKWrapper(get_config_file_path("CONFIG_SR"))

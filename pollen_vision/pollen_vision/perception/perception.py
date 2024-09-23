@@ -11,7 +11,7 @@ import FramesViewer.utils as fv_utils
 
 from pollen_vision.camera_wrappers import CameraWrapper
 from pollen_vision.camera_wrappers.pollen_sdk_camera.pollen_sdk_camera_wrapper import PollenSDKCameraWrapper
-from pollen_vision.perception.utils import (
+from pollen_vision.utils import (
     Annotator,
     ObjectsFilter,
     get_bboxes,
