@@ -3,12 +3,13 @@ import time
 from typing import Dict, List, Optional
 
 import cv2
+import FramesViewer.utils as fv_utils
 import numpy as np
 import numpy.typing as npt
-
-import FramesViewer.utils as fv_utils
 from pollen_vision.camera_wrappers import CameraWrapper
-from pollen_vision.camera_wrappers.pollen_sdk_camera.pollen_sdk_camera_wrapper import PollenSDKCameraWrapper
+from pollen_vision.camera_wrappers.pollen_sdk_camera.pollen_sdk_camera_wrapper import (
+    PollenSDKCameraWrapper,
+)
 from pollen_vision.utils import (
     Annotator,
     ObjectsFilter,
@@ -76,7 +77,7 @@ class Perception:
         self.run_thread = False
         # self._t.join()
 
-    def tick(self) -> None:
+    def tick(self) -> None:  # noqa: C901
         while self.run_thread:
             elapsed = time.time() - self._lastTick
             if elapsed < 1 / self.freq:
