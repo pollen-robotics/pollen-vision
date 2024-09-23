@@ -1,14 +1,12 @@
 import threading
 import time
 from typing import Dict, List, Optional
-from pyquaternion import Quaternion
 
 import cv2
 import numpy as np
 import numpy.typing as npt
 
 import FramesViewer.utils as fv_utils
-
 from pollen_vision.camera_wrappers import CameraWrapper
 from pollen_vision.camera_wrappers.pollen_sdk_camera.pollen_sdk_camera_wrapper import PollenSDKCameraWrapper
 from pollen_vision.utils import (
@@ -19,7 +17,7 @@ from pollen_vision.utils import (
     get_object_pose_in_world,
     get_scores,
 )
-from pollen_vision.vision_models.object_detection import YoloWorldWrapper, OwlVitWrapper
+from pollen_vision.vision_models.object_detection import OwlVitWrapper, YoloWorldWrapper
 from pollen_vision.vision_models.object_segmentation import MobileSamWrapper
 
 
@@ -161,33 +159,33 @@ class Perception:
                 self.tracked_objects.append(obj)
 
 
-if __name__ == "__main__":
-    import FramesViewer.utils as fv_utils
-    from pollen_vision.camera_wrappers.depthai import SDKWrapper
-    from pollen_vision.camera_wrappers.depthai.utils import get_config_file_path
+# if __name__ == "__main__":
+#     import FramesViewer.utils as fv_utils
+#     from pollen_vision.camera_wrappers.depthai import SDKWrapper
+#     from pollen_vision.camera_wrappers.depthai.utils import get_config_file_path
 
-    # from pollen_vision.camera_wrappers.pollen_sdk_camera.pollen_sdk_camera_wrapper import (
-    #     PollenSDKCameraWrapper,
-    # )
-    # from reachy2_sdk import ReachySDK
+#     # from pollen_vision.camera_wrappers.pollen_sdk_camera.pollen_sdk_camera_wrapper import (
+#     #     PollenSDKCameraWrapper,
+#     # )
+#     # from reachy2_sdk import ReachySDK
 
-    T_world_cam = fv_utils.make_pose([0.03, -0.15, 0.1], [0, 0, 0])
+#     T_world_cam = fv_utils.make_pose([0.03, -0.15, 0.1], [0, 0, 0])
 
-    S = SDKWrapper(get_config_file_path("CONFIG_SR"), compute_depth=True)
-    # reachy = ReachySDK(host="localhost")
-    # S = PollenSDKCameraWrapper(reachy)
+#     S = SDKWrapper(get_config_file_path("CONFIG_SR"), compute_depth=True)
+#     # reachy = ReachySDK(host="localhost")
+#     # S = PollenSDKCameraWrapper(reachy)
 
-    perception = Perception(S, T_world_cam, freq=30)
-    perception.set_tracked_objects(["mug", "grey duct tape", "pen"])
-    perception.start(visualize=True)
+#     perception = Perception(S, T_world_cam, freq=30)
+#     perception.set_tracked_objects(["mug", "grey duct tape", "pen"])
+#     perception.start(visualize=True)
 
-    while True:
-        print("==")
+#     while True:
+#         print("==")
 
-        objs = perception.get_objects_infos()
-        for obj in objs:
-            print(obj["name"], np.linalg.norm(obj["pose"][:3, 3]), obj["temporal_score"], obj["detection_score"])
-        for i in perception.last_predictions:
-            print(f"raw: {i}")
-        print("==")
-        time.sleep(0.1)
+#         objs = perception.get_objects_infos()
+#         for obj in objs:
+#             print(obj["name"], np.linalg.norm(obj["pose"][:3, 3]), obj["temporal_score"], obj["detection_score"])
+#         for i in perception.last_predictions:
+#             print(f"raw: {i}")
+#         print("==")
+#         time.sleep(0.1)

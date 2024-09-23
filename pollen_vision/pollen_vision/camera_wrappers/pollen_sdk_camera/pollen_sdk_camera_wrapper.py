@@ -1,13 +1,14 @@
 import time
 from datetime import timedelta
 from typing import Dict, Optional, Tuple
-from pyquaternion import Quaternion as pyQuat
 
 import numpy as np
 import numpy.typing as npt
-from pollen_vision.camera_wrappers import CameraWrapper
+from pyquaternion import Quaternion as pyQuat
 from reachy2_sdk import ReachySDK  # noqa: F401
 from reachy2_sdk.media.camera import CameraView  # noqa: F401
+
+from pollen_vision.camera_wrappers import CameraWrapper
 
 
 class PollenSDKCameraWrapper(CameraWrapper):  # type: ignore[misc]
