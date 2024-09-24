@@ -287,7 +287,9 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
 
             ch.setCameraIntrinsics(cam_socket, K.tolist(), im_size)
             if cam_name == "tof":
-                D = np.array([-9.466925621032715, 30.354965209960938, 0.0001632508501643315, -0.00029841947252862155]) * 0.01
+                D = (
+                    np.array([-9.466925621032715, 30.354965209960938, 0.0001632508501643315, -0.00029841947252862155]) * 0.01
+                )  # Values given by luxonis. But not sure if we should use that, and why scale by 0.01 ?
                 # D = np.array([0, 0, 0, 0])
 
             ch.setDistortionCoefficients(cam_socket, D.tolist())

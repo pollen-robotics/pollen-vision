@@ -23,7 +23,7 @@ class TOFWrapper(DepthaiWrapper):
             fps,
             force_usb2=force_usb2,
             resize=None,
-            rectify=True,
+            rectify=False,
             exposure_params=None,
             mx_id=mx_id,
             # isp_scale=(2, 3),
@@ -94,12 +94,12 @@ class TOFWrapper(DepthaiWrapper):
         self.tofConfig = self.tof.initialConfig.get()
         self.tofConfig.enableFPPNCorrection = True
         self.tofConfig.enableOpticalCorrection = False  # True is ok ?
-        self.tofConfig.enablePhaseShuffleTemporalFilter = True
+        self.tofConfig.enablePhaseShuffleTemporalFilter = False
         self.tofConfig.phaseUnwrappingLevel = 1
         self.tofConfig.phaseUnwrapErrorThreshold = 300
         self.tofConfig.enableTemperatureCorrection = False  # Not yet supported
         self.tofConfig.enableWiggleCorrection = False
-        self.tofConfig.median = dai.MedianFilter.KERNEL_7x7
+        self.tofConfig.median = dai.MedianFilter.KERNEL_3x3
         self.tof.initialConfig.set(self.tofConfig)
         # ==========================
 
@@ -209,9 +209,10 @@ if __name__ == "__main__":
         # cv2.imshow("right", right)
         # print(data["depth"][mouse_y, mouse_x])
         # depth = cv2.circle(depth, (mouse_x, mouse_y), 5, (0, 255, 0), -1)
-        cv2.imshow("depth", depth)
+        # cv2.imshow("depth", depth)
         # cv2.imshow("tof_amplitude", tof_amplitude)
         colorized_depth = colorizeDepth(data["depth"])
         blended = cv2.addWeighted(left, 0.5, colorized_depth, 0.5, 0)
         cv2.imshow("blended", blended)
+        cv2.imshow("colorized_depth", colorized_depth)
         cv2.waitKey(1)
