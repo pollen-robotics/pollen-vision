@@ -1,8 +1,9 @@
 """Camera configuration class for depthai cameras."""
 
 import json
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
+import cv2
 import depthai as dai
 import numpy as np
 import numpy.typing as npt
@@ -65,6 +66,10 @@ class CamConfig:
             "right": None,
         }
         self.calib: dai.CalibrationHandler = dai.CalibrationHandler()
+
+        # lazy init, camera needs to be connected to
+        self.P_left: Optional[cv2.UMat] = None
+        self.P_right: Optional[cv2.UMat] = None
 
     def get_device_info(self) -> dai.DeviceInfo:
         """Returns a dai.DeviceInfo object with the mx_id.
@@ -146,3 +151,54 @@ class CamConfig:
         ret_string += "Undistort maps are: " + "set" if self.undistort_maps["left"] is not None else "not set"
 
         return ret_string
+
+    def compute_projection_matrices(self) -> Tuple[cv2.UMat, cv2.UMat]:
+        left_socket = get_socket_from_name("left", self.name_to_socket)
+        right_socket = get_socket_from_name("right", self.name_to_socket)
+
+        left_D = np.array(self.calib.getDistortionCoefficients(left_socket))
+        right_D = np.array(self.calib.getDistortionCoefficients(right_socket))
+
+        R = np.array(self.calib.getStereoRightRectificationRotation())
+
+        T = np.array(self.calib.getCameraTranslationVector(left_socket, right_socket))
+        T *= 0.01  # to meter for ROS
+
+        R1, R2, P1, P2, Q, _, _ = cv2.stereoRectify(
+            self.get_K_left(),
+            left_D,
+            self.get_K_right(),
+            right_D,
+            self.undistort_resolution,
+            R,
+            T,
+            flags=0,
+        )
+        return P1, P2
+
+    def to_ROS_msg(
+        self, side: str = "left"
+    ) -> Tuple[int, int, str, List[float], npt.NDArray[np.float32], npt.NDArray[np.float32], npt.NDArray[np.float32]]:
+        # as defined in https://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/CameraInfo.html
+
+        height = self.resize_resolution[1]
+        width = self.resize_resolution[0]
+        distortion_model = "plumb_bob"
+        if self.calib.getDistortionModel(get_socket_from_name(side, self.name_to_socket)) == dai.CameraModel.Fisheye:
+            distortion_model = "equidistant"
+        D = self.calib.getDistortionCoefficients(get_socket_from_name(side, self.name_to_socket))
+
+        if self.P_left is None or self.P_right is None:
+            self.P_left, self.P_right = self.compute_projection_matrices()
+
+        if side == "left":
+            K = self.get_K_left().flatten()
+            R = np.array(self.calib.getStereoLeftRectificationRotation()).flatten()
+            P = np.array(self.P_left).flatten()
+
+        else:
+            K = self.get_K_right().flatten()
+            R = np.array(self.calib.getStereoRightRectificationRotation()).flatten()
+            P = np.array(self.P_right).flatten()
+
+        return height, width, distortion_model, D, K, R, P

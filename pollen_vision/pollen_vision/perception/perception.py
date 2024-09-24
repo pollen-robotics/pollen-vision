@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 import numpy.typing as npt
 from pollen_vision.camera_wrappers import CameraWrapper
-from pollen_vision.perception.utils import (
+from pollen_vision.utils import (
     Annotator,
     ObjectsFilter,
     get_bboxes,

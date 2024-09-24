@@ -27,7 +27,7 @@ w = TeleopWrapper(get_config_file_path(args.config), 60, rectify=True)
 
 
 def spawn_procs(names: List[str]) -> Dict[str, sp.Popen]:  # type: ignore [type-arg]
-    width, height = 1280, 720
+    width, height = 960, 720
     command = [
         "ffplay",
         "-i",
@@ -60,9 +60,11 @@ def spawn_procs(names: List[str]) -> Dict[str, sp.Popen]:  # type: ignore [type-
 procs = spawn_procs(["left", "right"])
 
 while True:
-    data, lat, _ = w.get_data()
+    data, lat, _ = w.get_data_h264()
     logging.info(lat)
     for name, packets in data.items():
+        # if name == "left_raw" or name == "right_raw":
+        #    continue
         io = procs[name].stdin
         if io is not None:
             io.write(packets)

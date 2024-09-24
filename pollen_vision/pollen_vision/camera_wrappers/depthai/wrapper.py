@@ -109,6 +109,7 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
             self._set_undistort_maps()
 
         self.pipeline = self._create_pipeline()
+        self.pipeline.setXLinkChunkSize(0)  # better usb performance
 
         self._device.startPipeline(self.pipeline)
         self.queues = self._create_queues()
