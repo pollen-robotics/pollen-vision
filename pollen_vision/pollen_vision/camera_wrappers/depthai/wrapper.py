@@ -280,24 +280,20 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
         for cam_name, params in cameras.items():
             K = np.array(params["K"])
             D = np.array(params["dist"]).reshape((-1))
+            print(cam_name, K, D)
             im_size = params["image_size"]
             cam_socket = get_socket_from_name(cam_name, self.cam_config.name_to_socket)
 
             ch.setCameraIntrinsics(cam_socket, K.tolist(), im_size)
+            if cam_name == "tof":
+                D = np.array([-9.466925621032715, 30.354965209960938, 0.0001632508501643315, -0.00029841947252862155]) * 0.01
+                # D = np.array([0, 0, 0, 0])
+
             ch.setDistortionCoefficients(cam_socket, D.tolist())
-            if self.cam_config.fisheye:
+
+            if self.cam_config.fisheye and cam_name != "tof":
                 self._logger.info("Setting camera type to fisheye ...")
                 ch.setCameraType(cam_socket, dai.CameraModel.Fisheye)
-
-        if tof:
-            K = np.eye(3)
-            # Piffed, need to find the real values
-            K[0][0] = 471.8361511230469  # fx
-            K[1][1] = 471.7205810546875  # fy
-            K[0][2] = 322.25347900390625  # cx
-            K[1][2] = 246.209716796875  # cy
-            tof_socket = get_socket_from_name("tof", self.cam_config.name_to_socket)
-            ch.setCameraIntrinsics(tof_socket, K.tolist(), (640, 480))
 
         self._logger.info("Setting extrinsics ...")
         left_socket = get_socket_from_name("left", self.cam_config.name_to_socket)
@@ -310,8 +306,14 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
             print("FLASHING TOF EXTRINSICS")
             tof_socket = get_socket_from_name("tof", self.cam_config.name_to_socket)
             print("TOF SOCKET", tof_socket)
+            r = np.array(camera_poses["tof_to_left"]["R"])
+            t = np.array(camera_poses["tof_to_left"]["T"])
             T_tof_to_left = np.eye(4)
-            T_tof_to_left[:3, 3] = [-3.2509, 0, 0]
+            T_tof_to_left[:3, :3] = r
+            T_tof_to_left[:3, 3] = t
+
+            T_tof_to_left[:3, 3] *= 100  # Needs to be in centimeters (?) # TODO test
+
             T_left_to_tof = np.linalg.inv(T_tof_to_left)
             ch.setCameraExtrinsics(
                 tof_socket,
@@ -324,9 +326,9 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
             ch.setCameraExtrinsics(
                 left_socket,
                 tof_socket,
-                T_left_to_tof[:3, :3].tolist(),
-                T_left_to_tof[:3, 3].tolist(),
-                specTranslation=T_left_to_tof[:3, 3].tolist(),
+                T_tof_to_left[:3, :3].tolist(),
+                T_tof_to_left[:3, 3].tolist(),
+                specTranslation=T_tof_to_left[:3, 3].tolist(),
             )
 
         right_to_left = camera_poses["right_to_left"]
@@ -336,14 +338,6 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
 
         R_left_to_right, T_left_to_right = get_inv_R_T(R_right_to_left, T_right_to_left)
 
-        # ch.setCameraExtrinsics(
-        #     right_socket,
-        #     left_socket,
-        #     R_right_to_left,
-        #     T_right_to_left,
-        #     specTranslation=T_right_to_left,
-        # )
-
         ch.setCameraExtrinsics(
             left_socket,
             right_socket,
@@ -351,36 +345,9 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
             T_left_to_right.tolist(),
             specTranslation=T_left_to_right.tolist(),
         )
-        # if not tof:
-        #     ch.setCameraExtrinsics(
-        #         left_socket,
-        #         right_socket,
-        #         R_right_to_left.tolist(),
-        #         T_right_to_left.tolist(),
-        #         specTranslation=T_right_to_left.tolist(),
-        #     )
 
         ch.setStereoLeft(left_socket, np.eye(3).tolist())
         ch.setStereoRight(right_socket, R_right_to_left.tolist())
-
-        # print(
-        #     ch.getCameraExtrinsics(dai.CameraBoardSocket.CAM_C, dai.CameraBoardSocket.CAM_B)
-        # )  # extrinsics left camera <-> ToF OK
-        # print(
-        #     ch.getCameraExtrinsics(dai.CameraBoardSocket.CAM_B, dai.CameraBoardSocket.CAM_C)
-        # )  # extrinsics left camera <-> ToF OK
-        # print(
-        #     ch.getCameraExtrinsics(dai.CameraBoardSocket.CAM_B, dai.CameraBoardSocket.CAM_D)
-        # )  # extrinsics left camera <-> ToF OK
-        # print(
-        #     ch.getCameraExtrinsics(dai.CameraBoardSocket.CAM_D, dai.CameraBoardSocket.CAM_B)
-        # )  # extrinsics left camera <-> ToF OK
-        # print(
-        #     ch.getCameraExtrinsics(dai.CameraBoardSocket.CAM_C, dai.CameraBoardSocket.CAM_D)
-        # )  # extrinsics left camera <-> ToF OK
-        # print(
-        #     ch.getCameraExtrinsics(dai.CameraBoardSocket.CAM_D, dai.CameraBoardSocket.CAM_C)
-        # )  # extrinsics left camera <-> ToF OK
 
         ch.eepromToJsonFile("saved_calib.json")
         self._logger.info("Flashing ...")

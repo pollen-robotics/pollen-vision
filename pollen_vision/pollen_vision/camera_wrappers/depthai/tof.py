@@ -23,7 +23,7 @@ class TOFWrapper(DepthaiWrapper):
             fps,
             force_usb2=force_usb2,
             resize=None,
-            rectify=False,
+            rectify=True,
             exposure_params=None,
             mx_id=mx_id,
             # isp_scale=(2, 3),
@@ -123,7 +123,7 @@ class TOFWrapper(DepthaiWrapper):
     def _link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
         self.left.isp.link(self.left_manip.inputImage)
         self.right.isp.link(self.right_manip.inputImage)
-        self.tof.amplitude.link(self.sync.inputs["tof_amplitude"])
+        self.tof.intensity.link(self.sync.inputs["tof_amplitude"])
 
         self.left_manip.out.link(self.sync.inputs["left"])
         self.right_manip.out.link(self.sync.inputs["right"])
@@ -163,27 +163,55 @@ def cv_callback(event, x, y, flags, param):
     mouse_x, mouse_y = x, y
 
 
-if __name__ == "__main__":
-    t = TOFWrapper(get_config_file_path("CONFIG_IMX296_TOF"), fps=30)
+def colorizeDepth(frameDepth):
+    invalidMask = frameDepth == 0
+    # Log the depth, minDepth and maxDepth
+    try:
+        minDepth = np.percentile(frameDepth[frameDepth != 0], 3)
+        maxDepth = np.percentile(frameDepth[frameDepth != 0], 95)
+        logDepth = np.log(frameDepth, where=frameDepth != 0)
+        logMinDepth = np.log(minDepth)
+        logMaxDepth = np.log(maxDepth)
+        np.nan_to_num(logDepth, copy=False, nan=logMinDepth)
+        # Clip the values to be in the 0-255 range
+        logDepth = np.clip(logDepth, logMinDepth, logMaxDepth)
 
-    # P = PCLVisualizer(t.get_K())
-    cv2.namedWindow("depth")
-    cv2.setMouseCallback("depth", cv_callback)
+        # Interpolate only valid logDepth values, setting the rest based on the mask
+        depthFrameColor = np.interp(logDepth, (logMinDepth, logMaxDepth), (0, 255))
+        depthFrameColor = np.nan_to_num(depthFrameColor)
+        depthFrameColor = depthFrameColor.astype(np.uint8)
+        depthFrameColor = cv2.applyColorMap(depthFrameColor, cv2.COLORMAP_JET)
+        # Set invalid depth pixels to black
+        depthFrameColor[invalidMask] = 0
+    except IndexError:
+        # Frame is likely empty
+        depthFrameColor = np.zeros((frameDepth.shape[0], frameDepth.shape[1], 3), dtype=np.uint8)
+    except Exception as e:
+        raise e
+    return depthFrameColor
+
+
+if __name__ == "__main__":
+    t = TOFWrapper(get_config_file_path("CONFIG_IMX296_TOF"), fps=30, crop=False)
+
+    # cv2.namedWindow("depth")
+    # cv2.setMouseCallback("depth", cv_callback)
     print(dai.__version__)
     while True:
         data, _, _ = t.get_data()
         left = data["left"]
-        right = data["right"]
-        tof_amplitude = data["tof_amplitude"]
-        # left = cv2.resize(left, (640, 480))
-        # right = cv2.resize(right, (640, 480))
+        # right = data["right"]
         depth = data["depth"]
+        # tof_amplitude = data["tof_amplitude"]
+        # # left = cv2.resize(left, (640, 480))
+        # # right = cv2.resize(right, (640, 480))
         cv2.imshow("left", left)
         # cv2.imshow("right", right)
-        print(data["depth"][mouse_y, mouse_x])
-        depth = cv2.circle(depth, (mouse_x, mouse_y), 5, (0, 255, 0), -1)
+        # print(data["depth"][mouse_y, mouse_x])
+        # depth = cv2.circle(depth, (mouse_x, mouse_y), 5, (0, 255, 0), -1)
         cv2.imshow("depth", depth)
-        cv2.imshow("tof_amplitude", tof_amplitude)
-        # P.update(cv2.cvtColor(left, cv2.COLOR_BGR2RGB), depth)
-        # P.tick()
+        # cv2.imshow("tof_amplitude", tof_amplitude)
+        colorized_depth = colorizeDepth(data["depth"])
+        blended = cv2.addWeighted(left, 0.5, colorized_depth, 0.5, 0)
+        cv2.imshow("blended", blended)
         cv2.waitKey(1)

@@ -7,6 +7,7 @@ from pollen_vision.camera_wrappers.depthai.utils import (
     get_config_file_path,
     get_config_files_names,
 )
+
 from pollen_vision.perception.utils.pcl_visualizer import PCLVisualizer
 
 valid_configs = get_config_files_names()
@@ -24,8 +25,8 @@ args = argParser.parse_args()
 w = TOFWrapper(get_config_file_path(args.config))
 
 K = w.get_K()
-P = PCLVisualizer(K)
-P.add_frame("origin")
+# P = PCLVisualizer(K)
+# P.add_frame("origin")
 
 
 def colorizeDepth(frameDepth):
@@ -64,8 +65,8 @@ def cv_callback(event, x, y, flags, param):
     mouse_x, mouse_y = x, y
 
 
-cv2.namedWindow("depth")
-cv2.setMouseCallback("depth", cv_callback)
+# cv2.namedWindow("depth")
+# cv2.setMouseCallback("depth", cv_callback)
 while True:
     data, lat, _ = w.get_data()
     # print(lat["depthNode_left"], lat["depthNode_right"])
@@ -76,7 +77,7 @@ while True:
     colorized_depth = colorizeDepth(depth)
     # disparity = data["disparity"]
 
-    P.update(cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB), depth)
+    # P.update(cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB), depth)
     # P.update(cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB), depth)
 
     # disparity = (disparity * (255 / w.depth_max_disparity)).astype(np.uint8)
@@ -86,7 +87,7 @@ while True:
     # cv2.imshow("right", data["depthNode_right"])
     cv2.imshow("depth", colorized_depth)
     cv2.imshow("rgb", rgb)
-    print(depth[mouse_y, mouse_x])
+    # print(depth[mouse_y, mouse_x])
 
     key = cv2.waitKey(1)
-    P.tick()
+    # P.tick()
