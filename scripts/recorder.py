@@ -19,11 +19,11 @@ class Recorder:
     _timestamp: int
 
     def __init__(self, filename: str) -> None:
-        self.output = av.open(filename, "w")
-        self.stream = self.output.add_stream("h264", str(FPS))
-        self.stream.height = RESOLUTION[1]
-        self.stream.width = RESOLUTION[0]
-        self.stream.bit_rate = 8500e3
+        self.output = av.open(filename, "w")  # type: ignore
+        self.stream = self.output.add_stream("h264", str(FPS))  # type: ignore
+        self.stream.height = RESOLUTION[1]  # type: ignore
+        self.stream.width = RESOLUTION[0]  # type: ignore
+        self.stream.bit_rate = 8500e3  # type: ignore
 
     def start(self) -> None:
         self._start = time.time()
@@ -43,10 +43,10 @@ class Recorder:
         frame = av.video.frame.VideoFrame.from_ndarray(im, format="bgr24")
         frame.pts = pts
         frame.time_base = time_base
-        packet = self.stream.encode(frame)
+        packet = self.stream.encode(frame)  # type: ignore
         self.output.mux(packet)
 
     def stop(self) -> None:
-        packet = self.stream.encode(None)
+        packet = self.stream.encode(None)  # type: ignore
         self.output.mux(packet)
         self.output.close()
