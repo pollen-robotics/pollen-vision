@@ -27,8 +27,6 @@ class PollenSDKCameraWrapper(CameraWrapper):  # type: ignore[misc]
         self.depth = None
         self.left = None
         self.right = None
-        # self.depthleft=None
-        # self.depthright=None
 
     def get_data(self) -> Tuple[Dict[str, npt.NDArray[np.uint8]], Dict[str, float], Dict[str, timedelta]]:
         data: Dict[str, npt.NDArray[np.uint8]] = {}
@@ -39,19 +37,6 @@ class PollenSDKCameraWrapper(CameraWrapper):  # type: ignore[misc]
             if not self._reachy.is_connected():
                 self._reachy.connect()
 
-            # cam = getattr(self._reachy.cameras, self._cam_name)
-            # if cam.capture():
-            #     self.depth = cam.get_depthmap()
-            #     data["depth"] = self.depth  # type: ignore
-            #     self.left = cam.get_frame()
-            #     data["left"] = self.left  # type: ignore
-            #     # self.right=cam.get_frame() #FIXME, for now, can't get the RIGHT image from the sdk...
-            #     # data["right"]=self.left
-            #     self.right = cam.get_frame(CameraView.RIGHT)
-            #     data["right"] = self.right  # type: ignore
-            #     # fixme
-            #     data["depthNode_left"] = self.left  # type: ignore
-            #     data["depthNode_right"] = self.right  # type: ignore
             if self._cam_name == "depth":
                 frame, ts = self._reachy.cameras.depth.get_frame()
                 depth_frame, ts_depth = self._reachy.cameras.depth.get_depth_frame()
@@ -62,9 +47,7 @@ class PollenSDKCameraWrapper(CameraWrapper):  # type: ignore[misc]
             data["left"] = frame[:, :, ::-1]
 
             return data, latency, ts
-            # else:
-            #     self._logger.error("capture failed")
-            #     return data, latency, ts
+
         except Exception as err:
             self._logger.error(f"Cannot capture frame: {err}")
             raise err
@@ -96,7 +79,6 @@ class PollenSDKCameraWrapper(CameraWrapper):  # type: ignore[misc]
                 self._logger.error("capture failed")
                 return None
 
-            # intrinsics["depth"]=cam.get_depth_intrinsic_matrix()
             return cam.get_depth_intrinsic_matrix()  # type: ignore
 
         except Exception as err:
