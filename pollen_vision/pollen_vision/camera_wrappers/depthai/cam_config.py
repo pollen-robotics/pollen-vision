@@ -109,31 +109,39 @@ class CamConfig:
         """Returns a dai.CalibrationHandler object with all the camera's calibration data."""
         return self.calib
 
-    def get_K_left(self) -> npt.NDArray[np.float32]:
-        """Returns the intrinsic matrix of the left camera."""
-        left_socket = get_socket_from_name("left", self.name_to_socket)
-        left_K = np.array(
+    def get_K(self, cam_name: str = "left") -> npt.NDArray[np.float32]:
+        """Returns the intrinsic matrix of the requested camera."""
+        assert cam_name in list(
+            self.name_to_socket.keys()
+        ), f"Camera {cam_name} not found in the config. Available cameras: {list(self.name_to_socket.keys())}"
+        socket = get_socket_from_name(cam_name, self.name_to_socket)
+        K = np.array(
             self.calib.getCameraIntrinsics(
-                left_socket,
+                socket,
                 self.undistort_resolution[0],
                 self.undistort_resolution[1],
             )
         )
 
-        return left_K
+        return K
+
+    def get_D(self, cam_name: str = "left") -> npt.NDArray[np.float32]:
+        assert cam_name in list(
+            self.name_to_socket.keys()
+        ), f"Camera {cam_name} not found in the config. Available cameras: {list(self.name_to_socket.keys())}"
+        socket = get_socket_from_name(cam_name, self.name_to_socket)
+
+        D = np.array(self.calib.getDistortionCoefficients(socket))
+        return D
+
+    # keeping this for now for compatibility with the old code
+    def get_K_left(self) -> npt.NDArray[np.float32]:
+        """Returns the intrinsic matrix of the left camera."""
+        return self.get_K("left")
 
     def get_K_right(self) -> npt.NDArray[np.float32]:
         """Returns the intrinsic matrix of the right camera."""
-        right_socket = get_socket_from_name("right", self.name_to_socket)
-        right_K = np.array(
-            self.calib.getCameraIntrinsics(
-                right_socket,
-                self.undistort_resolution[0],
-                self.undistort_resolution[1],
-            )
-        )
-
-        return right_K
+        return self.get_K("right")
 
     def to_string(self) -> str:
         ret_string = "Camera Config: \n"

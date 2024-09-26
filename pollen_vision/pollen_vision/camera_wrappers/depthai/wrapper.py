@@ -132,8 +132,11 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
 
         return data, latency, ts
 
-    def get_K(self, left: bool = True) -> npt.NDArray[np.float32]:
-        return self.cam_config.get_K_left() if left else self.cam_config.get_K_right()  # type: ignore[no-any-return]
+    def get_K(self, cam_name: str = "left") -> npt.NDArray[np.float32]:
+        return self.cam_config.get_K(cam_name)  # type: ignore
+
+    def get_D(self, cam_name: str = "left") -> npt.NDArray[np.float32]:
+        return self.cam_config.get_D(cam_name)  # type: ignore
 
     @abstractmethod
     def _create_pipeline(self) -> dai.Pipeline:

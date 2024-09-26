@@ -19,6 +19,11 @@ class CameraWrapper(ABC):
         exit()
 
     @abstractmethod
-    def get_K(self, left: bool = True) -> npt.NDArray[np.float32]:
+    def get_K(self, cam_name: str) -> npt.NDArray[np.float32]:
         self._logger.error("Abstract class CameraWrapper does not implement get_K()")
+        exit()
+
+    @abstractmethod
+    def get_D(self, cam_name: str = "left") -> npt.NDArray[np.float32]:
+        self._logger.error("Abstract class CameraWrapper does not implement get_D()")
         exit()
