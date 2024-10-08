@@ -16,14 +16,22 @@ from pollen_vision.camera_wrappers.depthai.wrapper import DepthaiWrapper
 
 class TOFWrapper(DepthaiWrapper):
     def __init__(
-        self, cam_config_json: str, fps: int = 30, force_usb2: bool = False, mx_id: str = "", crop: bool = False
+        self,
+        cam_config_json: str,
+        fps: int = 30,
+        force_usb2: bool = False,
+        mx_id: str = "",
+        crop: bool = False,
+        noalign=False,
+        rectify=False,
     ) -> None:
+        self.noalign = noalign
         super().__init__(
             cam_config_json,
             fps,
             force_usb2=force_usb2,
             resize=None,
-            rectify=False,
+            rectify=rectify,
             exposure_params=None,
             mx_id=mx_id,
             # isp_scale=(2, 3),
@@ -61,7 +69,7 @@ class TOFWrapper(DepthaiWrapper):
         left = messageGroup["left"].getCvFrame()
         right = messageGroup["right"].getCvFrame()
         depth = messageGroup["depth_aligned"].getFrame()
-        tof_amplitude = messageGroup["tof_amplitude"].getCvFrame()
+        tof_intensity = messageGroup["tof_intensity"].getCvFrame()
 
         # Temporary, not ideal
 
@@ -74,7 +82,7 @@ class TOFWrapper(DepthaiWrapper):
             data["depth"] = depth
 
         data["right"] = right
-        data["tof_amplitude"] = tof_amplitude
+        data["tof_intensity"] = tof_intensity
         return data, latency, ts
 
     def get_K(self) -> npt.NDArray[np.float32]:
@@ -93,13 +101,13 @@ class TOFWrapper(DepthaiWrapper):
         # === Tof configuration ===
         self.tofConfig = self.tof.initialConfig.get()
         self.tofConfig.enableFPPNCorrection = True
-        self.tofConfig.enableOpticalCorrection = False  # True is ok ?
-        self.tofConfig.enablePhaseShuffleTemporalFilter = False
+        self.tofConfig.enableOpticalCorrection = True  # True is ok ?
+        self.tofConfig.enablePhaseShuffleTemporalFilter = True
         self.tofConfig.phaseUnwrappingLevel = 1
         self.tofConfig.phaseUnwrapErrorThreshold = 300
         self.tofConfig.enableTemperatureCorrection = False  # Not yet supported
         self.tofConfig.enableWiggleCorrection = False
-        self.tofConfig.median = dai.MedianFilter.KERNEL_3x3
+        self.tofConfig.median = dai.MedianFilter.KERNEL_7x7
         self.tof.initialConfig.set(self.tofConfig)
         # ==========================
 
@@ -123,7 +131,7 @@ class TOFWrapper(DepthaiWrapper):
     def _link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
         self.left.isp.link(self.left_manip.inputImage)
         self.right.isp.link(self.right_manip.inputImage)
-        self.tof.intensity.link(self.sync.inputs["tof_amplitude"])
+        self.tof.intensity.link(self.sync.inputs["tof_intensity"])
 
         self.left_manip.out.link(self.sync.inputs["left"])
         self.right_manip.out.link(self.sync.inputs["right"])
@@ -132,15 +140,12 @@ class TOFWrapper(DepthaiWrapper):
 
         self.cam_tof.raw.link(self.tof.input)
 
-        # Align depth on RGB WORKS
-        self.left_manip.out.link(self.align.inputAlignTo)
-        self.tof.depth.link(self.align.input)
-
-        # Align RGB on depth
-        # self.left_manip.out.link(self.align.input)
-        # self.tof.depth.link(self.align.inputAlignTo)
-
-        self.align.outputAligned.link(self.sync.inputs["depth_aligned"])
+        if not self.noalign:
+            self.left_manip.out.link(self.align.inputAlignTo)
+            self.tof.depth.link(self.align.input)
+            self.align.outputAligned.link(self.sync.inputs["depth_aligned"])
+        else:
+            self.tof.depth.link(self.sync.inputs["depth_aligned"])
 
         self.sync.out.link(self.xout_sync.input)
 
@@ -192,7 +197,7 @@ def colorizeDepth(frameDepth):
 
 
 if __name__ == "__main__":
-    t = TOFWrapper(get_config_file_path("CONFIG_IMX296_TOF"), fps=30, crop=False)
+    t = TOFWrapper(get_config_file_path("CONFIG_IMX296_TOF"), fps=1, crop=False, rectify=False)
 
     # cv2.namedWindow("depth")
     # cv2.setMouseCallback("depth", cv_callback)
@@ -202,7 +207,7 @@ if __name__ == "__main__":
         left = data["left"]
         # right = data["right"]
         depth = data["depth"]
-        # tof_amplitude = data["tof_amplitude"]
+        # tof_intensity = data["tof_intensity"]
         # # left = cv2.resize(left, (640, 480))
         # # right = cv2.resize(right, (640, 480))
         cv2.imshow("left", left)
@@ -210,7 +215,7 @@ if __name__ == "__main__":
         # print(data["depth"][mouse_y, mouse_x])
         # depth = cv2.circle(depth, (mouse_x, mouse_y), 5, (0, 255, 0), -1)
         # cv2.imshow("depth", depth)
-        # cv2.imshow("tof_amplitude", tof_amplitude)
+        # cv2.imshow("tof_intensity", tof_intensity)
         colorized_depth = colorizeDepth(data["depth"])
         blended = cv2.addWeighted(left, 0.5, colorized_depth, 0.5, 0)
         cv2.imshow("blended", blended)

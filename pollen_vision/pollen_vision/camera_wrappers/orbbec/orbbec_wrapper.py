@@ -161,20 +161,20 @@ mouse_x, mouse_y = 0, 0
 #     mouse_x, mouse_y = x, y
 
 
-# if __name__ == "__main__":
-#     o = OrbbecWrapper()
+if __name__ == "__main__":
+    o = OrbbecWrapper()
 
-#     cv2.namedWindow("depth")
-#     cv2.setMouseCallback("depth", cv2_callback)
+    # cv2.namedWindow("depth")
+    # cv2.setMouseCallback("depth", cv2_callback)
 
-#     while True:
-#         data, _, _ = o.get_data()
-#         if "depth" in data:
-#             cv2.imshow("depth", data["depth"])
-#             depth_value = data["depth"][mouse_y, mouse_x]
-#             print(depth_value)
-#         if "left" in data:
-#             cv2.imshow("left", data["left"])
+    while True:
+        data, _, _ = o.get_data()
+        # if "depth" in data:
+        #     cv2.imshow("depth", data["depth"])
+        #     depth_value = data["depth"][mouse_y, mouse_x]
+        #     print(depth_value)
+        if "left" in data:
+            cv2.imshow("left", data["left"])
 
-#         cv2.waitKey(1)
-#         time.sleep(0.01)
+        cv2.waitKey(1)
+        # time.sleep(0.01)

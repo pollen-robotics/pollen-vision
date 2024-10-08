@@ -285,18 +285,24 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
             im_size = params["image_size"]
             cam_socket = get_socket_from_name(cam_name, self.cam_config.name_to_socket)
 
-            ch.setCameraIntrinsics(cam_socket, K.tolist(), im_size)
             if cam_name == "tof":
-                D = (
-                    np.array([-9.466925621032715, 30.354965209960938, 0.0001632508501643315, -0.00029841947252862155]) * 0.01
-                )  # Values given by luxonis. But not sure if we should use that, and why scale by 0.01 ?
-                # D = np.array([0, 0, 0, 0])
+                K = np.array(
+                    [[471.8361511230469, 0.0, 322.25347900390625], [0.0, 471.7205810546875, 246.209716796875], [0.0, 0.0, 1.0]]
+                )
+
+            ch.setCameraIntrinsics(cam_socket, K.tolist(), im_size)
+
+            if cam_name == "tof":
+                D = np.array([-9.466925621032715, 30.354965209960938, 0.0001632508501643315, -0.00029841947252862155])
+                D *= 0.01
 
             ch.setDistortionCoefficients(cam_socket, D.tolist())
 
             if self.cam_config.fisheye and cam_name != "tof":
                 self._logger.info("Setting camera type to fisheye ...")
                 ch.setCameraType(cam_socket, dai.CameraModel.Fisheye)
+            # else:
+            #     ch.setCameraType(cam_socket, dai.CameraModel.Equirectangular)
 
         self._logger.info("Setting extrinsics ...")
         left_socket = get_socket_from_name("left", self.cam_config.name_to_socket)
@@ -315,7 +321,9 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
             T_tof_to_left[:3, :3] = r
             T_tof_to_left[:3, 3] = t
 
-            T_tof_to_left[:3, 3] *= 100  # Needs to be in centimeters (?) # TODO test
+            T_tof_to_left[
+                :3, 3
+            ] *= 100  # Needs to be in centimeters https://docs.luxonis.com/software/api/python/#depthai.CalibrationHandler.getCameraExtrinsics
 
             T_left_to_tof = np.linalg.inv(T_tof_to_left)
             ch.setCameraExtrinsics(
@@ -337,7 +345,7 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
         right_to_left = camera_poses["right_to_left"]
         R_right_to_left = np.array(right_to_left["R"])
         T_right_to_left = np.array(right_to_left["T"])
-        T_right_to_left *= 100  # Needs to be in centimeters (?) # TODO test
+        T_right_to_left *= 100  # Needs to be in centimeters https://docs.luxonis.com/software/api/python/#depthai.CalibrationHandler.getCameraExtrinsics
 
         R_left_to_right, T_left_to_right = get_inv_R_T(R_right_to_left, T_right_to_left)
 
@@ -352,7 +360,7 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
         ch.setStereoLeft(left_socket, np.eye(3).tolist())
         ch.setStereoRight(right_socket, R_right_to_left.tolist())
 
-        ch.eepromToJsonFile("saved_calib.json")
+        # ch.eepromToJsonFile("saved_calib.json")
         self._logger.info("Flashing ...")
         try:
             self._device.flashCalibration2(ch)

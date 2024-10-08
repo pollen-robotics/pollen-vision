@@ -22,7 +22,7 @@ argParser.add_argument(
 )
 args = argParser.parse_args()
 
-w = TOFWrapper(get_config_file_path(args.config), crop=False)
+w = TOFWrapper(get_config_file_path(args.config), crop=True, fps=10)
 
 K = w.get_K()
 P = PCLVisualizer(K)
