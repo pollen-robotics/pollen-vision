@@ -146,6 +146,10 @@ class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
 
         pipeline = self._pipeline_basis()
 
+        # # CAM_B (right) drives by default
+        self.right.initialControl.setMisc("3a-follow", dai.CameraBoardSocket.CAM_C)
+        self.left.initialControl.setMisc("3a-follow", dai.CameraBoardSocket.CAM_C)
+
         pipeline = self._create_encoders(pipeline)
 
         pipeline = self._create_output_streams(pipeline)
