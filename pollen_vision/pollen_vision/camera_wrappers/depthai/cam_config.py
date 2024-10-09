@@ -8,6 +8,7 @@ import depthai as dai
 import numpy as np
 import numpy.typing as npt
 from pollen_vision.camera_wrappers.depthai.utils import get_socket_from_name
+import logging
 
 
 class CamConfig:
@@ -71,6 +72,8 @@ class CamConfig:
         self.P_left: Optional[cv2.UMat] = None
         self.P_right: Optional[cv2.UMat] = None
 
+        self._logger = logging.getLogger(__name__)
+
     def get_device_info(self) -> dai.DeviceInfo:
         """Returns a dai.DeviceInfo object with the mx_id.
         This allows connecting to multiple devices plugged in the host machine at the same time,
@@ -109,11 +112,16 @@ class CamConfig:
         """Returns a dai.CalibrationHandler object with all the camera's calibration data."""
         return self.calib
 
+    def check_cam_name_available(self, cam_name: str) -> None:
+        if not cam_name in list(self.name_to_socket.keys()):
+            raise ValueError(
+                f"Camera {cam_name} not found in the config. Available cameras: {list(self.name_to_socket.keys())}"
+            )
+
     def get_K(self, cam_name: str = "left") -> npt.NDArray[np.float32]:
         """Returns the intrinsic matrix of the requested camera."""
-        assert cam_name in list(
-            self.name_to_socket.keys()
-        ), f"Camera {cam_name} not found in the config. Available cameras: {list(self.name_to_socket.keys())}"
+        self.check_cam_name_available(cam_name)
+
         socket = get_socket_from_name(cam_name, self.name_to_socket)
         K = np.array(
             self.calib.getCameraIntrinsics(
@@ -126,21 +134,23 @@ class CamConfig:
         return K
 
     def get_D(self, cam_name: str = "left") -> npt.NDArray[np.float32]:
-        assert cam_name in list(
-            self.name_to_socket.keys()
-        ), f"Camera {cam_name} not found in the config. Available cameras: {list(self.name_to_socket.keys())}"
+        self.check_cam_name_available(cam_name)
+
         socket = get_socket_from_name(cam_name, self.name_to_socket)
 
         D = np.array(self.calib.getDistortionCoefficients(socket))
         return D
 
-    # keeping this for now for compatibility with the old code
     def get_K_left(self) -> npt.NDArray[np.float32]:
         """Returns the intrinsic matrix of the left camera."""
+        self._logger.warning('This function is deprecated. Use get_K("left")')
+
         return self.get_K("left")
 
     def get_K_right(self) -> npt.NDArray[np.float32]:
         """Returns the intrinsic matrix of the right camera."""
+        self._logger.warning('This function is deprecated. Use get_K("right")')
+
         return self.get_K("right")
 
     def to_string(self) -> str:
