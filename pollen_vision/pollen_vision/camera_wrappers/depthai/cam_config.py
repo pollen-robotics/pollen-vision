@@ -1,6 +1,7 @@
 """Camera configuration class for depthai cameras."""
 
 import json
+import logging
 from typing import Dict, List, Optional, Tuple
 
 import cv2
@@ -8,7 +9,6 @@ import depthai as dai
 import numpy as np
 import numpy.typing as npt
 from pollen_vision.camera_wrappers.depthai.utils import get_socket_from_name
-import logging
 
 
 class CamConfig:
@@ -113,7 +113,7 @@ class CamConfig:
         return self.calib
 
     def check_cam_name_available(self, cam_name: str) -> None:
-        if not cam_name in list(self.name_to_socket.keys()):
+        if cam_name not in list(self.name_to_socket.keys()):
             raise ValueError(
                 f"Camera {cam_name} not found in the config. Available cameras: {list(self.name_to_socket.keys())}"
             )
