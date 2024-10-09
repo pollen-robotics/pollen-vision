@@ -132,15 +132,16 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
 
         return data, latency, ts
 
-    def get_K(self, left: bool = True) -> npt.NDArray[np.float32]:
-        return self.cam_config.get_K_left() if left else self.cam_config.get_K_right()  # type: ignore[no-any-return]
+    def get_K(self, cam_name: str = "left") -> npt.NDArray[np.float32]:
+        return self.cam_config.get_K(cam_name)  # type: ignore
+
+    def get_D(self, cam_name: str = "left") -> npt.NDArray[np.float32]:
+        return self.cam_config.get_D(cam_name)  # type: ignore
 
     @abstractmethod
     def _create_pipeline(self) -> dai.Pipeline:
         """Abstract method that is implemented by the subclasses."""
-
-        self._logger.error("Abstract class DepthaiWrapper does not implement create_pipeline()")
-        exit()
+        pass
 
     def _pipeline_basis(self) -> dai.Pipeline:
         """Creates and configures the left and right cameras and the image manip nodes.
@@ -189,9 +190,7 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
         """Abstract method that is implemented by the subclasses.
         Links the nodes together.
         """
-
-        self._logger.error("Abstract class DepthaiWrapper does not implement link_pipeline()")
-        exit()
+        pass
 
     def _create_output_streams(self, pipeline: dai.Pipeline) -> dai.Pipeline:
         """Creates and names the output streams.
