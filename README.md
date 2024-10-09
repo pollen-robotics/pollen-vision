@@ -26,6 +26,7 @@
   </a>
   <a href="https://github.com/psf/black">![Code style: black](https://github.com/pollen-robotics/pollen-vision/actions/workflows/lint.yml/badge.svg)</a>
   <a href="">![pytest](https://github.com/pollen-robotics/reachy2-sdk/actions/workflows/unit_tests.yml/badge.svg)</a>
+  <a href=""><img src="https://img.shields.io/badge/Fabien-Approved-green"alt="Fabien Approved"></a>
 </div>
 
 
