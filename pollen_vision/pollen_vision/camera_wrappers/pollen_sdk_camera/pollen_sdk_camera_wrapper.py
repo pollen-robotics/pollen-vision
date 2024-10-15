@@ -75,9 +75,9 @@ class PollenSDKCameraWrapper(CameraWrapper):  # type: ignore[misc]
                 self._reachy.connect()
 
             if self._cam_name == "depth":
-                return np.array(self._reachy.cameras.depth.get_parameters()[3]).reshape(3, 3)
+                return np.array(self._reachy.cameras.depth.get_parameters()[3])
             elif self._cam_name == "teleop":
-                return np.array(self._reachy.cameras.teleop.get_parameters()[3]).reshape(3, 3)
+                return np.array(self._reachy.cameras.teleop.get_parameters()[3])
             else:
                 self._logger.error("Unknown camera")
                 return None
