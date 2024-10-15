@@ -30,7 +30,7 @@ args = argParser.parse_args()
 if not args.tof:
     w = SDKWrapper(get_config_file_path(args.config), compute_depth=False, rectify=False)
 else:
-    w = TOFWrapper(get_config_file_path("CONFIG_IMX296_TOF"), fps=30, noalign=True)
+    w = TOFWrapper(get_config_file_path("CONFIG_IMX296_TOF"), fps=30, noalign=True, rectify=False)
 
 
 left_path = os.path.join(args.imagesPath, "left")

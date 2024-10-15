@@ -294,7 +294,7 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
 
             if cam_name == "tof":
                 D = np.array([-9.466925621032715, 30.354965209960938, 0.0001632508501643315, -0.00029841947252862155])
-                D *= 0.01
+            # D *= 0.01
 
             ch.setDistortionCoefficients(cam_socket, D.tolist())
 
@@ -337,9 +337,9 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
             ch.setCameraExtrinsics(
                 left_socket,
                 tof_socket,
-                T_tof_to_left[:3, :3].tolist(),
-                T_tof_to_left[:3, 3].tolist(),
-                specTranslation=T_tof_to_left[:3, 3].tolist(),
+                T_left_to_tof[:3, :3].tolist(),
+                T_left_to_tof[:3, 3].tolist(),
+                specTranslation=T_left_to_tof[:3, 3].tolist(),
             )
 
         right_to_left = camera_poses["right_to_left"]
