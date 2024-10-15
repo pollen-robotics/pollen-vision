@@ -166,17 +166,11 @@ class OrbbecWrapper(CameraWrapper):  # type: ignore
 
 mouse_x, mouse_y = 0, 0
 
-
-# def cv2_callback(event, x, y, flags, param):
-#     global mouse_x, mouse_y
-#     mouse_x, mouse_y = x, y
-
-
 if __name__ == "__main__":
     o = OrbbecWrapper()
     import time
 
-    def colorizeDepth(frameDepth):
+    def colorizeDepth(frameDepth: npt.NDArray[np.float32]) -> npt.NDArray[np.float64]:
         invalidMask = frameDepth == 0
         # Log the depth, minDepth and maxDepth
         try:
@@ -207,9 +201,9 @@ if __name__ == "__main__":
     # cv2.setMouseCallback("depth", cv2_callback)
 
     while True:
-        data, _, _ = o.get_data()
+        data, _, _ = o.get_data()  # type: ignore
         if "depth" in data:
-            cv2.imshow("depth", colorizeDepth(data["depth"]))
+            cv2.imshow("depth", colorizeDepth(data["depth"]))  # type: ignore
             depth_value = data["depth"][mouse_y, mouse_x]
             print(depth_value)
         if "left" in data:
