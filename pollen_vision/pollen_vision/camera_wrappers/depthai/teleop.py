@@ -146,8 +146,9 @@ class TeleopWrapper(DepthaiWrapper):  # type: ignore[misc]
 
         pipeline = self._pipeline_basis()
 
-        # # CAM_B (right) drives by default
+        # CAM_B (right) drives by default. Change it to CAM_C (left)
         self.right.initialControl.setMisc("3a-follow", dai.CameraBoardSocket.CAM_C)
+        self.left.initialControl.setAutoExposureLimit(10000) # more robust to motion blur
         self.left.initialControl.setMisc("3a-follow", dai.CameraBoardSocket.CAM_C)
 
         pipeline = self._create_encoders(pipeline)
