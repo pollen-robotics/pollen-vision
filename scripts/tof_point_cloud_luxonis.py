@@ -45,6 +45,7 @@ tofConfig.phaseUnwrappingLevel = 4
 tofConfig.median = dai.MedianFilter.KERNEL_3x3
 # tofConfig.median = dai.MedianFilter.KERNEL_5x5
 # tofConfig.median = dai.MedianFilter.KERNEL_7x7
+# tofConfig.enableDistortionCorrection = False
 tof.initialConfig.set(tofConfig)
 
 # rgb settings

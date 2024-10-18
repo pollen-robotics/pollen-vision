@@ -194,7 +194,7 @@ with dai.Device(pipeline) as device:
                 # mapX, mapY = cv2.fisheye.initUndistortRectifyMap(M2, D2, None, M2, rgbSize, cv2.CV_32FC1)
                 mapX, mapY = cv2.fisheye.initUndistortRectifyMap(M2, D2, R, M2, rgbSize, cv2.CV_32FC1)
                 rgbFrame = cv2.remap(rgbFrame, mapX, mapY, cv2.INTER_LINEAR)
-
+            print(rgbFrame.shape)
             alignedDepthColorized = cv2.resize(alignedDepthColorized, (rgbFrame.shape[1], rgbFrame.shape[0]))
             blended = cv2.addWeighted(rgbFrame, rgbWeight, alignedDepthColorized, depthWeight, 0)
             cv2.imshow(rgbDepthWindowName, blended)

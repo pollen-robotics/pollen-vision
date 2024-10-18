@@ -285,16 +285,16 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
             im_size = params["image_size"]
             cam_socket = get_socket_from_name(cam_name, self.cam_config.name_to_socket)
 
-            if cam_name == "tof":
-                K = np.array(
-                    [[471.8361511230469, 0.0, 322.25347900390625], [0.0, 471.7205810546875, 246.209716796875], [0.0, 0.0, 1.0]]
-                )
+            # if cam_name == "tof":
+            #     K = np.array(
+            #         [[471.8361511230469, 0.0, 322.25347900390625], [0.0, 471.7205810546875, 246.209716796875], [0.0, 0.0, 1.0]]
+            #     )
 
             ch.setCameraIntrinsics(cam_socket, K.tolist(), im_size)
 
-            if cam_name == "tof":
-                D = np.array([-9.466925621032715, 30.354965209960938, 0.0001632508501643315, -0.00029841947252862155])
-            # D *= 0.01
+            # if cam_name == "tof":
+            #     # D = np.array([-9.466925621032715, 30.354965209960938, 0.0001632508501643315, -0.00029841947252862155])
+            #     D *= 0.01 # still don't know if I should do that or not
 
             ch.setDistortionCoefficients(cam_socket, D.tolist())
 

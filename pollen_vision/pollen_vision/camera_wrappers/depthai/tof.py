@@ -108,6 +108,7 @@ class TOFWrapper(DepthaiWrapper):
         self.tofConfig.enableTemperatureCorrection = False  # Not yet supported
         self.tofConfig.enableWiggleCorrection = False
         self.tofConfig.median = dai.MedianFilter.KERNEL_7x7
+        self.tofConfig.enableDistortionCorrection = True if self.cam_config.rectify else False
         self.tof.initialConfig.set(self.tofConfig)
         # ==========================
 
