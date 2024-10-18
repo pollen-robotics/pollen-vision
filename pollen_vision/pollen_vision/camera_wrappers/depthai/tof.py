@@ -10,8 +10,7 @@ from pollen_vision.camera_wrappers.depthai.utils import (
     get_socket_from_name,
 )
 from pollen_vision.camera_wrappers.depthai.wrapper import DepthaiWrapper
-
-# from pollen_vision.perception.utils.pcl_visualizer import PCLVisualizer
+from pollen_vision.camera_wrappers.depthai.utils import colorizeDepth
 
 
 class TOFWrapper(DepthaiWrapper):
@@ -161,62 +160,19 @@ class TOFWrapper(DepthaiWrapper):
         return queues
 
 
-mouse_x, mouse_y = 0, 0
-
-
-def cv_callback(event, x, y, flags, param):
-    global mouse_x, mouse_y
-    mouse_x, mouse_y = x, y
-
-
-def colorizeDepth(frameDepth):
-    invalidMask = frameDepth == 0
-    # Log the depth, minDepth and maxDepth
-    try:
-        minDepth = np.percentile(frameDepth[frameDepth != 0], 3)
-        maxDepth = np.percentile(frameDepth[frameDepth != 0], 95)
-        logDepth = np.log(frameDepth, where=frameDepth != 0)
-        logMinDepth = np.log(minDepth)
-        logMaxDepth = np.log(maxDepth)
-        np.nan_to_num(logDepth, copy=False, nan=logMinDepth)
-        # Clip the values to be in the 0-255 range
-        logDepth = np.clip(logDepth, logMinDepth, logMaxDepth)
-
-        # Interpolate only valid logDepth values, setting the rest based on the mask
-        depthFrameColor = np.interp(logDepth, (logMinDepth, logMaxDepth), (0, 255))
-        depthFrameColor = np.nan_to_num(depthFrameColor)
-        depthFrameColor = depthFrameColor.astype(np.uint8)
-        depthFrameColor = cv2.applyColorMap(depthFrameColor, cv2.COLORMAP_JET)
-        # Set invalid depth pixels to black
-        depthFrameColor[invalidMask] = 0
-    except IndexError:
-        # Frame is likely empty
-        depthFrameColor = np.zeros((frameDepth.shape[0], frameDepth.shape[1], 3), dtype=np.uint8)
-    except Exception as e:
-        raise e
-    return depthFrameColor
-
-
 if __name__ == "__main__":
-    t = TOFWrapper(get_config_file_path("CONFIG_IMX296_TOF"), fps=1, crop=False, rectify=False)
+    t = TOFWrapper(get_config_file_path("CONFIG_IMX296_TOF"), fps=30, crop=False, rectify=False)
 
-    # cv2.namedWindow("depth")
-    # cv2.setMouseCallback("depth", cv_callback)
     print(dai.__version__)
     while True:
         data, _, _ = t.get_data()
         left = data["left"]
-        # right = data["right"]
+
         depth = data["depth"]
-        # tof_intensity = data["tof_intensity"]
-        # # left = cv2.resize(left, (640, 480))
-        # # right = cv2.resize(right, (640, 480))
+        tof_intensity = data["tof_intensity"]
+
         cv2.imshow("left", left)
-        # cv2.imshow("right", right)
-        # print(data["depth"][mouse_y, mouse_x])
-        # depth = cv2.circle(depth, (mouse_x, mouse_y), 5, (0, 255, 0), -1)
-        # cv2.imshow("depth", depth)
-        # cv2.imshow("tof_intensity", tof_intensity)
+        cv2.imshow("tof intensity", tof_intensity)
         colorized_depth = colorizeDepth(data["depth"])
         blended = cv2.addWeighted(left, 0.5, colorized_depth, 0.5, 0)
         cv2.imshow("blended", blended)
