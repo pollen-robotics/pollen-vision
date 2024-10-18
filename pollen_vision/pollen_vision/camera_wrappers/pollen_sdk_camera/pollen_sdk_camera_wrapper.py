@@ -52,7 +52,7 @@ class PollenSDKCameraWrapper(CameraWrapper):  # type: ignore[misc]
             self._logger.error(f"Cannot capture frame: {err}")
             raise err
 
-    def get_K(self, left: bool = True) -> Optional[npt.NDArray[np.float32]]:
+    def get_K(self, cam_name: str = "left") -> Optional[npt.NDArray[np.float32]]:
         try:
             if not self._reachy.is_connected():
                 self._reachy.connect()
@@ -61,6 +61,23 @@ class PollenSDKCameraWrapper(CameraWrapper):  # type: ignore[misc]
                 return np.array(self._reachy.cameras.depth.get_parameters()[4]).reshape(3, 3)
             elif self._cam_name == "teleop":
                 return np.array(self._reachy.cameras.teleop.get_parameters()[4]).reshape(3, 3)
+            else:
+                self._logger.error("Unknown camera")
+                return None
+
+        except Exception as err:
+            self._logger.error(f"Cannot get intrinsic: {err}")
+            raise err
+
+    def get_D(self, cam_name: str = "left") -> Optional[npt.NDArray[np.float32]]:
+        try:
+            if not self._reachy.is_connected():
+                self._reachy.connect()
+
+            if self._cam_name == "depth":
+                return np.array(self._reachy.cameras.depth.get_parameters()[3])
+            elif self._cam_name == "teleop":
+                return np.array(self._reachy.cameras.teleop.get_parameters()[3])
             else:
                 self._logger.error("Unknown camera")
                 return None
