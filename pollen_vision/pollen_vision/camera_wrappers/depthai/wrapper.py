@@ -81,9 +81,19 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
             if socket_camToString[cam.socket] in self.cam_config.socket_to_name.keys():
                 connected_cameras_features.append(cam)
 
-        # Assuming both cameras are the same
-        width = connected_cameras_features[0].width
-        height = connected_cameras_features[0].height
+        # Ad hoc solution to NOT select the ToF sensor. Pretty bad
+        tmp = None
+        for cam in connected_cameras_features:
+            if "33D".lower() not in str(cam.sensorName).lower():
+                tmp = cam
+                break
+
+        width = tmp.width
+        height = tmp.height
+
+        # # Assuming both cameras are the same
+        # width = connected_cameras_features[-1].width
+        # height = connected_cameras_features[-1].height
 
         self.cam_config.set_sensor_resolution((width, height))
 
@@ -235,7 +245,7 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
         manip.setMaxOutputFrameSize(resolution[0] * resolution[1] * 3)
 
         manip.initialConfig.setKeepAspectRatio(True)
-        manip.initialConfig.setResize(resolution[0], resolution[1])
+        # manip.initialConfig.setResize(resolution[0], resolution[1])
         manip.initialConfig.setFrameType(dai.ImgFrame.Type.NV12)
 
         return manip
@@ -246,7 +256,7 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
         self.cam_config.set_undistort_maps(mapXL, mapYL, mapXR, mapYR)
 
     # Takes in the output of multical calibration
-    def flash(self, calib_json_file: str) -> None:
+    def flash(self, calib_json_file: str, tof=False) -> None:
         """Flashes the calibration to the camera.
 
         The calibration is read from the calib_json_file and flashed into the camera's eeprom.
@@ -270,44 +280,86 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
         for cam_name, params in cameras.items():
             K = np.array(params["K"])
             D = np.array(params["dist"]).reshape((-1))
+            print(cam_name, K, D)
             im_size = params["image_size"]
             cam_socket = get_socket_from_name(cam_name, self.cam_config.name_to_socket)
 
+            # if cam_name == "tof":
+            #     K = np.array(
+            #         [[471.8361511230469, 0.0, 322.25347900390625], [0.0, 471.7205810546875, 246.209716796875], [0.0, 0.0, 1.0]]
+            #     )
+
             ch.setCameraIntrinsics(cam_socket, K.tolist(), im_size)
+
+            # if cam_name == "tof":
+            #     # D = np.array([-9.466925621032715, 30.354965209960938, 0.0001632508501643315, -0.00029841947252862155])
+            #     D *= 0.01 # still don't know if I should do that or not
+
             ch.setDistortionCoefficients(cam_socket, D.tolist())
-            if self.cam_config.fisheye:
+
+            if self.cam_config.fisheye and cam_name != "tof":
                 self._logger.info("Setting camera type to fisheye ...")
                 ch.setCameraType(cam_socket, dai.CameraModel.Fisheye)
+            # else:
+            #     ch.setCameraType(cam_socket, dai.CameraModel.Equirectangular)
 
         self._logger.info("Setting extrinsics ...")
         left_socket = get_socket_from_name("left", self.cam_config.name_to_socket)
         right_socket = get_socket_from_name("right", self.cam_config.name_to_socket)
 
+        if tof:
+            # right->left
+            # left->tof
+            # tof->-1
+            print("FLASHING TOF EXTRINSICS")
+            tof_socket = get_socket_from_name("tof", self.cam_config.name_to_socket)
+            print("TOF SOCKET", tof_socket)
+            r = np.array(camera_poses["tof_to_left"]["R"])
+            t = np.array(camera_poses["tof_to_left"]["T"])
+            T_tof_to_left = np.eye(4)
+            T_tof_to_left[:3, :3] = r
+            T_tof_to_left[:3, 3] = t
+
+            T_tof_to_left[
+                :3, 3
+            ] *= 100  # Needs to be in centimeters https://docs.luxonis.com/software/api/python/#depthai.CalibrationHandler.getCameraExtrinsics
+
+            T_left_to_tof = np.linalg.inv(T_tof_to_left)
+            ch.setCameraExtrinsics(
+                tof_socket,
+                left_socket,
+                T_left_to_tof[:3, :3].tolist(),
+                T_left_to_tof[:3, 3].tolist(),
+                specTranslation=T_left_to_tof[:3, 3].tolist(),
+            )
+
+            ch.setCameraExtrinsics(
+                left_socket,
+                tof_socket,
+                T_left_to_tof[:3, :3].tolist(),
+                T_left_to_tof[:3, 3].tolist(),
+                specTranslation=T_left_to_tof[:3, 3].tolist(),
+            )
+
         right_to_left = camera_poses["right_to_left"]
         R_right_to_left = np.array(right_to_left["R"])
         T_right_to_left = np.array(right_to_left["T"])
-        T_right_to_left *= 100  # Needs to be in centimeters (?) # TODO test
+        T_right_to_left *= 100  # Needs to be in centimeters https://docs.luxonis.com/software/api/python/#depthai.CalibrationHandler.getCameraExtrinsics
 
         R_left_to_right, T_left_to_right = get_inv_R_T(R_right_to_left, T_right_to_left)
 
         ch.setCameraExtrinsics(
             left_socket,
             right_socket,
-            R_right_to_left.tolist(),
-            T_right_to_left.tolist(),
-            specTranslation=T_right_to_left.tolist(),
-        )
-        ch.setCameraExtrinsics(
-            right_socket,
-            left_socket,
-            R_left_to_right,
-            T_left_to_right,
-            specTranslation=T_left_to_right,
+            R_left_to_right.tolist(),
+            T_left_to_right.tolist(),
+            specTranslation=T_left_to_right.tolist(),
         )
 
         ch.setStereoLeft(left_socket, np.eye(3).tolist())
         ch.setStereoRight(right_socket, R_right_to_left.tolist())
 
+        # ch.eepromToJsonFile("saved_calib.json")
         self._logger.info("Flashing ...")
         try:
             self._device.flashCalibration2(ch)

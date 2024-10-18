@@ -3,7 +3,7 @@ import os
 
 import cv2
 import numpy as np
-from pollen_vision.camera_wrappers.depthai import SDKWrapper
+from pollen_vision.camera_wrappers.depthai import SDKWrapper, TOFWrapper
 from pollen_vision.camera_wrappers.depthai.utils import (
     get_config_file_path,
     get_config_files_names,
@@ -24,14 +24,22 @@ argParser.add_argument(
     default="./calib_images/",
     help="Directory where the acquired images are stored (default ./calib_images/)",
 )
+argParser.add_argument("--tof", action="store_true", help="Has tof sensor ?")
 args = argParser.parse_args()
 
-w = SDKWrapper(get_config_file_path(args.config), compute_depth=False, rectify=False)
+if not args.tof:
+    w = SDKWrapper(get_config_file_path(args.config), compute_depth=False, rectify=False)
+else:
+    w = TOFWrapper(get_config_file_path("CONFIG_IMX296_TOF"), fps=30, noalign=True, rectify=False)
+
 
 left_path = os.path.join(args.imagesPath, "left")
 right_path = os.path.join(args.imagesPath, "right")
 os.makedirs(left_path, exist_ok=True)
 os.makedirs(right_path, exist_ok=True)
+if args.tof:
+    tof_path = os.path.join(args.imagesPath, "tof")
+    os.makedirs(tof_path, exist_ok=True)
 
 print("Press return to save an image pair.")
 print("(Keep the focus on the opencv window for the inputs to register.)")
@@ -44,12 +52,20 @@ while True:
     for name in data.keys():
         _data[name] = data[name]
 
-    concat = np.hstack((_data["left"], _data["right"]))
-    cv2.imshow(name, cv2.resize(concat, (0, 0), fx=0.5, fy=0.5))
+    if args.tof:
+        tof_intensity = _data["tof_intensity"]
+        tof_intensity = cv2.resize(tof_intensity, _data["left"].shape[:2][::-1])
+        tof_intensity = np.dstack((tof_intensity, tof_intensity, tof_intensity))
+        concat = np.hstack((_data["left"], _data["right"], tof_intensity))
+    else:
+        concat = np.hstack((_data["left"], _data["right"]))
+    cv2.imshow("concat", cv2.resize(concat, (0, 0), fx=0.5, fy=0.5))
     key = cv2.waitKey(1)
     if key == 13:
         cv2.imwrite(os.path.join(left_path, str(i) + ".png"), data["left"])
         cv2.imwrite(os.path.join(right_path, str(i) + ".png"), data["right"])
+        if args.tof:
+            cv2.imwrite(os.path.join(tof_path, str(i) + ".png"), data["tof_intensity"])
         print("Saved image pair ", i, "to", left_path, " and ", right_path)
         i += 1
     elif key == 27 or key == ord("q"):

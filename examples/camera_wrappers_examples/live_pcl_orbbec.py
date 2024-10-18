@@ -1,6 +1,6 @@
 import cv2
 from pollen_vision.camera_wrappers.orbbec.orbbec_wrapper import OrbbecWrapper
-from pollen_vision.perception.utils.pcl_visualizer import PCLVisualizer
+from pollen_vision.utils.pcl_visualizer import PCLVisualizer
 
 w = OrbbecWrapper()
 

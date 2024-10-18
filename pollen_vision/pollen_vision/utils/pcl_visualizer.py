@@ -35,6 +35,10 @@ class PCLVisualizer:
         pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd_image, intrinsic)
         # pcd.transform([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]])
 
+        # Filter out points that are too close
+        pcd = pcd.select_by_index(np.where(np.array(pcd.points)[:, 2] > 0.4)[0])
+        # pcd = pcd.select_by_index(np.where(np.array(pcd.points)[:, 2] < 1.8)[0])
+
         return pcd
 
     def add_frame(self, name: str, pose: npt.NDArray[np.float64] = np.eye(4)) -> None:
