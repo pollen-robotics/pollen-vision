@@ -1,6 +1,7 @@
 """Camera configuration class for depthai cameras."""
 
 import json
+import logging
 from typing import Dict, List, Optional, Tuple
 
 import cv2
@@ -71,6 +72,8 @@ class CamConfig:
         self.P_left: Optional[cv2.UMat] = None
         self.P_right: Optional[cv2.UMat] = None
 
+        self._logger = logging.getLogger(__name__)
+
     def get_device_info(self) -> dai.DeviceInfo:
         """Returns a dai.DeviceInfo object with the mx_id.
         This allows connecting to multiple devices plugged in the host machine at the same time,
@@ -109,31 +112,46 @@ class CamConfig:
         """Returns a dai.CalibrationHandler object with all the camera's calibration data."""
         return self.calib
 
-    def get_K_left(self) -> npt.NDArray[np.float32]:
-        """Returns the intrinsic matrix of the left camera."""
-        left_socket = get_socket_from_name("left", self.name_to_socket)
-        left_K = np.array(
+    def check_cam_name_available(self, cam_name: str) -> None:
+        if cam_name not in list(self.name_to_socket.keys()):
+            raise ValueError(
+                f"Camera {cam_name} not found in the config. Available cameras: {list(self.name_to_socket.keys())}"
+            )
+
+    def get_K(self, cam_name: str = "left") -> npt.NDArray[np.float32]:
+        """Returns the intrinsic matrix of the requested camera."""
+        self.check_cam_name_available(cam_name)
+
+        socket = get_socket_from_name(cam_name, self.name_to_socket)
+        K = np.array(
             self.calib.getCameraIntrinsics(
-                left_socket,
+                socket,
                 self.undistort_resolution[0],
                 self.undistort_resolution[1],
             )
         )
 
-        return left_K
+        return K
+
+    def get_D(self, cam_name: str = "left") -> npt.NDArray[np.float32]:
+        self.check_cam_name_available(cam_name)
+
+        socket = get_socket_from_name(cam_name, self.name_to_socket)
+
+        D = np.array(self.calib.getDistortionCoefficients(socket))
+        return D
+
+    def get_K_left(self) -> npt.NDArray[np.float32]:
+        """Returns the intrinsic matrix of the left camera."""
+        self._logger.warning('This function is deprecated. Use get_K("left")')
+
+        return self.get_K("left")
 
     def get_K_right(self) -> npt.NDArray[np.float32]:
         """Returns the intrinsic matrix of the right camera."""
-        right_socket = get_socket_from_name("right", self.name_to_socket)
-        right_K = np.array(
-            self.calib.getCameraIntrinsics(
-                right_socket,
-                self.undistort_resolution[0],
-                self.undistort_resolution[1],
-            )
-        )
+        self._logger.warning('This function is deprecated. Use get_K("right")')
 
-        return right_K
+        return self.get_K("right")
 
     def to_string(self) -> str:
         ret_string = "Camera Config: \n"

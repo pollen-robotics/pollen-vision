@@ -47,20 +47,28 @@ class OrbbecWrapper(CameraWrapper):  # type: ignore
             return
 
         self.K = np.eye(3).astype(np.float32)
+        self.D = np.zeros(5).astype(np.float32)
         # fx = self.pipeline.get_camera_param().depth_intrinsic.fx
         # fy = self.pipeline.get_camera_param().depth_intrinsic.fy
         # cx = self.pipeline.get_camera_param().depth_intrinsic.cx
         # cy = self.pipeline.get_camera_param().depth_intrinsic.cy
 
         # Better !
-        fx = self.pipeline.get_camera_param().rgb_intrinsic.fx
-        fy = self.pipeline.get_camera_param().rgb_intrinsic.fy
-        cx = self.pipeline.get_camera_param().rgb_intrinsic.cx
-        cy = self.pipeline.get_camera_param().rgb_intrinsic.cy
+        cam_params = self.pipeline.get_camera_param()
+        fx = cam_params.rgb_intrinsic.fx
+        fy = cam_params.rgb_intrinsic.fy
+        cx = cam_params.rgb_intrinsic.cx
+        cy = cam_params.rgb_intrinsic.cy
         self.K[0, 0] = fx
         self.K[1, 1] = fy
         self.K[0, 2] = cx
         self.K[1, 2] = cy
+
+        self.D[0] = cam_params.rgb_distortion.k1
+        self.D[1] = cam_params.rgb_distortion.k2
+        self.D[2] = cam_params.rgb_distortion.p1
+        self.D[3] = cam_params.rgb_distortion.p2
+        self.D[4] = cam_params.rgb_distortion.k3
 
     def i420_to_bgr(self, frame: npt.NDArray, width: int, height: int) -> npt.NDArray[np.uint8]:  # type: ignore
         y = frame[0:height, :]
@@ -152,6 +160,9 @@ class OrbbecWrapper(CameraWrapper):  # type: ignore
     def get_K(self) -> npt.NDArray[np.float32]:
         return self.K
 
+    def get_D(self) -> npt.NDArray[np.float32]:
+        return self.D
+
 
 mouse_x, mouse_y = 0, 0
 
@@ -163,18 +174,46 @@ mouse_x, mouse_y = 0, 0
 
 if __name__ == "__main__":
     o = OrbbecWrapper()
+    import time
+
+    def colorizeDepth(frameDepth):
+        invalidMask = frameDepth == 0
+        # Log the depth, minDepth and maxDepth
+        try:
+            minDepth = np.percentile(frameDepth[frameDepth != 0], 3)
+            maxDepth = np.percentile(frameDepth[frameDepth != 0], 95)
+            logDepth = np.log(frameDepth, where=frameDepth != 0)
+            logMinDepth = np.log(minDepth)
+            logMaxDepth = np.log(maxDepth)
+            np.nan_to_num(logDepth, copy=False, nan=logMinDepth)
+            # Clip the values to be in the 0-255 range
+            logDepth = np.clip(logDepth, logMinDepth, logMaxDepth)
+
+            # Interpolate only valid logDepth values, setting the rest based on the mask
+            depthFrameColor = np.interp(logDepth, (logMinDepth, logMaxDepth), (0, 255))
+            depthFrameColor = np.nan_to_num(depthFrameColor)
+            depthFrameColor = depthFrameColor.astype(np.uint8)
+            depthFrameColor = cv2.applyColorMap(depthFrameColor, cv2.COLORMAP_JET)
+            # Set invalid depth pixels to black
+            depthFrameColor[invalidMask] = 0
+        except IndexError:
+            # Frame is likely empty
+            depthFrameColor = np.zeros((frameDepth.shape[0], frameDepth.shape[1], 3), dtype=np.uint8)
+        except Exception as e:
+            raise e
+        return depthFrameColor
 
     # cv2.namedWindow("depth")
     # cv2.setMouseCallback("depth", cv2_callback)
 
     while True:
         data, _, _ = o.get_data()
-        # if "depth" in data:
-        #     cv2.imshow("depth", data["depth"])
-        #     depth_value = data["depth"][mouse_y, mouse_x]
-        #     print(depth_value)
+        if "depth" in data:
+            cv2.imshow("depth", colorizeDepth(data["depth"]))
+            depth_value = data["depth"][mouse_y, mouse_x]
+            print(depth_value)
         if "left" in data:
             cv2.imshow("left", data["left"])
 
         cv2.waitKey(1)
-        # time.sleep(0.01)
+        time.sleep(0.01)
