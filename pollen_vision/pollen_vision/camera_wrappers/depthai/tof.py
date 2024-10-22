@@ -6,11 +6,11 @@ import depthai as dai
 import numpy as np
 import numpy.typing as npt
 from pollen_vision.camera_wrappers.depthai.utils import (
+    colorizeDepth,
     get_config_file_path,
     get_socket_from_name,
 )
 from pollen_vision.camera_wrappers.depthai.wrapper import DepthaiWrapper
-from pollen_vision.camera_wrappers.depthai.utils import colorizeDepth
 
 
 class TOFWrapper(DepthaiWrapper):
@@ -23,8 +23,13 @@ class TOFWrapper(DepthaiWrapper):
         crop: bool = False,
         noalign=False,
         rectify=False,
+        create_pointcloud=False,
     ) -> None:
+        """
+        Using create_pointcloud mode, we can't undistort at the same time (not enough resources on the device)
+        """
         self.noalign = noalign
+        self.create_pointcloud = create_pointcloud
         super().__init__(
             cam_config_json,
             fps,
@@ -69,6 +74,10 @@ class TOFWrapper(DepthaiWrapper):
         right = messageGroup["right"].getCvFrame()
         depth = messageGroup["depth_aligned"].getFrame()
         tof_intensity = messageGroup["tof_intensity"].getCvFrame()
+        if self.create_pointcloud:
+            inPointCloud = messageGroup["pcl"]
+            points = inPointCloud.getPoints().astype(np.float64)
+            points[:, 0] = -points[:, 0]  # Invert X axis
 
         # Temporary, not ideal
 
@@ -82,13 +91,16 @@ class TOFWrapper(DepthaiWrapper):
 
         data["right"] = right
         data["tof_intensity"] = tof_intensity
+
+        if self.create_pointcloud:
+            data["pointcloud"] = points
         return data, latency, ts
 
     def get_K(self) -> npt.NDArray[np.float32]:
         return super().get_K(left=True)  # type: ignore
 
     def _create_pipeline(self) -> dai.Pipeline:
-        pipeline = self._pipeline_basis()
+        pipeline = self._pipeline_basis(create_imagemanip=not self.create_pointcloud)
 
         self.cam_tof = pipeline.create(dai.node.Camera)
         self.cam_tof.setFps(self.cam_config.fps)
@@ -96,6 +108,9 @@ class TOFWrapper(DepthaiWrapper):
         self.cam_tof.setBoardSocket(self.tof_socket)
 
         self.tof = pipeline.create(dai.node.ToF)
+
+        if self.create_pointcloud:
+            self.pointcloud = pipeline.create(dai.node.PointCloud)
 
         # === Tof configuration ===
         self.tofConfig = self.tof.initialConfig.get()
@@ -129,23 +144,36 @@ class TOFWrapper(DepthaiWrapper):
         return pipeline
 
     def _link_pipeline(self, pipeline: dai.Pipeline) -> dai.Pipeline:
-        self.left.isp.link(self.left_manip.inputImage)
-        self.right.isp.link(self.right_manip.inputImage)
+        if not self.create_pointcloud:
+            self.left.isp.link(self.left_manip.inputImage)
+            self.right.isp.link(self.right_manip.inputImage)
         self.tof.intensity.link(self.sync.inputs["tof_intensity"])
 
-        self.left_manip.out.link(self.sync.inputs["left"])
-        self.right_manip.out.link(self.sync.inputs["right"])
+        if not self.create_pointcloud:
+            self.left_manip.out.link(self.sync.inputs["left"])
+            self.right_manip.out.link(self.sync.inputs["right"])
+        else:
+            self.left.isp.link(self.sync.inputs["left"])
+            self.right.isp.link(self.sync.inputs["right"])
+
         self.sync.inputs["left"].setBlocking(False)
         self.sync.inputs["right"].setBlocking(False)
 
         self.cam_tof.raw.link(self.tof.input)
 
-        if not self.noalign:
-            self.left_manip.out.link(self.align.inputAlignTo)
+        if self.noalign:
+            self.tof.depth.link(self.sync.inputs["depth_aligned"])
+        else:
+            if not self.create_pointcloud:
+                self.left_manip.out.link(self.align.inputAlignTo)
+            else:
+                self.left.isp.link(self.align.inputAlignTo)
             self.tof.depth.link(self.align.input)
             self.align.outputAligned.link(self.sync.inputs["depth_aligned"])
-        else:
-            self.tof.depth.link(self.sync.inputs["depth_aligned"])
+
+        if self.create_pointcloud:
+            self.align.outputAligned.link(self.pointcloud.inputDepth)
+            self.pointcloud.outputPointCloud.link(self.sync.inputs["pcl"])
 
         self.sync.out.link(self.xout_sync.input)
 
@@ -161,7 +189,7 @@ class TOFWrapper(DepthaiWrapper):
 
 
 if __name__ == "__main__":
-    t = TOFWrapper(get_config_file_path("CONFIG_IMX296_TOF"), fps=30, crop=False, rectify=False)
+    t = TOFWrapper(get_config_file_path("CONFIG_IMX296_TOF"), fps=30, crop=False, rectify=False, create_pointcloud=True)
 
     print(dai.__version__)
     while True:

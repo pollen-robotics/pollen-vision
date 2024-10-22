@@ -1,3 +1,5 @@
+from typing import Optional
+
 import numpy as np
 import numpy.typing as npt
 
@@ -9,7 +11,7 @@ except ImportError:
 
 
 class PCLVisualizer:
-    def __init__(self, K: npt.NDArray[np.float64], name: str = "PCLVisualizer") -> None:
+    def __init__(self, K: npt.NDArray[np.float64] = np.eye(3), name: str = "PCLVisualizer") -> None:
         self.vis = o3d.visualization.Visualizer()
         self.vis.create_window(name)
         self.pcd = o3d.geometry.PointCloud()
@@ -36,7 +38,7 @@ class PCLVisualizer:
         # pcd.transform([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]])
 
         # Filter out points that are too close
-        pcd = pcd.select_by_index(np.where(np.array(pcd.points)[:, 2] > 0.4)[0])
+        # pcd = pcd.select_by_index(np.where(np.array(pcd.points)[:, 2] > 0.4)[0])
         # pcd = pcd.select_by_index(np.where(np.array(pcd.points)[:, 2] < 1.8)[0])
 
         return pcd
@@ -50,10 +52,33 @@ class PCLVisualizer:
 
         self.frames[name] = {"mesh": mesh, "pose": pose}
 
-    def update(self, rgb: npt.NDArray[np.uint8], depth: npt.NDArray[np.float32]) -> None:
-        new_pcd = self.create_point_cloud_from_rgbd(rgb, depth)
-        self.pcd.points = new_pcd.points
-        self.pcd.colors = new_pcd.colors
+    def update(
+        self,
+        rgb: npt.NDArray[np.uint8],
+        depth: Optional[npt.NDArray[np.float32]] = None,
+        points: Optional[npt.NDArray[np.float64]] = None,
+    ) -> None:
+        """
+        Can either take in depth image or points list directly (shape (N, 3)))
+        Please provide either depth or points, not both, not neithers
+        """
+        if depth is None and points is None:
+            print("No depth or points provided")
+            print("Please provide either depth or points")
+            return
+        if depth is not None and points is not None:
+            print("Both depth and points provided")
+            print("Please provide either depth or points")
+            return
+
+        if depth is not None:
+            new_pcd = self.create_point_cloud_from_rgbd(rgb, depth)
+            self.pcd.points = new_pcd.points
+            self.pcd.colors = new_pcd.colors
+        else:
+            self.pcd.points = o3d.utility.Vector3dVector(points)
+            colors = (rgb.reshape(-1, 3) / 255.0).astype(np.float64)
+            self.pcd.colors = o3d.utility.Vector3dVector(colors)
 
         if not self.set_geometry:
             self.vis.add_geometry(self.pcd)

@@ -153,7 +153,7 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
         """Abstract method that is implemented by the subclasses."""
         pass
 
-    def _pipeline_basis(self) -> dai.Pipeline:
+    def _pipeline_basis(self, create_imagemanip=True) -> dai.Pipeline:
         """Creates and configures the left and right cameras and the image manip nodes.
 
         This method is used (and/or extended) by the subclasses to create the basis pipeline.
@@ -186,12 +186,13 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
             self.left.setImageOrientation(dai.CameraImageOrientation.ROTATE_180_DEG)
             self.right.setImageOrientation(dai.CameraImageOrientation.ROTATE_180_DEG)
 
-        self.left_manip = self._create_imageManip(
-            pipeline, "left", self.cam_config.undistort_resolution, self.cam_config.rectify
-        )
-        self.right_manip = self._create_imageManip(
-            pipeline, "right", self.cam_config.undistort_resolution, self.cam_config.rectify
-        )
+        if create_imagemanip:
+            self.left_manip = self._create_imageManip(
+                pipeline, "left", self.cam_config.undistort_resolution, self.cam_config.rectify
+            )
+            self.right_manip = self._create_imageManip(
+                pipeline, "right", self.cam_config.undistort_resolution, self.cam_config.rectify
+            )
 
         return pipeline
 
@@ -232,7 +233,6 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
         rectify: bool = True,
     ) -> dai.node.ImageManip:
         """Resize and optionally rectify an image"""
-
         manip = pipeline.createImageManip()
 
         if rectify:
@@ -256,7 +256,7 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
         self.cam_config.set_undistort_maps(mapXL, mapYL, mapXR, mapYR)
 
     # Takes in the output of multical calibration
-    def flash(self, calib_json_file: str, tof=False) -> None:
+    def flash(self, calib_json_file: str, tof: bool = False) -> None:
         """Flashes the calibration to the camera.
 
         The calibration is read from the calib_json_file and flashed into the camera's eeprom.
@@ -284,15 +284,9 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
             im_size = params["image_size"]
             cam_socket = get_socket_from_name(cam_name, self.cam_config.name_to_socket)
 
-            # if cam_name == "tof":
-            #     K = np.array(
-            #         [[471.8361511230469, 0.0, 322.25347900390625], [0.0, 471.7205810546875, 246.209716796875], [0.0, 0.0, 1.0]]
-            #     )
-
             ch.setCameraIntrinsics(cam_socket, K.tolist(), im_size)
 
             # if cam_name == "tof":
-            #     # D = np.array([-9.466925621032715, 30.354965209960938, 0.0001632508501643315, -0.00029841947252862155])
             #     D *= 0.01 # still don't know if I should do that or not
 
             ch.setDistortionCoefficients(cam_socket, D.tolist())
@@ -320,9 +314,9 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
             T_tof_to_left[:3, :3] = r
             T_tof_to_left[:3, 3] = t
 
-            T_tof_to_left[
-                :3, 3
-            ] *= 100  # Needs to be in centimeters https://docs.luxonis.com/software/api/python/#depthai.CalibrationHandler.getCameraExtrinsics
+            # Needs to be in centimeters
+            #  https://docs.luxonis.com/software/api/python/#depthai.CalibrationHandler.getCameraExtrinsics
+            T_tof_to_left[:3, 3] *= 100
 
             T_left_to_tof = np.linalg.inv(T_tof_to_left)
             ch.setCameraExtrinsics(
@@ -344,7 +338,9 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
         right_to_left = camera_poses["right_to_left"]
         R_right_to_left = np.array(right_to_left["R"])
         T_right_to_left = np.array(right_to_left["T"])
-        T_right_to_left *= 100  # Needs to be in centimeters https://docs.luxonis.com/software/api/python/#depthai.CalibrationHandler.getCameraExtrinsics
+        # Needs to be in centimeters
+        # https://docs.luxonis.com/software/api/python/#depthai.CalibrationHandler.getCameraExtrinsics
+        T_right_to_left *= 100
 
         R_left_to_right, T_left_to_right = get_inv_R_T(R_right_to_left, T_right_to_left)
 

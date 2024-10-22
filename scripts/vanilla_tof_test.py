@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import time
+from typing import Tuple
+
 import cv2
 import depthai as dai
 import numpy as np
@@ -11,7 +13,7 @@ cvColorMap = cv2.applyColorMap(np.arange(256, dtype=np.uint8), cv2.COLORMAP_JET)
 cvColorMap[0] = [0, 0, 0]
 
 
-def create_pipeline():
+def create_pipeline() -> Tuple[dai.Pipeline, dai.RawToFConfig]:
     pipeline = dai.Pipeline()
 
     tof = pipeline.create(dai.node.ToF)
@@ -73,21 +75,9 @@ def create_pipeline():
     return pipeline, tofConfig
 
 
-mouse_x, mouse_y = 0, 0
-
-
-# mouse callback function
-def cb(event, x, y, flags, param):
-    global mouse_x, mouse_y
-    mouse_x = x
-    mouse_y = y
-
-
-if __name__ == "__main__":
+if __name__ == "__main__":  # noqa
     # global mouse_x, mouse_y
     pipeline, tofConfig = create_pipeline()
-    cv2.namedWindow("Colorized depth")
-    cv2.setMouseCallback("Colorized depth", cb)
 
     with dai.Device(pipeline) as device:
         print("Connected cameras:", device.getConnectedCameraFeatures())
@@ -164,25 +154,21 @@ if __name__ == "__main__":
             print("median", tofConfig.median)
             print("===")
             imgFrame = qDepth.get()  # blocking call, will wait until a new data has arrived
-            depth_map = imgFrame.getFrame()
+            depth_map = imgFrame.getFrame()  # type: ignore
 
             max_depth = (tofConfig.phaseUnwrappingLevel + 1) * 1500  # 100MHz modulation freq.
             depth_colorized = np.interp(depth_map, (0, max_depth), (0, 255)).astype(np.uint8)
             depth_colorized = cv2.applyColorMap(depth_colorized, cvColorMap)
-
-            depth_at_mouse = depth_map[mouse_y, mouse_x]
-            print(mouse_x, mouse_y, depth_at_mouse)
-            depth_colorized = cv2.circle(depth_colorized, (mouse_x, mouse_y), 5, (255, 255, 255), -1)
 
             in_left = left_q.get()
             in_right = right_q.get()
 
             tof_amplitude_frame = tof_amplitude.get()
 
-            left_im = in_left.getCvFrame()
-            right_im = in_right.getCvFrame()
+            left_im = in_left.getCvFrame()  # type: ignore
+            right_im = in_right.getCvFrame()  # type: ignore
 
-            tof_amplitude_img = tof_amplitude_frame.getCvFrame().astype(np.float32)
+            tof_amplitude_img = tof_amplitude_frame.getCvFrame().astype(np.float32)  # type: ignore
 
             cv2.imshow("left", left_im)
             cv2.imshow("right", right_im)

@@ -1,20 +1,17 @@
-import depthai as dai
-import numpy as np
-import cv2
-import time
-from datetime import timedelta
 import datetime
 import os
 import sys
+from datetime import timedelta
+
+import cv2
+import depthai as dai
+import numpy as np
+import numpy.typing as npt
 
 try:
     import open3d as o3d
 except ImportError:
-    sys.exit(
-        "Critical dependency missing: Open3D. Please install it using the command: '{} -m pip install open3d' and then rerun the script.".format(
-            sys.executable
-        )
-    )
+    sys.exit("Open3D missing. Install it using the command: '{} -m pip install open3d'".format(sys.executable))
 
 FPS = 30
 
@@ -71,7 +68,7 @@ sync.out.link(out.input)
 out.setStreamName("out")
 
 
-def colorizeDepth(frameDepth):
+def colorizeDepth(frameDepth: npt.NDArray[np.float32]) -> npt.NDArray[np.uint8]:
     invalidMask = frameDepth == 0
     # Log the depth, minDepth and maxDepth
     try:
@@ -96,7 +93,7 @@ def colorizeDepth(frameDepth):
         depthFrameColor = np.zeros((frameDepth.shape[0], frameDepth.shape[1], 3), dtype=np.uint8)
     except Exception as e:
         raise e
-    return depthFrameColor
+    return depthFrameColor  # type: ignore
 
 
 with dai.Device(pipeline) as device:
@@ -115,10 +112,10 @@ with dai.Device(pipeline) as device:
     view_control = vis.get_view_control()
 
     while isRunning:
-        inMessage = q.get()
-        inColor = inMessage["rgb"]
-        inPointCloud = inMessage["pcl"]
-        inDepth = inMessage["depth_aligned"]
+        inMessage = q.get()  # type: ignore
+        inColor = inMessage["rgb"]  # type: ignore
+        inPointCloud = inMessage["pcl"]  # type: ignore
+        inDepth = inMessage["depth_aligned"]  # type: ignore
 
         cvColorFrame = inColor.getCvFrame()
         # Convert the frame to RGB
@@ -143,7 +140,6 @@ with dai.Device(pipeline) as device:
             print(f"RGB point cloud saved to folder {new_output}")
         if inPointCloud:
             points = inPointCloud.getPoints().astype(np.float64)
-
             points[:, 0] = -points[:, 0]  # Invert X axis
             # points[:, 1] = -points[:, 1]  # Invert Y axis
             # points[:, 2] = points[:, 2] / 1000.0  # Convert Z axis from mm to meters (if needed)

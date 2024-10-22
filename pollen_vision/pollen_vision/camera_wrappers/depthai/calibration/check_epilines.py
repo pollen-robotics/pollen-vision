@@ -1,8 +1,8 @@
 import argparse
-import numpy as np
 import logging
 
 import cv2
+import numpy as np
 from cv2 import aruco
 from pollen_vision.camera_wrappers.depthai import SDKWrapper, TOFWrapper
 from pollen_vision.camera_wrappers.depthai.utils import (

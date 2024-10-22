@@ -1,9 +1,10 @@
 import cv2
-import numpy as np
 import depthai as dai
 from pollen_vision.camera_wrappers import TOFWrapper
-from pollen_vision.camera_wrappers.depthai.utils import get_config_file_path, colorizeDepth
-
+from pollen_vision.camera_wrappers.depthai.utils import (
+    colorizeDepth,
+    get_config_file_path,
+)
 
 t = TOFWrapper(get_config_file_path("CONFIG_IMX296_TOF"), fps=30, crop=False)
 

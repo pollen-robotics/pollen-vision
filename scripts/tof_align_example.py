@@ -1,8 +1,9 @@
-import numpy as np
-import cv2
-import depthai as dai
 import time
 from datetime import timedelta
+
+import cv2
+import depthai as dai
+import numpy as np
 
 # This example is intended to run unchanged on an OAK-D-SR-PoE camera
 FPS = 30.0
@@ -37,6 +38,17 @@ sync = pipeline.create(dai.node.Sync)
 align = pipeline.create(dai.node.ImageAlign)
 out = pipeline.create(dai.node.XLinkOut)
 
+tofConfig = tof.initialConfig.get()
+tofConfig.enableFPPNCorrection = True
+tofConfig.enableOpticalCorrection = False
+tofConfig.enablePhaseShuffleTemporalFilter = False
+tofConfig.phaseUnwrappingLevel = 1
+tofConfig.phaseUnwrapErrorThreshold = 300
+tofConfig.enableTemperatureCorrection = False  # Not yet supported
+tofConfig.enableWiggleCorrection = False
+tofConfig.median = dai.MedianFilter.KERNEL_3x3
+tof.initialConfig.set(tofConfig)
+
 # ToF settings
 camTof.setFps(FPS)
 # camTof.setImageOrientation(dai.CameraImageOrientation.ROTATE_180_DEG)
@@ -48,14 +60,9 @@ camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_800_P)
 camRgb.setFps(FPS)
 camRgb.setIspScale(1, 2)
 
-# depthSize = (1280, 800)  # PLEASE SET TO BE SIZE OF THE TOF STREAM
-depthSize = (640, 480)  # PLEASE SET TO BE SIZE OF THE TOF STREAM
-rgbSize = camRgb.getIspSize()
-
 out.setStreamName("out")
 
 sync.setSyncThreshold(timedelta(seconds=0.5 / FPS))
-rgbSize = camRgb.getIspSize()
 
 # Linking
 camRgb.isp.link(sync.inputs["rgb"])
@@ -112,7 +119,6 @@ def updateBlendWeights(percentRgb):
 
 
 # Connect to device and start pipeline
-remapping = True
 with dai.Device(pipeline) as device:
     queue = device.getOutputQueue("out", 8, False)
 
@@ -127,32 +133,6 @@ with dai.Device(pipeline) as device:
         100,
         updateBlendWeights,
     )
-    try:
-        calibData = device.readCalibration2()
-        M1 = np.array(calibData.getCameraIntrinsics(ALIGN_SOCKET, *depthSize))
-        D1 = np.array(calibData.getDistortionCoefficients(ALIGN_SOCKET))
-        M2 = np.array(calibData.getCameraIntrinsics(RGB_SOCKET, *rgbSize))
-        D2 = np.array(calibData.getDistortionCoefficients(RGB_SOCKET))
-
-        # try:
-        # T = np.array(calibData.getCameraTranslationVector(ALIGN_SOCKET, RGB_SOCKET, False)) * 10  # to mm for matching the depth
-
-        # T = np.array(calibData.getCameraExtrinsics(ALIGN_SOCKET, RGB_SOCKET, False))
-        # print(T)
-        # exit()
-        # except RuntimeError:
-        #     print("caca")
-        #     T = np.array([0.0, 0.0, 0.001])
-        # try:
-        R = np.array(calibData.getCameraExtrinsics(ALIGN_SOCKET, TOF_SOCKET, False))[0:3, 0:3]
-        # except RuntimeError:
-        #     print("caca")
-        #     R = np.eye(3)
-        TARGET_MATRIX = M1
-
-        lensPosition = calibData.getLensPosition(RGB_SOCKET)
-    except:
-        raise
     fpsCounter = FPSCounter()
     while True:
         messageGroup = queue.get()
@@ -167,7 +147,7 @@ with dai.Device(pipeline) as device:
         sizeDepth = frameDepth.getData().size
         # Blend when both received
         if frameDepth is not None:
-            rgbFrame = frameRgb.getCvFrame()
+            cvFrame = frameRgb.getCvFrame()
             # Colorize the aligned depth
             alignedDepthColorized = colorizeDepth(frameDepth.getFrame())
             # Resize depth to match the rgb frame
@@ -181,22 +161,8 @@ with dai.Device(pipeline) as device:
                 2,
             )
             cv2.imshow("depth", alignedDepthColorized)
-            key = cv2.waitKey(1)
-            if key == ord("m"):
-                if remapping:
-                    print("Remap turned OFF.")
-                    remapping = False
-                else:
-                    print("Remap turned ON.")
-                    remapping = True
 
-            if remapping:
-                # mapX, mapY = cv2.fisheye.initUndistortRectifyMap(M2, D2, None, M2, rgbSize, cv2.CV_32FC1)
-                mapX, mapY = cv2.fisheye.initUndistortRectifyMap(M2, D2, R, M2, rgbSize, cv2.CV_32FC1)
-                rgbFrame = cv2.remap(rgbFrame, mapX, mapY, cv2.INTER_LINEAR)
-            print(rgbFrame.shape)
-            alignedDepthColorized = cv2.resize(alignedDepthColorized, (rgbFrame.shape[1], rgbFrame.shape[0]))
-            blended = cv2.addWeighted(rgbFrame, rgbWeight, alignedDepthColorized, depthWeight, 0)
+            blended = cv2.addWeighted(cvFrame, rgbWeight, alignedDepthColorized, depthWeight, 0)
             cv2.imshow(rgbDepthWindowName, blended)
 
         key = cv2.waitKey(1)
