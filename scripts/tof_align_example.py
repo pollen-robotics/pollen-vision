@@ -79,6 +79,7 @@ with dai.Device(pipeline) as device:
     rgbDepthWindowName = "rgb-depth"
 
     cv2.namedWindow(rgbDepthWindowName)
+
     cv2.createTrackbar(
         "RGB Weight %",
         rgbDepthWindowName,
