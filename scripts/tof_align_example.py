@@ -80,7 +80,7 @@ with dai.Device(pipeline) as device:
 
     cv2.namedWindow(rgbDepthWindowName)
 
-    cv2.createTrackbar(
+    cv2.createTrackbar(  # type: ignore[attr-defined]
         "RGB Weight %",
         rgbDepthWindowName,
         int(rgbWeight * 100),

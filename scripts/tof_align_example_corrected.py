@@ -78,7 +78,7 @@ with dai.Device(pipeline) as device:
     rgbDepthWindowName = "rgb-depth"
 
     cv2.namedWindow(rgbDepthWindowName)
-    cv2.createTrackbar(
+    cv2.createTrackbar(  # type: ignore[attr-defined]
         "RGB Weight %",
         rgbDepthWindowName,
         int(rgbWeight * 100),
@@ -128,7 +128,7 @@ with dai.Device(pipeline) as device:
 
             if remapping:
                 # mapX, mapY = cv2.fisheye.initUndistortRectifyMap(M2, D2, None, M2, rgbSize, cv2.CV_32FC1)
-                mapX, mapY = cv2.fisheye.initUndistortRectifyMap(M2, D2, R, M2, rgbSize, cv2.CV_32FC1)
+                mapX, mapY = cv2.fisheye.initUndistortRectifyMap(M2, D2, R, M2, rgbSize, cv2.CV_32FC1)  # type: ignore
                 rgbFrame = cv2.remap(rgbFrame, mapX, mapY, cv2.INTER_LINEAR)
             print(rgbFrame.shape)
             alignedDepthColorized = cv2.resize(alignedDepthColorized, (rgbFrame.shape[1], rgbFrame.shape[0]))
