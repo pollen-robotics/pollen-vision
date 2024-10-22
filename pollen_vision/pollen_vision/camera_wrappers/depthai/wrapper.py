@@ -88,8 +88,8 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
                 tmp = cam
                 break
 
-        width = tmp.width
-        height = tmp.height
+        width = tmp.width  # type: ignore
+        height = tmp.height  # type: ignore
 
         # # Assuming both cameras are the same
         # width = connected_cameras_features[-1].width
@@ -153,7 +153,7 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
         """Abstract method that is implemented by the subclasses."""
         pass
 
-    def _pipeline_basis(self, create_imagemanip=True) -> dai.Pipeline:
+    def _pipeline_basis(self, create_imagemanip: bool = True) -> dai.Pipeline:
         """Creates and configures the left and right cameras and the image manip nodes.
 
         This method is used (and/or extended) by the subclasses to create the basis pipeline.

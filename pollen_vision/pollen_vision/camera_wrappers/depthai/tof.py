@@ -13,7 +13,7 @@ from pollen_vision.camera_wrappers.depthai.utils import (
 from pollen_vision.camera_wrappers.depthai.wrapper import DepthaiWrapper
 
 
-class TOFWrapper(DepthaiWrapper):
+class TOFWrapper(DepthaiWrapper):  # type: ignore
     def __init__(
         self,
         cam_config_json: str,
@@ -21,9 +21,9 @@ class TOFWrapper(DepthaiWrapper):
         force_usb2: bool = False,
         mx_id: str = "",
         crop: bool = False,
-        noalign=False,
-        rectify=False,
-        create_pointcloud=False,
+        noalign: bool = False,
+        rectify: bool = False,
+        create_pointcloud: bool = False,
     ) -> None:
         """
         Using create_pointcloud mode, we can't undistort at the same time (not enough resources on the device)
@@ -45,7 +45,9 @@ class TOFWrapper(DepthaiWrapper):
         self.cam_config.undistort_resolution = (640, 480)
         self.crop = crop
 
-    def crop_image(self, im, depth):
+    def crop_image(
+        self, im: npt.NDArray[np.uint8], depth: npt.NDArray[np.float32]
+    ) -> Tuple[npt.NDArray[np.uint8], npt.NDArray[np.float32]]:
         # threshold depth
         thresholded_depth = np.where(depth > 0, 1, 0).astype(np.uint8)
         depth_mask_bounding_box = cv2.boundingRect(thresholded_depth)
@@ -84,7 +86,7 @@ class TOFWrapper(DepthaiWrapper):
         if self.crop:
             cropped_left, cropped_depth = self.crop_image(left, depth)
             data["left"] = cropped_left
-            data["depth"] = cropped_depth
+            data["depth"] = cropped_depth  # type: ignore
         else:
             data["left"] = left
             data["depth"] = depth
@@ -193,7 +195,7 @@ if __name__ == "__main__":
 
     print(dai.__version__)
     while True:
-        data, _, _ = t.get_data()
+        data, _, _ = t.get_data()  # type: ignore
         left = data["left"]
 
         depth = data["depth"]

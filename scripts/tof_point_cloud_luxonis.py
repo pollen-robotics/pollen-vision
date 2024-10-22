@@ -6,7 +6,7 @@ from datetime import timedelta
 import cv2
 import depthai as dai
 import numpy as np
-import numpy.typing as npt
+from pollen_vision.camera_wrappers.depthai.utils import colorizeDepth
 
 try:
     import open3d as o3d
@@ -67,35 +67,6 @@ pointcloud.outputPointCloud.link(sync.inputs["pcl"])
 sync.out.link(out.input)
 out.setStreamName("out")
 
-
-def colorizeDepth(frameDepth: npt.NDArray[np.float32]) -> npt.NDArray[np.uint8]:
-    invalidMask = frameDepth == 0
-    # Log the depth, minDepth and maxDepth
-    try:
-        minDepth = np.percentile(frameDepth[frameDepth != 0], 3)
-        maxDepth = np.percentile(frameDepth[frameDepth != 0], 95)
-        logDepth = np.log(frameDepth, where=frameDepth != 0)
-        logMinDepth = np.log(minDepth)
-        logMaxDepth = np.log(maxDepth)
-        np.nan_to_num(logDepth, copy=False, nan=logMinDepth)
-        # Clip the values to be in the 0-255 range
-        logDepth = np.clip(logDepth, logMinDepth, logMaxDepth)
-
-        # Interpolate only valid logDepth values, setting the rest based on the mask
-        depthFrameColor = np.interp(logDepth, (logMinDepth, logMaxDepth), (0, 255))
-        depthFrameColor = np.nan_to_num(depthFrameColor)
-        depthFrameColor = depthFrameColor.astype(np.uint8)
-        depthFrameColor = cv2.applyColorMap(depthFrameColor, cv2.COLORMAP_JET)
-        # Set invalid depth pixels to black
-        depthFrameColor[invalidMask] = 0
-    except IndexError:
-        # Frame is likely empty
-        depthFrameColor = np.zeros((frameDepth.shape[0], frameDepth.shape[1], 3), dtype=np.uint8)
-    except Exception as e:
-        raise e
-    return depthFrameColor  # type: ignore
-
-
 with dai.Device(pipeline) as device:
     isRunning = True
 
@@ -112,7 +83,7 @@ with dai.Device(pipeline) as device:
     view_control = vis.get_view_control()
 
     while isRunning:
-        inMessage = q.get()  # type: ignore
+        inMessage = q.get()
         inColor = inMessage["rgb"]  # type: ignore
         inPointCloud = inMessage["pcl"]  # type: ignore
         inDepth = inMessage["depth_aligned"]  # type: ignore

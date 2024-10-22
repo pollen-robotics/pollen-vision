@@ -1,9 +1,8 @@
-import time
 from datetime import timedelta
 
 import cv2
 import depthai as dai
-import numpy as np
+from pollen_vision.camera_wrappers.depthai.utils import colorizeDepth
 
 # This example is intended to run unchanged on an OAK-D-SR-PoE camera
 FPS = 30.0
@@ -11,23 +10,6 @@ FPS = 30.0
 RGB_SOCKET = dai.CameraBoardSocket.CAM_C
 TOF_SOCKET = dai.CameraBoardSocket.CAM_D
 ALIGN_SOCKET = RGB_SOCKET
-
-
-class FPSCounter:
-    def __init__(self):
-        self.frameTimes = []
-
-    def tick(self):
-        now = time.time()
-        self.frameTimes.append(now)
-        self.frameTimes = self.frameTimes[-100:]
-
-    def getFps(self):
-        if len(self.frameTimes) <= 1:
-            return 0
-        # Calculate the FPS
-        return (len(self.frameTimes) - 1) / (self.frameTimes[-1] - self.frameTimes[0])
-
 
 pipeline = dai.Pipeline()
 # Define sources and outputs
@@ -73,40 +55,11 @@ sync.inputs["rgb"].setBlocking(False)
 camRgb.isp.link(align.inputAlignTo)
 sync.out.link(out.input)
 
-
-def colorizeDepth(frameDepth):
-    invalidMask = frameDepth == 0
-    # Log the depth, minDepth and maxDepth
-    try:
-        minDepth = np.percentile(frameDepth[frameDepth != 0], 3)
-        maxDepth = np.percentile(frameDepth[frameDepth != 0], 95)
-        logDepth = np.log(frameDepth, where=frameDepth != 0)
-        logMinDepth = np.log(minDepth)
-        logMaxDepth = np.log(maxDepth)
-        np.nan_to_num(logDepth, copy=False, nan=logMinDepth)
-        # Clip the values to be in the 0-255 range
-        logDepth = np.clip(logDepth, logMinDepth, logMaxDepth)
-
-        # Interpolate only valid logDepth values, setting the rest based on the mask
-        depthFrameColor = np.interp(logDepth, (logMinDepth, logMaxDepth), (0, 255))
-        depthFrameColor = np.nan_to_num(depthFrameColor)
-        depthFrameColor = depthFrameColor.astype(np.uint8)
-        depthFrameColor = cv2.applyColorMap(depthFrameColor, cv2.COLORMAP_JET)
-        # Set invalid depth pixels to black
-        depthFrameColor[invalidMask] = 0
-    except IndexError:
-        # Frame is likely empty
-        depthFrameColor = np.zeros((frameDepth.shape[0], frameDepth.shape[1], 3), dtype=np.uint8)
-    except Exception as e:
-        raise e
-    return depthFrameColor
-
-
 rgbWeight = 0.4
 depthWeight = 0.6
 
 
-def updateBlendWeights(percentRgb):
+def updateBlendWeights(percentRgb: float) -> None:
     """
     Update the rgb and depth weights used to blend depth/rgb image
 
@@ -133,10 +86,8 @@ with dai.Device(pipeline) as device:
         100,
         updateBlendWeights,
     )
-    fpsCounter = FPSCounter()
     while True:
         messageGroup = queue.get()
-        fpsCounter.tick()
         assert isinstance(messageGroup, dai.MessageGroup)
         frameRgb = messageGroup["rgb"]
         assert isinstance(frameRgb, dai.ImgFrame)
@@ -151,15 +102,7 @@ with dai.Device(pipeline) as device:
             # Colorize the aligned depth
             alignedDepthColorized = colorizeDepth(frameDepth.getFrame())
             # Resize depth to match the rgb frame
-            cv2.putText(
-                alignedDepthColorized,
-                f"FPS: {fpsCounter.getFps():.2f}",
-                (10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                1,
-                (255, 255, 255),
-                2,
-            )
+
             cv2.imshow("depth", alignedDepthColorized)
 
             blended = cv2.addWeighted(cvFrame, rgbWeight, alignedDepthColorized, depthWeight, 0)

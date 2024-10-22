@@ -131,7 +131,7 @@ def get_config_file_path(name: str) -> Any:
     return None
 
 
-def colorizeDepth(frameDepth):
+def colorizeDepth(frameDepth: npt.NDArray[np.float32]) -> npt.NDArray[np.uint8]:
     invalidMask = frameDepth == 0
     # Log the depth, minDepth and maxDepth
     try:
@@ -156,4 +156,4 @@ def colorizeDepth(frameDepth):
         depthFrameColor = np.zeros((frameDepth.shape[0], frameDepth.shape[1], 3), dtype=np.uint8)
     except Exception as e:
         raise e
-    return depthFrameColor
+    return depthFrameColor  # type: ignore[return-value]
