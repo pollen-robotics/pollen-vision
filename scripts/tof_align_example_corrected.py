@@ -13,22 +13,6 @@ TOF_SOCKET = dai.CameraBoardSocket.CAM_D
 ALIGN_SOCKET = RGB_SOCKET
 
 
-class FPSCounter:
-    def __init__(self):
-        self.frameTimes = []
-
-    def tick(self):
-        now = time.time()
-        self.frameTimes.append(now)
-        self.frameTimes = self.frameTimes[-100:]
-
-    def getFps(self):
-        if len(self.frameTimes) <= 1:
-            return 0
-        # Calculate the FPS
-        return (len(self.frameTimes) - 1) / (self.frameTimes[-1] - self.frameTimes[0])
-
-
 pipeline = dai.Pipeline()
 # Define sources and outputs
 camRgb = pipeline.create(dai.node.ColorCamera)
@@ -142,10 +126,8 @@ with dai.Device(pipeline) as device:
         lensPosition = calibData.getLensPosition(RGB_SOCKET)
     except Exception:
         raise
-    fpsCounter = FPSCounter()
     while True:
         messageGroup = queue.get()
-        fpsCounter.tick()
         assert isinstance(messageGroup, dai.MessageGroup)
         frameRgb = messageGroup["rgb"]
         assert isinstance(frameRgb, dai.ImgFrame)
@@ -160,15 +142,7 @@ with dai.Device(pipeline) as device:
             # Colorize the aligned depth
             alignedDepthColorized = colorizeDepth(frameDepth.getFrame())
             # Resize depth to match the rgb frame
-            cv2.putText(
-                alignedDepthColorized,
-                f"FPS: {fpsCounter.getFps():.2f}",
-                (10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                1,
-                (255, 255, 255),
-                2,
-            )
+
             cv2.imshow("depth", alignedDepthColorized)
             key = cv2.waitKey(1)
             if key == ord("m"):
