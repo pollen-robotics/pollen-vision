@@ -31,6 +31,7 @@ camTof.setBoardSocket(TOF_SOCKET)
 camRgb.setBoardSocket(RGB_SOCKET)
 camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_800_P)
 camRgb.setFps(FPS)
+
 camRgb.setIspScale(1, 2)
 
 # depthSize = (1280, 800)  # PLEASE SET TO BE SIZE OF THE TOF STREAM
