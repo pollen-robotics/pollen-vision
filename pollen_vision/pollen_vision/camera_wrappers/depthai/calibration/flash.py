@@ -24,7 +24,8 @@ argParser.add_argument(
     required=True,
     help="Path to the calibration json file",
 )
+argParser.add_argument("--tof", action="store_true", help="Has tof sensor ?")
 args = argParser.parse_args()
 
 w = SDKWrapper(get_config_file_path(args.config))
-w.flash(args.calib_json_file)
+w.flash(args.calib_json_file, tof=args.tof)

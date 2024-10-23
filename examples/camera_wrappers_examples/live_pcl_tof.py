@@ -1,7 +1,7 @@
 import argparse
 
 import cv2
-from pollen_vision.camera_wrappers import SDKWrapper
+from pollen_vision.camera_wrappers import TOFWrapper
 from pollen_vision.camera_wrappers.depthai.utils import (
     get_config_file_path,
     get_config_files_names,
@@ -20,21 +20,18 @@ argParser.add_argument(
 )
 args = argParser.parse_args()
 
-w = SDKWrapper(get_config_file_path(args.config), compute_depth=True)
+w = TOFWrapper(get_config_file_path(args.config), crop=False, fps=30, create_pointcloud=True)
 
-K = w.get_K()
-P = PCLVisualizer(K)
+P = PCLVisualizer()
+P.add_frame("origin")
+
 
 while True:
     data, lat, _ = w.get_data()
 
-    depth = data["depth"]
     rgb = data["left"]
 
-    P.update(cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB), depth)
-
-    cv2.imshow("depth", depth)
-    cv2.imshow("rgb", rgb)
+    P.update(cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB), points=data["pointcloud"])
 
     key = cv2.waitKey(1)
     P.tick()

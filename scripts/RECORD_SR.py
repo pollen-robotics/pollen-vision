@@ -7,7 +7,7 @@ import time
 import numpy as np
 from pollen_vision.camera_wrappers.depthai import SDKWrapper
 from pollen_vision.camera_wrappers.depthai.utils import get_config_file_path
-from recorder import FPS, Recorder
+from pollen_vision.utils import FPS, Recorder
 
 argParser = argparse.ArgumentParser(description="record sr")
 argParser.add_argument(
