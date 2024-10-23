@@ -98,9 +98,6 @@ class TOFWrapper(DepthaiWrapper):  # type: ignore
             data["pointcloud"] = points
         return data, latency, ts
 
-    def get_K(self) -> npt.NDArray[np.float32]:
-        return super().get_K(left=True)  # type: ignore
-
     def _create_pipeline(self) -> dai.Pipeline:
         pipeline = self._pipeline_basis(create_imagemanip=not self.create_pointcloud)
 
