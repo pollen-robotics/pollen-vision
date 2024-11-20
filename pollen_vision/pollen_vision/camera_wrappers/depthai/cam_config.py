@@ -202,8 +202,7 @@ class CamConfig:
         height = self.resize_resolution[1]
         width = self.resize_resolution[0]
         distortion_model = "plumb_bob"
-        if self.calib.getDistortionModel(get_socket_from_name(side, self.name_to_socket)) == dai.CameraModel.Fisheye:
-            distortion_model = "equidistant"
+
         D = self.calib.getDistortionCoefficients(get_socket_from_name(side, self.name_to_socket))
 
         if self.P_left is None or self.P_right is None:
