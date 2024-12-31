@@ -107,7 +107,7 @@ class PollenSDKCameraWrapper(CameraWrapper):  # type: ignore[misc]
             if not self._reachy.is_connected():
                 self._reachy.connect()
 
-            return self._reachy.head.get_orientation()
+            return self._reachy.head.get_current_orientation()
 
         except Exception as err:
             self._logger.error(f"Cannot get head orientation: {err}")
