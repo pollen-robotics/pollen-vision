@@ -84,7 +84,7 @@ class Perception:
                 continue
 
             data, _, _ = self.cam.get_data()
-            self.last_im = data["left"]
+            self.last_im = data["left"][:, :, ::-1]
             self.last_depth = data["depth"]
 
             self.OF.tick()
@@ -111,7 +111,6 @@ class Perception:
 
             if self.visualize and self.last_im is not None:
                 annotated = self.A.annotate(annotated, self.last_predictions, self.last_masks)
-                annotated = cv2.cvtColor(annotated, cv2.COLOR_BGR2RGB)
                 cv2.imshow("annotated", annotated)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     cv2.destroyAllWindows()
