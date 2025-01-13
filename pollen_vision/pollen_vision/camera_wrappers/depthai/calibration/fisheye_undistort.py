@@ -24,14 +24,16 @@ python pollen_vision/pollen_vision/camera_wrappers/depthai/calibration/fisheye_u
 import argparse
 import json
 import logging
+from typing import Any, Optional, Tuple
 
 import cv2
 import numpy as np
+import numpy.typing as npt
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 
-def read_json_file(file_path):
+def read_json_file(file_path: str) -> Any:
     try:
         with open(file_path, "r") as file:
             data = json.load(file)
@@ -44,7 +46,12 @@ def read_json_file(file_path):
         raise
 
 
-def read_config(file_path, side: str):
+def read_config(file_path: str, side: str) -> Tuple[
+    Optional[npt.NDArray[np.float64]],
+    Optional[npt.NDArray[np.float64]],
+    Optional[npt.NDArray[np.float64]],
+    Optional[npt.NDArray[np.float64]],
+]:
     try:
         data = read_json_file(file_path)
 
@@ -91,52 +98,70 @@ def read_config(file_path, side: str):
     return None, None, None, None
 
 
-def rectify(x, y, z, R, T):
-    X = np.array([x, y, z])
-    X = np.dot(R, X) + T
-    return X[0], X[1], X[2]
+def rectify(P: npt.NDArray[np.float64], R: npt.NDArray[np.float64], T: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+    return np.array(np.dot(R, P) + T, dtype=np.float64)
 
 
-def compute_3D_point_sphere(x, y, half_size_fisheye, size_fisheye, resolution):
+def compute_3D_point_sphere(
+    x: int,
+    y: int,
+    half_size_fisheye: npt.NDArray[np.float64],
+    size_fisheye: npt.NDArray[np.float64],
+    resolution: npt.NDArray[np.float64],
+) -> npt.NDArray[np.float64]:
     theta = half_size_fisheye[0] - x * size_fisheye[0] / resolution[0]
     phi = half_size_fisheye[1] - y * size_fisheye[1] / resolution[1]
+
+    P = np.zeros(3)
 
     # opencv model cannot capture larger FoV than 180 degrees
-    if theta > np.pi / 2:
-        return 0, 0, -1
-    elif theta < -np.pi / 2:
-        return 0, 0, -1
+    if theta > np.pi / 2 or theta < -np.pi / 2:
+        P[2] = -1
+        return P
 
     # rho = 1
-    z_3d = np.cos(phi) * np.cos(theta)  # * rho
-    x_3d = -np.cos(phi) * np.sin(theta)  # * rho
-    y_3d = -np.sin(phi)  # * rho
+    P[2] = np.cos(phi) * np.cos(theta)  # * rho
+    P[0] = -np.cos(phi) * np.sin(theta)  # * rho
+    P[1] = -np.sin(phi)  # * rho
 
-    return x_3d, y_3d, z_3d
+    return P
 
 
-def compute_3D_point_plan(x, y, half_size_fisheye, size_fisheye, resolution):
+def compute_3D_point_plan(
+    x: int,
+    y: int,
+    half_size_fisheye: npt.NDArray[np.float64],
+    size_fisheye: npt.NDArray[np.float64],
+    resolution: npt.NDArray[np.float64],
+) -> npt.NDArray[np.float64]:
     theta = half_size_fisheye[0] - x * size_fisheye[0] / resolution[0]
     phi = half_size_fisheye[1] - y * size_fisheye[1] / resolution[1]
 
-    z_3d = 1  # rho
-    x_3d = -np.tan(theta)  # * rho
-    y_3d = -np.tan(phi)  # * rho
+    P = np.ones(3)
 
-    return x_3d, y_3d, z_3d
+    # z_3d = 1  # rho
+    P[0] = -np.tan(theta)  # * rho
+    P[1] = -np.tan(phi)  # * rho
+
+    return P
 
 
-def compute_u_v(x_3d, y_3d, z_3d, K, D, R, T):
-
-    if z_3d == 0:
-        z_3d = np.finfo(float).eps
-    elif z_3d == -1:
+def compute_u_v(
+    P: npt.NDArray[np.float64],
+    K: npt.NDArray[np.float64],
+    D: npt.NDArray[np.float64],
+    R: npt.NDArray[np.float64],
+    T: npt.NDArray[np.float64],
+) -> Tuple[int, int]:
+    if P[2] == 0:
+        P[2] = np.finfo(float).eps
+    elif P[2] == -1:
         return 0, 0
 
-    x_3d, y_3d, z_3d = rectify(x_3d, y_3d, z_3d, R, T)
+    P = rectify(P, R, T)
 
-    a = x_3d / z_3d
-    b = y_3d / z_3d
+    a = P[0] / P[2]
+    b = P[1] / P[2]
     r_square = a**2 + b**2
     r = np.sqrt(r_square)
 
@@ -202,6 +227,9 @@ if __name__ == "__main__":
     )
 
     K, D, R, T = read_config(args.config_path, args.side)
+    if K is None or D is None or R is None or T is None:
+        exit("Failed to read camera calibration data.")
+
     undistorded_image = np.zeros((args.output_size[1], args.output_size[0], 3), np.uint8)
 
     img_distorded = cv2.imread(args.input_image_path)
@@ -217,13 +245,12 @@ if __name__ == "__main__":
     logging.info("Start undistorting the image ...")
     for x in range(resolution_undistorted[0]):
         for y in range(resolution_undistorted[1]):
-
             if args.projection_type == "equirectangular":
-                x_3d, y_3d, z_3d = compute_3D_point_sphere(x, y, half_size_fisheye, size_fisheye, resolution_undistorted)
+                P = compute_3D_point_sphere(x, y, half_size_fisheye, size_fisheye, resolution_undistorted)
             else:
-                x_3d, y_3d, z_3d = compute_3D_point_plan(x, y, half_size_fisheye, size_fisheye, resolution_undistorted)
+                P = compute_3D_point_plan(x, y, half_size_fisheye, size_fisheye, resolution_undistorted)
 
-            u, v = compute_u_v(x_3d, y_3d, z_3d, K, D, R, T)
+            u, v = compute_u_v(P, K, D, R, T)
 
             if v >= resolution[0] or v < 0:
                 undistorded_image[y, x] = (0, 0, 0)
