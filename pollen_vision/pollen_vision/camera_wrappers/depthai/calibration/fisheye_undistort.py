@@ -46,7 +46,9 @@ def read_json_file(file_path: str) -> Any:
         raise
 
 
-def read_config(file_path: str, side: str) -> Tuple[
+def read_config(
+    file_path: str, side: str
+) -> Tuple[
     Optional[npt.NDArray[np.float64]],
     Optional[npt.NDArray[np.float64]],
     Optional[npt.NDArray[np.float64]],
