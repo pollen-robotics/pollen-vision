@@ -245,13 +245,13 @@ class DepthaiWrapper(CameraWrapper):  # type: ignore
         mapXL, mapYL, mapXR, mapYR = compute_undistort_maps(self.cam_config)
         self.cam_config.set_undistort_maps(mapXL, mapYL, mapXR, mapYR)
 
-    def save_calibration(self, output_file: str) -> None:
+    def save_calibration(self, output_file: Path) -> None:
         deviceCalib = self._device.readCalibration()
         deviceCalib.eepromToJsonFile(output_file)
         self._logger.info(f"Backup of device calibration saved to {output_file}")
 
     # Takes in the output of multical calibration
-    def flash(self, calib_json_file: str) -> None:
+    def flash(self, calib_json_file: Path) -> None:
         """Flashes the calibration to the camera.
 
         The calibration is read from the calib_json_file and flashed into the camera's eeprom.
