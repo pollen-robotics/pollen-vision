@@ -1,6 +1,7 @@
 from .annotator import Annotator  # noqa
 from .labels import Labels  # noqa
 from .objects_filter import ObjectsFilter  # noqa
+from .recorder import FPS, Recorder  # noqa
 
 # from .pcl_visualizer import PCLVisualizer  # noqa
 from .utils import (  # noqa
