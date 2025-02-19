@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Dict, Optional, Tuple, Union
 
 import cv2
 import numpy as np
@@ -114,13 +114,13 @@ class OrbbecWrapper(CameraWrapper):  # type: ignore
             image = cv2.imdecode(data, cv2.IMREAD_COLOR).astype(np.uint8)
         elif color_format == OBFormat.I420:
             image = self.i420_to_bgr(data, width, height)
-            #return image
+            # return image
         elif color_format == OBFormat.NV12:
             image = self.nv12_to_bgr(data, width, height)
-            #return image
+            # return image
         elif color_format == OBFormat.NV21:
             image = self.nv21_to_bgr(data, width, height)
-            #return image
+            # return image
         elif color_format == OBFormat.UYVY:
             image = np.resize(data, (height, width, 2))
             image = cv2.cvtColor(image, cv2.COLOR_YUV2BGR_UYVY).astype(np.uint8)
@@ -129,7 +129,13 @@ class OrbbecWrapper(CameraWrapper):  # type: ignore
             return None
         return image
 
-    def get_data(self) -> Tuple[Dict[str, Union[npt.NDArray[np.uint8], npt.NDArray[np.uint16]]], Optional[Dict[str, float]], Optional[Dict[str, timedelta]]]:
+    def get_data(
+        self,
+    ) -> Tuple[
+        Dict[str, Union[npt.NDArray[np.uint8], npt.NDArray[np.uint16]]],
+        Optional[Dict[str, float]],
+        Optional[Dict[str, timedelta]],
+    ]:
         data: Dict[str, Union[npt.NDArray[np.uint8], npt.NDArray[np.uint16]]] = {}  # 8 for color 16 for depth
         frames = self.pipeline.wait_for_frames(100)
         if not frames:
