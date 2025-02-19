@@ -69,8 +69,8 @@ class CamConfig:
         self.calib: dai.CalibrationHandler = dai.CalibrationHandler()
 
         # lazy init, camera needs to be connected to
-        self.P_left: Optional[cv2.UMat] = None
-        self.P_right: Optional[cv2.UMat] = None
+        self.P_left: Optional[npt.NDArray[np.float32]] = None
+        self.P_right: Optional[npt.NDArray[np.float32]] = None
 
         self._logger = logging.getLogger(__name__)
 
@@ -170,7 +170,7 @@ class CamConfig:
 
         return ret_string
 
-    def compute_projection_matrices(self) -> Tuple[cv2.UMat, cv2.UMat]:
+    def compute_projection_matrices(self) -> Tuple[npt.NDArray[np.float32], npt.NDArray[np.float32]]:
         left_socket = get_socket_from_name("left", self.name_to_socket)
         right_socket = get_socket_from_name("right", self.name_to_socket)
 
@@ -192,7 +192,7 @@ class CamConfig:
             T,
             flags=0,
         )
-        return P1, P2
+        return P1.astype(np.float32) , P2.astype(np.float32)
 
     def to_ROS_msg(
         self, side: str = "left"
