@@ -192,7 +192,7 @@ class CamConfig:
             T,
             flags=0,
         )
-        return P1.astype(np.float32) , P2.astype(np.float32)
+        return P1.astype(np.float32), P2.astype(np.float32)
 
     def to_ROS_msg(
         self, side: str = "left"
