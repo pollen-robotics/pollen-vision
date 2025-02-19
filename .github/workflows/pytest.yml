@@ -27,7 +27,7 @@ jobs:
           coverage json -i
           coverage html -i
       - name: Archive code coverage html report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: code-coverage-report
           path: htmlcov
