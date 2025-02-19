@@ -114,13 +114,10 @@ class OrbbecWrapper(CameraWrapper):  # type: ignore
             image = cv2.imdecode(data, cv2.IMREAD_COLOR).astype(np.uint8)
         elif color_format == OBFormat.I420:
             image = self.i420_to_bgr(data, width, height)
-            # return image
         elif color_format == OBFormat.NV12:
             image = self.nv12_to_bgr(data, width, height)
-            # return image
         elif color_format == OBFormat.NV21:
             image = self.nv21_to_bgr(data, width, height)
-            # return image
         elif color_format == OBFormat.UYVY:
             image = np.resize(data, (height, width, 2))
             image = cv2.cvtColor(image, cv2.COLOR_YUV2BGR_UYVY).astype(np.uint8)
