@@ -57,6 +57,8 @@ class RealsenseWrapper(CameraWrapper):  # type: ignore
     def get_K(self, left: bool = True) -> npt.NDArray[np.float32]:
         return self.K
 
+    def get_D(self, cam_name: str = "left") -> npt.NDArray[np.float32]:
+        return np.zeros((5, 1), dtype=np.float32)
 
 if __name__ == "__main__":
     wrapper = RealsenseWrapper()
