@@ -6,3 +6,4 @@ from .depthai.teleop import TeleopWrapper  # noqa: F401
 #     PollenSDKCameraWrapper,
 # )
 from .realsense.realsense_wrapper import RealsenseWrapper  # noqa: F401
+from .basler.basler_wrapper import BaslerWrapper  # noqa: F401
