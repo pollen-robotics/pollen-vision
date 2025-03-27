@@ -84,7 +84,6 @@ We chose to focus on zero-shot models to make it easier to use and deploy. Zero-
 
 Right now, we support:
 #### Object detection
-- `Yolo-World` for zero-shot object detection and localization
 - `Owl-Vit` for zero-shot object detection and localization
 - `Recognize-Anything` for zero-shot object detection (without localization)
 
