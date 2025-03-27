@@ -92,8 +92,8 @@ def drawEpiLines(left: npt.NDArray[Any], right: npt.NDArray[Any], aruco_dict: ar
         if lid not in rids:
             continue
 
-        lcorners = lcorners_dict[lid]
-        rcorners = rcorners_dict[lid]
+        lcorners = lcorners_dict[lid]  # type: ignore
+        rcorners = rcorners_dict[lid]  # type: ignore
         for i in range(len(lcorners)):
             x1 = lcorners[i][0]
             y1 = lcorners[i][1]
