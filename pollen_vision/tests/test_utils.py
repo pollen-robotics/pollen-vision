@@ -52,4 +52,5 @@ def test_draw_epilines() -> None:
     ARUCO_DICT = aruco.getPredefinedDictionary(aruco.DICT_4X4_1000)
 
     epilines = drawEpiLines(imleft, imright, ARUCO_DICT)
+
     assert np.array_equal(epilines, epilines_ref["epilines"])

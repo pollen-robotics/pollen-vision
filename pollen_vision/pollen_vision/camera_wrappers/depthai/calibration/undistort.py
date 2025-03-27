@@ -3,11 +3,14 @@ from typing import List, Tuple
 import cv2
 import depthai as dai
 import numpy as np
+import numpy.typing as npt
 from pollen_vision.camera_wrappers.depthai.cam_config import CamConfig
 from pollen_vision.camera_wrappers.depthai.utils import get_socket_from_name
 
 
-def compute_undistort_maps(cam_config: CamConfig) -> Tuple[cv2.UMat, cv2.UMat, cv2.UMat, cv2.UMat]:
+def compute_undistort_maps(
+    cam_config: CamConfig,
+) -> Tuple[npt.NDArray[np.float32], npt.NDArray[np.float32], npt.NDArray[np.float32], npt.NDArray[np.float32]]:
     """Pre-computes the undistort maps for the rectification."""
 
     left_socket = get_socket_from_name("left", cam_config.name_to_socket)
@@ -49,14 +52,13 @@ def compute_undistort_maps(cam_config: CamConfig) -> Tuple[cv2.UMat, cv2.UMat, c
     )
 
     if cam_config.fisheye:
-        # 5 is the value of cv2.CV_32FC1. mypy does not know about this value
-        mapXL, mapYL = cv2.fisheye.initUndistortRectifyMap(left_K, left_D, R1, P1, resolution, 5)
-        mapXR, mapYR = cv2.fisheye.initUndistortRectifyMap(right_K, right_D, R2, P2, resolution, 5)
+        mapXL, mapYL = cv2.fisheye.initUndistortRectifyMap(left_K, left_D, R1, P1, resolution, cv2.CV_32FC1)
+        mapXR, mapYR = cv2.fisheye.initUndistortRectifyMap(right_K, right_D, R2, P2, resolution, cv2.CV_32FC1)
     else:
-        mapXL, mapYL = cv2.initUndistortRectifyMap(left_K, left_D, R1, P1, resolution, 5)
-        mapXR, mapYR = cv2.initUndistortRectifyMap(right_K, right_D, R2, P2, resolution, 5)
+        mapXL, mapYL = cv2.initUndistortRectifyMap(left_K, left_D, R1, P1, resolution, cv2.CV_32FC1)
+        mapXR, mapYR = cv2.initUndistortRectifyMap(right_K, right_D, R2, P2, resolution, cv2.CV_32FC1)
 
-    return mapXL, mapYL, mapXR, mapYR
+    return mapXL.astype(np.float32), mapYL.astype(np.float32), mapXR.astype(np.float32), mapYR.astype(np.float32)
 
 
 def get_mesh(cam_config: CamConfig, cam_name: str) -> Tuple[List[dai.Point2f], int, int]:
