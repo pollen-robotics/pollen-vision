@@ -18,7 +18,7 @@ from pollen_vision.utils import (
     get_object_pose_in_world,
     get_scores,
 )
-from pollen_vision.vision_models.object_detection import OwlVitWrapper, YoloWorldWrapper
+from pollen_vision.vision_models.object_detection import OwlVitWrapper
 from pollen_vision.vision_models.object_segmentation import MobileSamWrapper
 
 
@@ -31,7 +31,7 @@ class Perception:
         camera_wrapper: CameraWrapper,
         T_world_cam: Optional[npt.NDArray[np.float32]] = None,
         freq: float = 1.0,
-        yolo_thres: float = 0.01,
+        detection_threshold: float = 0.01,
     ) -> None:
         self.cam = camera_wrapper
         if isinstance(self.cam, PollenSDKCameraWrapper) and self.cam.cam_name == "teleop":
@@ -52,7 +52,6 @@ class Perception:
 
         self.freq = freq
         self.Owl = OwlVitWrapper()
-        self.YOLO = YoloWorldWrapper()
         self.SAM = MobileSamWrapper()
         self.A = Annotator()
         self.OF = ObjectsFilter()
@@ -62,7 +61,7 @@ class Perception:
         self.last_depth = None
         self.last_predictions: List[Dict] = []  # type: ignore
         self.last_masks: List[npt.NDArray[np.uint8]] = []
-        self._yolo_thres = yolo_thres
+        self._detection_threshold = detection_threshold
         self._lastTick = time.time()
 
     def start(self, visualize: bool = False) -> None:
@@ -99,7 +98,9 @@ class Perception:
                 self._lastTick = time.time()  # Lame
                 continue
 
-            self.last_predictions = self.YOLO.infer(self.last_im, self.tracked_objects, detection_threshold=self._yolo_thres)
+            self.last_predictions = self.Owl.infer(
+                self.last_im, self.tracked_objects, detection_threshold=self._detection_threshold
+            )
             if len(self.last_predictions) == 0:
                 self._lastTick = time.time()  # Lame
                 continue
